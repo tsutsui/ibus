@@ -109,6 +109,9 @@ typedef enum
  * @IBUS_CAP_SURROUNDING_TEXT: Client can provide surround text,
  *  or IME can handle surround text.
  * @IBUS_CAP_OSK: UI is owned by on-screen keyboard.
+ * @IBUS_CAP_SYNC_PROCESS_KEY: Asynchronous process key events are not
+ *  supported and the ibus_engine_forward_key_event() should not be
+ *  used for the return value of #IBusEngine::process_key_event().
  *
  * Capability flags of UI.
  */
@@ -120,6 +123,7 @@ typedef enum {
     IBUS_CAP_PROPERTY           = 1 << 4,
     IBUS_CAP_SURROUNDING_TEXT   = 1 << 5,
     IBUS_CAP_OSK                = 1 << 6,
+    IBUS_CAP_SYNC_PROCESS_KEY   = 1 << 7,
 } IBusCapabilite;
 
 /**

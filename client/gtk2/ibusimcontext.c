@@ -111,13 +111,13 @@ static guint    _signal_delete_surrounding_id = 0;
 static guint    _signal_retrieve_surrounding_id = 0;
 
 #if GTK_CHECK_VERSION (3, 98, 4)
-static gboolean _use_sync_mode = TRUE;
+static char _use_sync_mode = 2;
 #else
 static const gchar *_no_snooper_apps = NO_SNOOPER_APPS;
 static gboolean _use_key_snooper = ENABLE_SNOOPER;
 static guint    _key_snooper_id = 0;
 
-static gboolean _use_sync_mode = FALSE;
+static char _use_sync_mode = 0;
 #endif
 
 static const gchar *_discard_password_apps  = "";
@@ -375,12 +375,15 @@ ibus_im_context_commit_event (IBusIMContext *ibusimcontext,
    return FALSE;
 }
 
-struct _ProcessKeyEventData {
+typedef struct {
     GdkEvent *event;
     IBusIMContext *ibusimcontext;
-};
+} ProcessKeyEventData;
 
-typedef struct _ProcessKeyEventData ProcessKeyEventData;
+typedef struct {
+    GMainLoop *loop;
+    gboolean    retval;
+} ProcessKeyEventReplyData;
 
 static void
 _process_key_event_done (GObject      *object,
@@ -395,12 +398,12 @@ _process_key_event_done (GObject      *object,
     IBusIMContext *ibusimcontext = data->ibusimcontext;
 #endif
     GError *error = NULL;
+    gboolean retval;
 
     g_slice_free (ProcessKeyEventData, data);
-    gboolean retval = ibus_input_context_process_key_event_async_finish (
-            context,
-            res,
-            &error);
+    retval = ibus_input_context_process_key_event_async_finish (context,
+                                                                res,
+                                                                &error);
 
     if (error != NULL) {
         g_warning ("Process Key Event failed: %s.", error->message);
@@ -429,6 +432,27 @@ _process_key_event_done (GObject      *object,
 #else
     gdk_event_free (event);
 #endif
+}
+
+static void
+_process_key_event_reply_done (GObject      *object,
+                               GAsyncResult *res,
+                               gpointer      user_data)
+{
+    IBusInputContext *context = (IBusInputContext *)object;
+    ProcessKeyEventReplyData *data = (ProcessKeyEventReplyData *)user_data;
+    GError *error = NULL;
+    gboolean retval = ibus_input_context_process_key_event_async_finish (
+            context,
+            res,
+            &error);
+    if (error != NULL) {
+        g_warning ("Process Key Event failed: %s.", error->message);
+        g_error_free (error);
+    }
+    g_return_if_fail (data);
+    data->retval = retval;
+    g_main_loop_quit (data->loop);
 }
 
 static gboolean
@@ -462,13 +486,45 @@ _process_key_event (IBusInputContext *context,
 #endif
     keycode = hardware_keycode;
 
-    if (_use_sync_mode) {
+    switch (_use_sync_mode) {
+    case 1: {
         retval = ibus_input_context_process_key_event (context,
+                                                       keyval,
+                                                       keycode - 8,
+                                                       state);
+        break;
+    }
+    case 2: {
+        GMainLoop *loop = g_main_loop_new (NULL, TRUE);
+        ProcessKeyEventReplyData *data = NULL;
+
+        if (loop)
+            data = g_slice_new0 (ProcessKeyEventReplyData);
+        if (!data) {
+            g_warning ("Cannot wait for the reply of the process key event.");
+            retval = ibus_input_context_process_key_event (context,
+                                                           keyval,
+                                                           keycode - 8,
+                                                           state);
+            if (loop)
+                g_main_loop_quit (loop);
+            break;
+        }
+        data->loop = loop;
+        ibus_input_context_process_key_event_async (context,
             keyval,
             keycode - 8,
-            state);
+            state,
+            -1,
+            NULL,
+            _process_key_event_reply_done,
+            data);
+        g_main_loop_run (loop);
+        retval = data->retval;
+        g_slice_free (ProcessKeyEventReplyData, data);
+        break;
     }
-    else {
+    default: {
         ProcessKeyEventData *data = g_slice_new0 (ProcessKeyEventData);
 #if GTK_CHECK_VERSION (3, 98, 4)
         data->event = gdk_event_ref (event);
@@ -486,6 +542,7 @@ _process_key_event (IBusInputContext *context,
             data);
 
         retval = TRUE;
+    }
     }
 
     /* GTK4 does not provide gtk_key_snooper_install() and also
@@ -676,22 +733,45 @@ _key_snooper_cb (GtkWidget   *widget,
 #endif
 
 static gboolean
-_get_boolean_env(const gchar *name,
-                 gboolean     defval)
+_get_boolean_env (const gchar *name,
+                  gboolean     defval)
 {
     const gchar *value = g_getenv (name);
 
     if (value == NULL)
-      return defval;
+        return defval;
 
     if (g_strcmp0 (value, "") == 0 ||
         g_strcmp0 (value, "0") == 0 ||
         g_strcmp0 (value, "false") == 0 ||
         g_strcmp0 (value, "False") == 0 ||
-        g_strcmp0 (value, "FALSE") == 0)
-      return FALSE;
+        g_strcmp0 (value, "FALSE") == 0) {
+        return FALSE;
+    }
 
     return TRUE;
+}
+
+static char
+_get_char_env (const gchar *name,
+               char         defval)
+{
+    const gchar *value = g_getenv (name);
+
+    if (value == NULL)
+        return defval;
+
+    if (g_strcmp0 (value, "") == 0 ||
+        g_strcmp0 (value, "0") == 0 ||
+        g_strcmp0 (value, "false") == 0 ||
+        g_strcmp0 (value, "False") == 0 ||
+        g_strcmp0 (value, "FALSE") == 0) {
+        return 0;
+    } else if (!g_strcmp0 (value, "2")) {
+        return 2;
+    }
+
+    return 1;
 }
 
 static void
@@ -777,11 +857,11 @@ ibus_im_context_class_init (IBusIMContextClass *class)
     g_assert (_signal_retrieve_surrounding_id != 0);
 
 #if GTK_CHECK_VERSION (3, 98, 4)
-    _use_sync_mode = _get_boolean_env ("IBUS_ENABLE_SYNC_MODE", TRUE);
+    _use_sync_mode = _get_char_env ("IBUS_ENABLE_SYNC_MODE", 2);
 #else
     _use_key_snooper = !_get_boolean_env ("IBUS_DISABLE_SNOOPER",
                                           !(ENABLE_SNOOPER));
-    _use_sync_mode = _get_boolean_env ("IBUS_ENABLE_SYNC_MODE", FALSE);
+    _use_sync_mode = (char)_get_char_env ("IBUS_ENABLE_SYNC_MODE", 0);
 #endif
     _use_discard_password = _get_boolean_env ("IBUS_DISCARD_PASSWORD", FALSE);
 
@@ -904,6 +984,8 @@ ibus_im_context_init (GObject *obj)
 #else
     ibusimcontext->caps = IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS;
 #endif
+    if (_use_sync_mode != 1)
+        ibusimcontext->caps |= IBUS_CAP_SYNC_PROCESS_KEY;
 
     ibusimcontext->events_queue = g_queue_new ();
 
@@ -1246,7 +1328,7 @@ ibus_im_context_reset (GtkIMContext *context)
          * IBus uses button-press-event instead until GTK is fixed.
          * https://gitlab.gnome.org/GNOME/gtk/issues/1534
          */
-        if (_use_sync_mode)
+        if (_use_sync_mode == 1)
             ibus_im_context_clear_preedit_text (ibusimcontext);
         ibus_input_context_reset (ibusimcontext->ibuscontext);
     }
@@ -1361,7 +1443,7 @@ ibus_im_context_set_client_window (GtkIMContext *context,
 
     if (ibusimcontext->client_window) {
 #if !GTK_CHECK_VERSION (3, 98, 4)
-        if (ibusimcontext->use_button_press_event && !_use_sync_mode)
+        if (ibusimcontext->use_button_press_event && _use_sync_mode != 1)
             _connect_button_press_event (ibusimcontext, FALSE);
 #endif
         g_object_unref (ibusimcontext->client_window);
@@ -1371,7 +1453,7 @@ ibus_im_context_set_client_window (GtkIMContext *context,
     if (client != NULL) {
         ibusimcontext->client_window = g_object_ref (client);
 #if !GTK_CHECK_VERSION (3, 98, 4)
-        if (!ibusimcontext->use_button_press_event && !_use_sync_mode)
+        if (!ibusimcontext->use_button_press_event && _use_sync_mode != 1)
             _connect_button_press_event (ibusimcontext, TRUE);
 #endif
     }
@@ -1993,7 +2075,7 @@ _ibus_context_update_preedit_text_cb (IBusInputContext  *ibuscontext,
 #if !GTK_CHECK_VERSION (3, 98, 4)
     if (!ibusimcontext->use_button_press_event &&
         mode == IBUS_ENGINE_PREEDIT_COMMIT &&
-        !_use_sync_mode) {
+        _use_sync_mode != 1) {
         if (ibusimcontext->client_window) {
             _connect_button_press_event (ibusimcontext, TRUE);
         }
@@ -2200,6 +2282,8 @@ _create_input_context_done (IBusBus       *bus,
 static void
 _create_input_context (IBusIMContext *ibusimcontext)
 {
+    gchar *prgname = g_strdup (g_get_prgname());
+    gchar *client_name;
     IDEBUG ("%s", __FUNCTION__);
 
     g_assert (ibusimcontext->ibuscontext == NULL);
@@ -2208,11 +2292,24 @@ _create_input_context (IBusIMContext *ibusimcontext)
 
     ibusimcontext->cancellable = g_cancellable_new ();
 
+    if (!prgname)
+        prgname = g_strdup_printf ("(%d)", getpid ());
+    client_name = g_strdup_printf ("%s:%s",
+#if GTK_CHECK_VERSION (3, 98, 4)
+                                   "gtk4-im",
+#elif GTK_CHECK_VERSION (2, 91, 0)
+                                   "gtk3-im",
+#else
+                                   "gtk-im",
+#endif
+                                   prgname);
+    g_free (prgname);
     ibus_bus_create_input_context_async (_bus,
-            "gtk-im", -1,
+            client_name, -1,
             ibusimcontext->cancellable,
             (GAsyncReadyCallback)_create_input_context_done,
             g_object_ref (ibusimcontext));
+    g_free (client_name);
 }
 
 /* Callback functions for slave context */
@@ -2329,6 +2426,8 @@ _create_fake_input_context_done (IBusBus       *bus,
                       NULL);
 
     guint32 caps = IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS | IBUS_CAP_SURROUNDING_TEXT;
+    if (_use_sync_mode != 1)
+        caps |= IBUS_CAP_SYNC_PROCESS_KEY;
     ibus_input_context_set_capabilities (_fake_context, caps);
 
     /* focus in/out the fake context */
