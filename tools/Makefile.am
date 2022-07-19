@@ -3,7 +3,7 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2013 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2017 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2015-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
 # Copyright (c) 2007-2017 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
@@ -57,6 +57,7 @@ AM_LDADD = \
 AM_VALAFLAGS = \
 	--vapidir=$(top_builddir)/bindings/vala \
 	--vapidir=$(top_srcdir)/bindings/vala \
+	--pkg=gio-2.0 \
 	--pkg=ibus-1.0 \
 	--pkg=posix \
 	--pkg=config \

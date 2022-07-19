@@ -3,7 +3,7 @@
 .\" Copyright (C) Takao Fujiwara <takao.fujiwara1@gmail.com>, 2013-2017.
 .\" Copyright (c) Peng Huang <shawn.p.huang@gmail.com>, 2013.
 .\"
-.TH "IBUS" 1 "May 2017" "@VERSION@" "User Commands"
+.TH "IBUS" 1 "Jul 2022" "@VERSION@" "User Commands"
 .SH NAME
 .B ibus
 \- command line utility for ibus
@@ -45,13 +45,33 @@ Exit ibus-daemon.
 \fBlist-engine\fR
 Show ibus engines list.
 .TP
-\fBrestart\fR
-Restart ibus-daemon.
+\fBrestart\fR [\fB\-\-type=TYPE|\-\-verbose|\-\-help\fR]
+Restart ibus-daemon. This command tries to restart ibus-daemon via systemd
+firstly and directly secondary by default. If
+.B \-\-type=systemd
+is given, It tries to restart via systemd only. If
+.B \-\-type=direct
+is given, It tries to restart with an IBus API only. GNOME desktop runs
+ibus-daemon via systemd and other desktops run ibus-daemon directly.
+.TP
+\fBstart\fR [\fB\-\-type=TYPE|\-\-verbose|\-\-help\fR]
+Start ibus-daemon. This command tries to start ibus-daemon via systemd
+firstly and directly secondary by default. If
+.B \-\-type=systemd
+is given, It tries to start as a background process via systemd only. If
+.B \-\-type=direct
+is given, It tries to start directly only as a foreground process and other
+option arguments of ibus command are sent to ibus-daemon. E.g.
+ibus start
+.B \-\-type=direct
+.B \-\-xim
+&
+GNOME desktop runs ibus-daemon via systemd and other desktops run ibus-daemon directly.
 .TP
 \fBversion\fR
 Show the ibus version.
 .TP
-\fBread\-cache\fR [\fB\-\-system|\-\-file=FILE\fR]
+\fBread\-cache\fR [\fB\-\-system|\-\-file=FILE|\-\-help\fR]
 Show the content of the user registry cache if
 .B \-\-system
 is not given.
@@ -64,7 +84,7 @@ if
 .B \-\-file=FILE
 is given.
 .TP
-\fBwrite\-cache\fR [\fB\-\-system|\-\-file=FILE\fR]
+\fBwrite\-cache\fR [\fB\-\-system|\-\-file=FILE|\-\-help\fR]
 Save the user registry cache if
 .B \-\-system
 is not given.

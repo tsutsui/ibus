@@ -3,7 +3,7 @@
  * ibus - The Input Bus
  *
  * Copyright(c) 2013 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2015-2020 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright(c) 2015-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,16 +27,22 @@ private const string IBUS_SCHEMAS_GENERAL_HOTKEY =
 private const string IBUS_SCHEMAS_PANEL = "org.freedesktop.ibus.panel";
 private const string IBUS_SCHEMAS_PANEL_EMOJI =
         "org.freedesktop.ibus.panel.emoji";
+private const string SYSTEMD_SESSION_GNOME_FILE =
+        "org.freedesktop.IBus.session.GNOME.service";
 
 bool name_only = false;
 /* system() exists as a public API. */
 bool is_system = false;
 string cache_file = null;
 string engine_id = null;
+bool verbose = false;
+string daemon_type = null;
+string systemd_service_file = null;
 
 class EngineList {
     public IBus.EngineDesc[] data = {};
 }
+
 
 IBus.Bus? get_bus() {
     var bus = new IBus.Bus();
@@ -44,6 +50,131 @@ IBus.Bus? get_bus() {
         return null;
     return bus;
 }
+
+
+GLib.DBusConnection?  get_session_bus(bool verbose) {
+    try {
+        return GLib.Bus.get_sync (GLib.BusType.SESSION, null);
+    } catch (GLib.IOError e) {
+        if (verbose)
+            stderr.printf("%s\n", e.message);
+    }
+    return null;
+}
+
+string?
+get_ibus_systemd_object_path(GLib.DBusConnection connection,
+                             bool                verbose) {
+    string object_path = null;
+    assert(systemd_service_file != null);
+    try {
+        var variant = connection.call_sync (
+                "org.freedesktop.systemd1",
+                "/org/freedesktop/systemd1",
+                "org.freedesktop.systemd1.Manager",
+                "GetUnit",
+                new GLib.Variant("(s)", systemd_service_file),
+                new GLib.VariantType("(o)"),
+                GLib.DBusCallFlags.NONE,
+                -1,
+                null);
+        variant.get("(o)", ref object_path);
+        if (verbose) {
+            stderr.printf("Succeed to get an object path \"%s\" for IBus " +
+                          "systemd service file \"%s\".\n",
+                          object_path, systemd_service_file);
+        }
+        return object_path;
+    } catch (GLib.Error e) {
+        if (verbose) {
+            stderr.printf("IBus systemd service file \"%s\" is not installed " +
+                          "in your system: %s\n",
+                          systemd_service_file, e.message);
+        }
+    }
+    return null;
+}
+
+
+bool
+is_running_daemon_via_systemd(GLib.DBusConnection connection,
+                              string              object_path,
+                              bool                verbose) {
+    string? state = null;
+    try {
+        while (true) {
+            var variant = connection.call_sync (
+                    "org.freedesktop.systemd1",
+                    object_path,
+                    "org.freedesktop.DBus.Properties",
+                    "Get",
+                    new GLib.Variant("(ss)",
+                                     "org.freedesktop.systemd1.Unit",
+                                     "ActiveState"),
+                    new GLib.VariantType("(v)"),
+                    GLib.DBusCallFlags.NONE,
+                    -1,
+                    null);
+            GLib.Variant child = null;
+            variant.get("(v)", ref child);
+            state = child.dup_string();
+            if (verbose) {
+                stderr.printf("systemd state is \"%s\" for an object " +
+                              "path \"%s\".\n", state, object_path);
+            }
+            if (state != "activating")
+                break;
+            Posix.sleep(1);
+        }
+    } catch (GLib.Error e) {
+        if (verbose)
+            stderr.printf("%s\n", e.message);
+        return false;
+    }
+    if (state == "active")
+        return true;
+    return false;
+}
+
+
+bool
+start_daemon_via_systemd(GLib.DBusConnection connection,
+                         bool                restart,
+                         bool                verbose) {
+    string object_path = null;
+    string method = "StartUnit";
+    assert(systemd_service_file != null);
+    if (restart)
+        method = "RestartUnit";
+    try {
+        var variant = connection.call_sync (
+                "org.freedesktop.systemd1",
+                "/org/freedesktop/systemd1",
+                "org.freedesktop.systemd1.Manager",
+                method,
+                new GLib.Variant("(ss)", systemd_service_file, "fail"),
+                new GLib.VariantType("(o)"),
+                GLib.DBusCallFlags.NONE,
+                -1,
+                null);
+        variant.get("(o)", ref object_path);
+        if (verbose) {
+            stderr.printf("Succeed to restart IBus daemon via IBus systemd " +
+                          "service file \"%s\": \"%s\"\n",
+                          systemd_service_file, object_path);
+        }
+        return true;
+    } catch (GLib.Error e) {
+        if (verbose) {
+            stderr.printf("Failed to %s IBus daemon via IBus systemd " +
+                          "service file \"%s\": %s\n",
+                          restart ? "restart" : "start",
+                          systemd_service_file, e.message);
+        }
+    }
+    return false;
+}
+
 
 int list_engine(string[] argv) {
     const OptionEntry[] options = {
@@ -99,6 +230,7 @@ int list_engine(string[] argv) {
     return Posix.EXIT_SUCCESS;
 }
 
+
 private int exec_setxkbmap(IBus.EngineDesc engine) {
     string layout = engine.get_layout();
     string variant = engine.get_layout_variant();
@@ -149,6 +281,7 @@ private int exec_setxkbmap(IBus.EngineDesc engine) {
     return Posix.EXIT_SUCCESS;
 }
 
+
 int get_set_engine(string[] argv) {
     var bus = get_bus();
     string engine = null;
@@ -182,18 +315,119 @@ int get_set_engine(string[] argv) {
     return Posix.EXIT_SUCCESS;
 }
 
+
 int message_watch(string[] argv) {
     return Posix.EXIT_SUCCESS;
 }
 
-int restart_daemon(string[] argv) {
-    var bus = get_bus();
-    if (bus == null) {
-        stderr.printf(_("Can't connect to IBus.\n"));
+
+int start_daemon_real(string[] argv,
+                      bool     restart) {
+    const OptionEntry[] options = {
+        { "type", 0, 0, OptionArg.STRING, out daemon_type,
+          N_("Start or restart daemon with \"direct\" or \"systemd\" TYPE."),
+          "TYPE" },
+        { "service-file", 0, 0, OptionArg.STRING, out systemd_service_file,
+          N_("Start or restart daemon with SYSTEMD_SERVICE file."),
+          "SYSTEMD_SERVICE" },
+        { "verbose", 0, 0, OptionArg.NONE, out verbose,
+          N_("Show debug messages."), null },
+        { null }
+    };
+
+    var option = new OptionContext();
+    option.add_main_entries(options, Config.GETTEXT_PACKAGE);
+    option.set_ignore_unknown_options(true);
+
+    try {
+        option.parse(ref argv);
+    } catch (OptionError e) {
+        stderr.printf("%s\n", e.message);
         return Posix.EXIT_FAILURE;
     }
-    bus.exit(true);
+    if (daemon_type != null && daemon_type != "direct" &&
+        daemon_type != "systemd") {
+        stderr.printf("type argument must be \"direct\" or \"systemd\"\n");
+        return Posix.EXIT_FAILURE;
+    }
+    if (systemd_service_file == null)
+        systemd_service_file = SYSTEMD_SESSION_GNOME_FILE;
+
+    do {
+        if (daemon_type == "direct")
+            break;
+        GLib.DBusConnection? connection = get_session_bus(verbose);
+        if (connection == null)
+            break;
+        string? object_path = null;
+        if (restart) {
+            object_path = get_ibus_systemd_object_path(connection, verbose);
+            if (object_path == null)
+                break;
+            if (!is_running_daemon_via_systemd(connection,
+                                               object_path,
+                                               verbose)) {
+                break;
+            }
+        }
+        if (!start_daemon_via_systemd(connection, restart, verbose))
+            break;
+        // Do not check the systemd state in case of restart because
+        // the systemd file validation is already done and also stopping
+        // daemon and starting daemon take time and the state could be
+        // "inactive" with the time lag.
+        if (restart)
+            return Posix.EXIT_SUCCESS;
+        object_path = get_ibus_systemd_object_path(connection, verbose);
+        if (object_path == null)
+            break;
+        if (!is_running_daemon_via_systemd(connection, object_path, verbose))
+            break;
+        return Posix.EXIT_SUCCESS;
+    } while (false);
+
+    if (daemon_type == "systemd")
+        return Posix.EXIT_FAILURE;
+    if (restart) {
+        var bus = get_bus();
+        if (bus == null) {
+            stderr.printf(_("Can't connect to IBus.\n"));
+            return Posix.EXIT_FAILURE;
+        }
+        bus.exit(true);
+        if (verbose) {
+            stderr.printf("Succeed to restart ibus-daemon with an IBus API " +
+                          "directly.\n");
+        }
+    } else {
+        string startarg = "ibus-daemon";
+        argv[0] = startarg;
+        var paths = GLib.Environment.get_variable("PATH").split(":");
+        foreach (unowned string path in paths) {
+            var full_path = "%s/%s".printf(path, startarg);
+            if (GLib.FileUtils.test(full_path, GLib.FileTest.IS_EXECUTABLE)) {
+                startarg = full_path;
+                break;
+            }
+        }
+        // When ibus-daemon is launched by GLib.Process.spawn_async(),
+        // the parent process will be systemd
+        if (verbose) {
+            stderr.printf("Running \"%s\" directly as a foreground " +
+                          "process.\n", startarg);
+        }
+        Posix.execv(startarg, argv);
+    }
     return Posix.EXIT_SUCCESS;
+}
+
+
+int restart_daemon(string[] argv) {
+    return start_daemon_real(argv, true);
+}
+
+int start_daemon(string[] argv) {
+    return start_daemon_real(argv, false);
 }
 
 int exit_daemon(string[] argv) {
@@ -206,10 +440,12 @@ int exit_daemon(string[] argv) {
     return Posix.EXIT_SUCCESS;
 }
 
+
 int print_version(string[] argv) {
     print("IBus %s\n", Config.PACKAGE_VERSION);
     return Posix.EXIT_SUCCESS;
 }
+
 
 int read_cache (string[] argv) {
     const OptionEntry[] options = {
@@ -251,6 +487,7 @@ int read_cache (string[] argv) {
     return Posix.EXIT_SUCCESS;
 }
 
+
 int write_cache (string[] argv) {
     const OptionEntry[] options = {
         { "system", 0, 0, OptionArg.NONE, out is_system,
@@ -283,11 +520,13 @@ int write_cache (string[] argv) {
             Posix.EXIT_SUCCESS : Posix.EXIT_FAILURE;
 }
 
+
 int print_address(string[] argv) {
     string address = IBus.get_address();
     print("%s\n", address != null ? address : "(null)");
     return Posix.EXIT_SUCCESS;
 }
+
 
 private int read_config_options(string[] argv) {
     const OptionEntry[] options = {
@@ -308,6 +547,7 @@ private int read_config_options(string[] argv) {
     }
     return Posix.EXIT_SUCCESS;
 }
+
 
 private GLib.SList<string> get_ibus_schemas() {
     string[] ids = {};
@@ -342,6 +582,7 @@ private GLib.SList<string> get_ibus_schemas() {
     return ibus_schemas;
 }
 
+
 int read_config(string[] argv) {
     if (read_config_options(argv) == Posix.EXIT_FAILURE)
         return Posix.EXIT_FAILURE;
@@ -369,6 +610,7 @@ int read_config(string[] argv) {
 
     return Posix.EXIT_SUCCESS;
 }
+
 
 int reset_config(string[] argv) {
     if (read_config_options(argv) == Posix.EXIT_FAILURE)
@@ -401,6 +643,7 @@ int reset_config(string[] argv) {
     return Posix.EXIT_SUCCESS;
 }
 
+
 #if EMOJI_DICT
 int emoji_dialog(string[] argv) {
     string cmd = Config.LIBEXECDIR + "/ibus-ui-emojier";
@@ -427,10 +670,12 @@ int emoji_dialog(string[] argv) {
 }
 #endif
 
+
 int print_help(string[] argv) {
     print_usage(stdout);
     return Posix.EXIT_SUCCESS;
 }
+
 
 delegate int EntryFunc(string[] argv);
 
@@ -440,12 +685,14 @@ struct CommandEntry {
     unowned EntryFunc entry;
 }
 
+
 const CommandEntry commands[]  = {
     { "engine", N_("Set or get engine"), get_set_engine },
     { "exit", N_("Exit ibus-daemon"), exit_daemon },
     { "list-engine", N_("Show available engines"), list_engine },
     { "watch", N_("(Not implemented)"), message_watch },
     { "restart", N_("Restart ibus-daemon"), restart_daemon },
+    { "start", N_("Start ibus-daemon"), start_daemon },
     { "version", N_("Show version"), print_version },
     { "read-cache", N_("Show the content of registry cache"), read_cache },
     { "write-cache", N_("Create registry cache"), write_cache },
@@ -460,6 +707,7 @@ const CommandEntry commands[]  = {
 
 static string program_name;
 
+
 void print_usage(FileStream stream) {
     stream.printf(_("Usage: %s COMMAND [OPTION...]\n\n"), program_name);
     stream.printf(_("Commands:\n"));
@@ -469,6 +717,7 @@ void print_usage(FileStream stream) {
                       GLib.dgettext(null, commands[i].description));
     }
 }
+
 
 public int main(string[] argv) {
     GLib.Intl.setlocale(GLib.LocaleCategory.ALL, "");
