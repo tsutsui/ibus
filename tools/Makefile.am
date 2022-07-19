@@ -24,8 +24,18 @@
 NULL =
 
 libibus = $(top_builddir)/src/libibus-@IBUS_API_VERSION@.la
+libibusimmodule = libibusimmodule.la
+ibusimmodule_gir = IBusIMModule-1.0.gir
+ibus_immodule_vapi = ibus-immodule-1.0.vapi
 libibus_emoji_dialog = \
     $(top_builddir)/ui/gtk3/libibus-emoji-dialog-@IBUS_API_VERSION@.la
+
+noinst_LTLIBRARIES = $(libibusimmodule)
+noinst_DATA =
+INTROSPECTION_GIRS =
+MAINTAINERCLEANFILES =
+DISTCLEANFILES =
+VAPIGEN_VAPIS =
 
 # force include config.h before gi18n.h.
 AM_CPPFLAGS = \
@@ -47,22 +57,26 @@ AM_CFLAGS = \
 	$(NULL)
 
 AM_LDADD = \
-	@GOBJECT2_LIBS@ \
-	@GLIB2_LIBS@ \
-	@GIO2_LIBS@ \
-	@GTHREAD2_LIBS@ \
-	$(libibus) \
-	$(NULL)
+    @GOBJECT2_LIBS@ \
+    @GLIB2_LIBS@ \
+    @GIO2_LIBS@ \
+    @GTHREAD2_LIBS@ \
+    $(libibus) \
+    $(libibusimmodule) \
+    $(NULL)
 
 AM_VALAFLAGS = \
-	--vapidir=$(top_builddir)/bindings/vala \
-	--vapidir=$(top_srcdir)/bindings/vala \
-	--pkg=gio-2.0 \
-	--pkg=ibus-1.0 \
-	--pkg=posix \
-	--pkg=config \
-	--target-glib="$(VALA_TARGET_GLIB_VERSION)" \
-	$(NULL)
+    --vapidir=$(top_builddir)/bindings/vala \
+    --vapidir=$(top_srcdir)/bindings/vala \
+    --vapidir=$(builddir) \
+    --vapidir=$(srcdir) \
+    --pkg=gio-2.0 \
+    --pkg=ibus-1.0 \
+    --pkg=ibus-immodule-1.0 \
+    --pkg=posix \
+    --pkg=config \
+    --target-glib="$(VALA_TARGET_GLIB_VERSION)" \
+    $(NULL)
 
 bin_PROGRAMS = ibus
 
@@ -79,9 +93,27 @@ bash_completion_DATA= \
 	$(NULL)
 bash_completiondir=@datadir@/bash-completion/completions
 
+libibusimmodule_la_SOURCES = \
+    ibusimmodule.c                                      \
+    ibusimmodule.h                                      \
+    $(NULL)
+libibusimmodule_la_CFLAGS = \
+    @GLIB2_CFLAGS@                                      \
+    -DGTK2_IM_MODULEDIR=\"$(GTK2_IM_MODULEDIR)\"        \
+    -DGTK3_IM_MODULEDIR=\"$(GTK3_IM_MODULEDIR)\"        \
+    -DGTK4_IM_MODULEDIR=\"$(GTK4_IM_MODULEDIR)\"        \
+    $(NULL)
+libibusimmodule_la_LIBADD = \
+    @GLIB2_LIBS@                                        \
+    $(NULL)
+libibusimmodule_la_LDFLAGS = \
+    -no-undefined                                       \
+    -export-symbols-regex "ibus_.*"                     \
+    $(NULL)
+
 man_one_in_files = ibus.1.in
 man_one_files = $(man_one_in_files:.1.in=.1)
-man_one_DATA =$(man_one_files:.1=.1.gz) 
+man_one_DATA =$(man_one_files:.1=.1.gz)
 man_onedir = $(mandir)/man1
 %.1: %.1.in
 	$(AM_V_GEN) sed \
@@ -91,14 +123,17 @@ man_onedir = $(mandir)/man1
 	$(AM_V_GEN) gzip -c $< > $@.tmp && mv $@.tmp $@
 
 EXTRA_DIST = \
-	$(man_one_in_files) \
-	ibus.bash \
-	$(NULL)
+    $(ibus_immodule_vapi) \
+    $(ibusimmodule_gir) \
+    $(man_one_in_files) \
+    ibus.bash \
+    IBusIMModule-1.0.metadata \
+    $(NULL)
 
 CLEANFILES = \
-	$(man_one_DATA) \
-	$(man_one_files) \
-	$(NULL)
+    $(man_one_DATA) \
+    $(man_one_files) \
+    $(NULL)
 
 if ENABLE_EMOJI_DICT
 if ENABLE_UI
@@ -106,6 +141,45 @@ AM_VALAFLAGS += \
     --define=EMOJI_DICT \
     $(NULL)
 endif
+endif
+
+if HAVE_INTROSPECTION
+BUILT_SOURCES = $(INTROSPECTION_GIRS) $(VAPIGEN_VAPIS)
+
+-include $(INTROSPECTION_MAKEFILE)
+INTROSPECTION_SCANNER_ARGS =
+INTROSPECTION_COMPILER_ARGS = \
+    --includedir=$(srcdir)                              \
+    --includedir=.                                      \
+    $(NULL)
+
+IBusIMModule-1.0.gir: $(libibusimmodule) Makefile
+IBusIMModule_1_0_gir_SCANNERFLAGS = \
+    --pkg=glib-2.0                                      \
+    $(IBUS_GIR_SCANNERFLAGS)                            \
+    $(NULL)
+IBusIMModule_1_0_gir_INCLUDES = GLib-2.0
+IBusIMModule_1_0_gir_LIBS = $(libibusimmodule)
+IBusIMModule_1_0_gir_FILES = ibusimmodule.h
+IBusIMModule_1_0_gir_CFLAGS = \
+    -I$(srcdir)                                         \
+    -I$(builddir)                                       \
+    $(NULL)
+
+INTROSPECTION_GIRS += $(ibusimmodule_gir)
+noinst_DATA += $(ibusimmodule_gir)
+MAINTAINERCLEANFILES += $(ibusimmodule_gir)
+DISTCLEANFILES += $(ibusimmodule_gir)
+
+-include $(VAPIGEN_MAKEFILE)
+ibus-immodule-1.0.vapi: $(ibusimmodule_gir) IBusIMModule-1.0.metadata
+ibus_immodule_1_0_vapi_DEPS = glib-2.0
+ibus_immodule_1_0_vapi_METADATADIRS = $(srcdir)
+ibus_immodule_1_0_vapi_FILES = IBusIMModule-1.0.gir
+VAPIGEN_VAPIS += $(ibus_immodule_vapi)
+noinst_DATA += $(ibus_immodule_vapi)
+MAINTAINERCLEANFILES += $(ibus_immodule_vapi)
+DISTCLEANFILES += $(ibus_immodule_vapi)
 endif
 
 -include $(top_srcdir)/git.mk

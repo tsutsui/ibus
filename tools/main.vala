@@ -671,6 +671,15 @@ int emoji_dialog(string[] argv) {
 #endif
 
 
+int read_im_module(string[] argv) {
+    string? im_module = IBusIMModule.im_module_get_id(argv);
+    if (im_module == null)
+        return Posix.EXIT_FAILURE;
+    print("%s\n".printf(im_module));
+    return Posix.EXIT_SUCCESS;
+}
+
+
 int print_help(string[] argv) {
     print_usage(stdout);
     return Posix.EXIT_SUCCESS;
@@ -702,6 +711,8 @@ const CommandEntry commands[]  = {
 #if EMOJI_DICT
     { "emoji", N_("Save emoji on dialog to clipboard"), emoji_dialog },
 #endif
+    { "im-module", N_("Retrieve im-module value from GTK instance"),
+      read_im_module },
     { "help", N_("Show this information"), print_help }
 };
 

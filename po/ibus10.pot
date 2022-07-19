@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ibus 1.5.26\n"
 "Report-Msgid-Bugs-To: https://github.com/ibus/ibus/issues\n"
-"POT-Creation-Date: 2022-07-06 22:08+0900\n"
-"PO-Revision-Date: 2022-07-06 22:08+0900\n"
+"POT-Creation-Date: 2022-07-07 00:32+0900\n"
+"PO-Revision-Date: 2022-07-07 00:32+0900\n"
 "Last-Translator: Takao Fujiwara <takao.fujiwara1@gmail.com>\n"
 "Language-Team: Source\n"
 "Language: \n"
@@ -3099,6 +3099,11 @@ msgstr ""
 msgid "Supplementary Private Use Area-B"
 msgstr ""
 
+#: tools/ibusimmodule.c:10
+msgid ""
+"Type im-module TYPE = \"gtk2\",  \"gtk3\", \"gtk4\". Default is \"gtk3\"."
+msgstr ""
+
 #: tools/main.vala:182
 msgid "List engine name only"
 msgstr ""
@@ -3170,74 +3175,78 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
-#: tools/main.vala:691
+#: tools/main.vala:700
 msgid "Set or get engine"
 msgstr ""
 
-#: tools/main.vala:692
+#: tools/main.vala:701
 msgid "Exit ibus-daemon"
 msgstr ""
 
-#: tools/main.vala:693
+#: tools/main.vala:702
 msgid "Show available engines"
 msgstr ""
 
-#: tools/main.vala:694
+#: tools/main.vala:703
 msgid "(Not implemented)"
 msgstr ""
 
-#: tools/main.vala:695
+#: tools/main.vala:704
 msgid "Restart ibus-daemon"
 msgstr ""
 
-#: tools/main.vala:696
+#: tools/main.vala:705
 msgid "Start ibus-daemon"
 msgstr ""
 
-#: tools/main.vala:697
+#: tools/main.vala:706
 msgid "Show version"
 msgstr ""
 
-#: tools/main.vala:698
+#: tools/main.vala:707
 msgid "Show the content of registry cache"
 msgstr ""
 
-#: tools/main.vala:699
+#: tools/main.vala:708
 msgid "Create registry cache"
 msgstr ""
 
-#: tools/main.vala:700
+#: tools/main.vala:709
 msgid "Print the D-Bus address of ibus-daemon"
 msgstr ""
 
-#: tools/main.vala:701
+#: tools/main.vala:710
 msgid "Show the configuration values"
 msgstr ""
 
-#: tools/main.vala:702
+#: tools/main.vala:711
 msgid "Reset the configuration values"
 msgstr ""
 
-#: tools/main.vala:704
+#: tools/main.vala:713
 msgid "Save emoji on dialog to clipboard"
 msgstr ""
 
-#: tools/main.vala:706
+#: tools/main.vala:715
+msgid "Retrieve im-module value from GTK instance"
+msgstr ""
+
+#: tools/main.vala:717
 msgid "Show this information"
 msgstr ""
 
-#: tools/main.vala:713
+#: tools/main.vala:724
 #, c-format
 msgid ""
 "Usage: %s COMMAND [OPTION...]\n"
 "\n"
 msgstr ""
 
-#: tools/main.vala:714
+#: tools/main.vala:725
 msgid "Commands:\n"
 msgstr ""
 
-#: tools/main.vala:744
+#: tools/main.vala:755
 #, c-format
 msgid "%s is unknown command!\n"
 msgstr ""

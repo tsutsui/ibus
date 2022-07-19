@@ -128,6 +128,16 @@ option enables to match annotations with a partial string. These settings
 are available with
 .B ibus\-setup (1)
 utility.
+.TP
+\fBim-module\fR [\fB\-\-type=TYPE|\-\-help\fR]
+Show an internal im-module value in a virtual GTK application. If IBus is
+installed and configured properly, the output is "ibus". This sub-command
+is useful for some users who build IBus from the source codes and check
+the configurations. Currently the sub-command supports GTK applications only
+and the default is GTK3. If you wish to check a GTK4 application, you can
+specify
+.B \-\-type=gtk4
+option and you can choose one of "gtk2", "gtk3" and "gtk4".
 
 .SH BUGS
 If you find a bug, please report it at https://github.com/ibus/ibus/issues

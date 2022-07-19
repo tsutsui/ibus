@@ -77,3 +77,23 @@ im_module_list (const GtkIMContextInfo ***contexts,
     *n_contexts = G_N_ELEMENTS (info_list);
 }
 
+G_MODULE_EXPORT const char *
+im_get_context_id (int    *argc,
+                   char ***argv)
+{
+    GtkIMContext *context;
+    char *preedit_string = NULL;
+    PangoAttrList *preedit_attrs = NULL;
+    const char *context_id;
+
+    gtk_init (argc, argv);
+    context = gtk_im_multicontext_new ();
+    gtk_im_context_get_preedit_string (context,
+                                       &preedit_string,
+                                       &preedit_attrs,
+                                       0);
+    context_id = gtk_im_multicontext_get_context_id (
+            GTK_IM_MULTICONTEXT (context));
+    return context_id;
+}
+
