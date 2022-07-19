@@ -846,7 +846,8 @@ _ic_process_key_event_reply_cb (GObject               *source,
 /**
  * _ic_process_key_event:
  *
- * Implement the "ProcessKeyEvent" method call of the org.freedesktop.IBus.InputContext interface.
+ * Implement the "ProcessKeyEvent" method call of the
+ * org.freedesktop.IBus.InputContext interface.
  */
 static void
 _ic_process_key_event  (BusInputContext       *context,
@@ -860,11 +861,13 @@ _ic_process_key_event  (BusInputContext       *context,
     g_variant_get (parameters, "(uuu)", &keyval, &keycode, &modifiers);
     if (G_UNLIKELY (!context->has_focus)) {
         /* workaround: set focus if context does not have focus */
-        BusInputContext *focused_context = bus_ibus_impl_get_focused_input_context (BUS_DEFAULT_IBUS);
+        BusInputContext *focused_context =
+                bus_ibus_impl_get_focused_input_context (BUS_DEFAULT_IBUS);
         if (focused_context == NULL ||
             focused_context->fake == TRUE ||
             context->fake == FALSE) {
-            /* grab focus, if context is a real IC or current focused IC is fake */
+            /* grab focus, if context is a real IC or current focused IC is
+             * fake */
             bus_input_context_focus_in (context);
         }
     }
@@ -914,7 +917,8 @@ _ic_process_key_event  (BusInputContext       *context,
                                             data);
     }
     else {
-        g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", FALSE));
+        g_dbus_method_invocation_return_value (invocation,
+                                               g_variant_new ("(b)", FALSE));
     }
 }
 
@@ -1438,7 +1442,9 @@ bus_input_context_focus_in (BusInputContext *context)
     context->prev_modifiers = 0;
 
     if (context->engine) {
-        bus_engine_proxy_focus_in (context->engine);
+        const gchar *path =
+                ibus_service_get_object_path ((IBusService *)context);
+        bus_engine_proxy_focus_in (context->engine, path, context->client);
         bus_engine_proxy_enable (context->engine);
         bus_engine_proxy_set_capabilities (context->engine, context->capabilities);
         bus_engine_proxy_set_cursor_location (context->engine, context->x, context->y, context->w, context->h);
@@ -1538,7 +1544,9 @@ bus_input_context_focus_out (BusInputContext *context)
     bus_input_context_register_properties (context, props_empty);
 
     if (context->engine) {
-        bus_engine_proxy_focus_out (context->engine);
+        const gchar *path =
+            ibus_service_get_object_path ((IBusService *)context);
+        bus_engine_proxy_focus_out (context->engine, path);
     }
 
     context->has_focus = FALSE;
@@ -2376,11 +2384,19 @@ bus_input_context_enable (BusInputContext *context)
     if (context->engine == NULL)
         return;
 
-    bus_engine_proxy_focus_in (context->engine);
-    bus_engine_proxy_enable (context->engine);
-    bus_engine_proxy_set_capabilities (context->engine, context->capabilities);
-    bus_engine_proxy_set_cursor_location (context->engine, context->x, context->y, context->w, context->h);
-    bus_engine_proxy_set_content_type (context->engine, context->purpose, context->hints);
+    {
+        const gchar *path =
+                ibus_service_get_object_path ((IBusService *)context);
+        bus_engine_proxy_focus_in (context->engine, path, context->client);
+        bus_engine_proxy_enable (context->engine);
+        bus_engine_proxy_set_capabilities (context->engine,
+                                           context->capabilities);
+        bus_engine_proxy_set_cursor_location (context->engine,
+                                              context->x, context->y,
+                                              context->w, context->h);
+        bus_engine_proxy_set_content_type (context->engine,
+                                           context->purpose, context->hints);
+    }
 }
 
 void
@@ -2397,7 +2413,9 @@ bus_input_context_disable (BusInputContext *context)
     bus_input_context_register_properties (context, props_empty);
 
     if (context->engine) {
-        bus_engine_proxy_focus_out (context->engine);
+        const gchar *path =
+            ibus_service_get_object_path ((IBusService *)context);
+        bus_engine_proxy_focus_out (context->engine, path);
         bus_engine_proxy_disable (context->engine);
     }
 }
@@ -2445,6 +2463,8 @@ bus_input_context_unset_engine (BusInputContext *context)
 
     if (context->engine) {
         gint i;
+        const gchar *path =
+            ibus_service_get_object_path ((IBusService *)context);
         /* uninstall signal handlers for the engine. */
         for (i = 0; i < G_N_ELEMENTS(engine_signals); i++) {
             g_signal_handlers_disconnect_by_func (context->engine,
@@ -2453,7 +2473,7 @@ bus_input_context_unset_engine (BusInputContext *context)
         /* focus out engine so that the next call of
            bus_engine_proxy_focus_in() will take effect and trigger
            RegisterProperties. */
-        bus_engine_proxy_focus_out (context->engine);
+        bus_engine_proxy_focus_out (context->engine, path);
         g_object_unref (context->engine);
         context->engine = NULL;
     }
@@ -2488,7 +2508,9 @@ bus_input_context_set_engine (BusInputContext *context,
                               context);
         }
         if (context->has_focus) {
-            bus_engine_proxy_focus_in (context->engine);
+            const gchar *path =
+                    ibus_service_get_object_path ((IBusService *)context);
+            bus_engine_proxy_focus_in (context->engine, path, context->client);
             bus_engine_proxy_enable (context->engine);
             bus_engine_proxy_set_capabilities (context->engine, context->capabilities);
             bus_engine_proxy_set_cursor_location (context->engine, context->x, context->y, context->w, context->h);

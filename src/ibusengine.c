@@ -2,7 +2,7 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2013 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2018-2021 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2018-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2008-2021 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -37,7 +37,9 @@
 enum {
     PROCESS_KEY_EVENT,
     FOCUS_IN,
+    FOCUS_IN_ID,
     FOCUS_OUT,
+    FOCUS_OUT_ID,
     RESET,
     ENABLE,
     DISABLE,
@@ -61,6 +63,7 @@ enum {
 enum {
     PROP_0,
     PROP_ENGINE_NAME,
+    PROP_HAS_FOCUS_ID,
 };
 
 
@@ -82,6 +85,7 @@ struct _IBusEnginePrivate {
     GHashTable            *extension_keybindings;
     gboolean               enable_extension;
     gchar                 *current_extension_name;
+    gboolean               has_focus_id;
 };
 
 
@@ -104,7 +108,8 @@ static void      ibus_engine_service_method_call
                                                GDBusConnection    *connection,
                                                const gchar        *sender,
                                                const gchar        *object_path,
-                                               const gchar        *interface_name,
+                                               const gchar
+                                                                *interface_name,
                                                const gchar        *method_name,
                                                GVariant           *parameters,
                                                GDBusMethodInvocation
@@ -132,7 +137,12 @@ static gboolean  ibus_engine_process_key_event
                                               guint               keycode,
                                               guint               state);
 static void      ibus_engine_focus_in        (IBusEngine         *engine);
+static void      ibus_engine_focus_in_id     (IBusEngine         *engine,
+                                              const gchar        *object_path,
+                                              const gchar        *client);
 static void      ibus_engine_focus_out       (IBusEngine         *engine);
+static void      ibus_engine_focus_out_id    (IBusEngine         *engine,
+                                              const gchar        *object_path);
 static void      ibus_engine_reset           (IBusEngine         *engine);
 static void      ibus_engine_enable          (IBusEngine         *engine);
 static void      ibus_engine_disable         (IBusEngine         *engine);
@@ -170,7 +180,8 @@ static void      ibus_engine_set_surrounding_text
 static void      ibus_engine_process_hand_writing_event
                                              (IBusEngine         *engine,
                                               const gdouble      *coordinates,
-                                              guint               coordinates_len);
+                                              guint
+                                                               coordinates_len);
 static void      ibus_engine_cancel_hand_writing
                                              (IBusEngine         *engine,
                                               guint               n_strokes);
@@ -230,7 +241,15 @@ static const gchar introspection_xml[] =
     "      <arg direction='in'  type='u' name='state' />"
     "    </method>"
     "    <method name='FocusIn' />"
+    "    <method name='FocusInId'>"
+    "      <arg direction='in'  type='s' name='object_path' />"
+    "      <arg direction='in'  type='s' name='client' />"
+    "    </method>"
+    "    <method name='FocusIn' />"
     "    <method name='FocusOut' />"
+    "    <method name='FocusOutId'>"
+    "      <arg direction='in'  type='s' name='object_path' />"
+    "    </method>"
     "    <method name='Reset' />"
     "    <method name='Enable' />"
     "    <method name='Disable' />"
@@ -283,6 +302,7 @@ static const gchar introspection_xml[] =
     "    </signal>"
     /* FIXME properties */
     "    <property name='ContentType' type='(uu)' access='write' />"
+    "    <property name='FocusId' type='(b)' access='read' />"
     "  </interface>"
     "</node>";
 
@@ -324,7 +344,9 @@ ibus_engine_class_init (IBusEngineClass *class)
 
     class->process_key_event = ibus_engine_process_key_event;
     class->focus_in     = ibus_engine_focus_in;
+    class->focus_in_id  = ibus_engine_focus_in_id;
     class->focus_out    = ibus_engine_focus_out;
+    class->focus_out_id = ibus_engine_focus_out_id;
     class->reset        = ibus_engine_reset;
     class->enable       = ibus_engine_enable;
     class->disable      = ibus_engine_disable;
@@ -360,6 +382,15 @@ ibus_engine_class_init (IBusEngineClass *class)
                         G_PARAM_CONSTRUCT_ONLY |
                         G_PARAM_STATIC_STRINGS));
 
+    g_object_class_install_property (gobject_class,
+                    PROP_HAS_FOCUS_ID,
+                    g_param_spec_boolean ("has-focus-id",
+                        "has focus id",
+                        "Has focus ID",
+                        FALSE,
+                        G_PARAM_READWRITE |
+                        G_PARAM_CONSTRUCT_ONLY));
+
     /* install signals */
     /**
      * IBusEngine::process-key-event:
@@ -378,7 +409,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * Returns: %TRUE for successfully process the key; %FALSE otherwise.
      * See also:  ibus_input_context_process_key_event().
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[PROCESS_KEY_EVENT] =
         g_signal_new (I_("process-key-event"),
@@ -402,7 +434,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * in extended class to receive this signal.
      *
      * See also: ibus_input_context_focus_in()
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[FOCUS_IN] =
         g_signal_new (I_("focus-in"),
@@ -415,6 +448,58 @@ ibus_engine_class_init (IBusEngineClass *class)
             0);
 
     /**
+     * IBusEngine::focus-in-id:
+     * @engine: An IBusEngine.
+     * @object_path: An object path.
+     * @client: An client name.
+     *
+     * Emitted when the client application get the focus.
+     * Implement the member function IBusEngineClass::focus_in
+     * in extended class to receive this signal.
+     * @object_path is a unique id by input context.
+     * @client indicates a client type:
+     * 'fake':    focus is on desktop background or other programs where no
+     *            input is possible
+     * 'xim':     old X11 programs like xterm, emacs, ...
+     *            GTK3 programs in a Gnome Xorg session when GTK_IM_MODULE
+     *            is unset also use xim
+     * 'gtk-im:&lt;client-name&gt;':  Gtk2 input module is used
+     * 'gtk3-im:&lt;client-name&gt;': Gtk3 input module is used
+     * 'gtk4-im:&lt;client-name&gt;': Gtk4 input module is used
+     *            In case of the Gtk input modules, the name of the
+     *            client is also shown after the “:”, for example
+     *            like 'gtk3-im:firefox', 'gtk4-im:gnome-text-editor', …
+     * 'gnome-shell': Entries handled by gnome-shell
+     *                (like the command line dialog opened with Alt+F2
+     *                or the search field when pressing the Super key.)
+     *                When GTK_IM_MODULE is unset in a Gnome Wayland session
+     *                all programs which would show 'gtk3-im' or 'gtk4-im'
+     *                with GTK_IM_MODULE=ibus then show 'gnome-shell'
+     *                instead.
+     * 'Qt':      Qt4 programs like keepassx-2.0.3 …
+     * 'QIBusInputContext': Qt5 programs like keepassxc-2.7.1, anki-2.1.15
+     *                      telegram-desktop-3.7.3, 
+     *
+     * You need to set #IBusEngine::has-focus-id property to %TRUE when you
+     * construct an #IBusEngine to use this class method.
+     *
+     * See also: ibus_input_context_focus_in()
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
+     */
+    engine_signals[FOCUS_IN_ID] =
+        g_signal_new (I_("focus-in-id"),
+            G_TYPE_FROM_CLASS (gobject_class),
+            G_SIGNAL_RUN_LAST,
+            G_STRUCT_OFFSET (IBusEngineClass, focus_in_id),
+            NULL, NULL,
+            _ibus_marshal_VOID__STRING_STRING,
+            G_TYPE_NONE,
+            2,
+            G_TYPE_STRING,
+            G_TYPE_STRING);
+
+    /**
      * IBusEngine::focus-out:
      * @engine: An IBusEngine.
      *
@@ -423,7 +508,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * in extended class to receive this signal.
      *
      * See also: ibus_input_context_focus_out()
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[FOCUS_OUT] =
         g_signal_new (I_("focus-out"),
@@ -434,6 +520,33 @@ ibus_engine_class_init (IBusEngineClass *class)
             _ibus_marshal_VOID__VOID,
             G_TYPE_NONE,
             0);
+
+    /**
+     * IBusEngine::focus-out-id:
+     * @engine: An IBusEngine.
+     * @object_path: An object path.
+     *
+     * Emitted when the client application  lost the focus.
+     * Implement the member function IBusEngineClass::focus_out
+     * in extended class to receive this signal.
+     * @object_path is a unique id by input context.
+     * You need to set #IBusEngine::has-focus-id property to %TRUE when you
+     * construct an #IBusEngine to use this class method.
+     *
+     * See also: ibus_input_context_focus_out()
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
+     */
+    engine_signals[FOCUS_OUT_ID] =
+        g_signal_new (I_("focus-out-id"),
+            G_TYPE_FROM_CLASS (gobject_class),
+            G_SIGNAL_RUN_LAST,
+            G_STRUCT_OFFSET (IBusEngineClass, focus_out_id),
+            NULL, NULL,
+            _ibus_marshal_VOID__STRING,
+            G_TYPE_NONE,
+            1,
+            G_TYPE_STRING);
 
     /**
      * IBusEngine::reset:
@@ -872,6 +985,9 @@ ibus_engine_set_property (IBusEngine   *engine,
     case PROP_ENGINE_NAME:
         engine->priv->engine_name = g_value_dup_string (value);
         break;
+    case PROP_HAS_FOCUS_ID:
+        engine->priv->has_focus_id = g_value_get_boolean (value);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (engine, prop_id, pspec);
     }
@@ -887,7 +1003,9 @@ ibus_engine_get_property (IBusEngine *engine,
     case PROP_ENGINE_NAME:
         g_value_set_string (value, engine->priv->engine_name);
         break;
-
+    case PROP_HAS_FOCUS_ID:
+        g_value_set_boolean (value, engine->priv->has_focus_id);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (engine, prop_id, pspec);
     }
@@ -1176,6 +1294,30 @@ ibus_engine_service_method_call (IBusService           *service,
         }
     }
 
+    if (g_strcmp0 (method_name, "FocusInId") == 0) {
+        gchar *object_path = NULL;
+        gchar *client = NULL;
+        g_variant_get (parameters, "(&s&s)", &object_path, &client);
+        g_signal_emit (engine,
+                       engine_signals[FOCUS_IN_ID],
+                       0,
+                       object_path,
+                       client);
+        g_dbus_method_invocation_return_value (invocation, NULL);
+        return;
+    }
+
+    if (g_strcmp0 (method_name, "FocusOutId") == 0) {
+        gchar *object_path = NULL;
+        g_variant_get (parameters, "(&s)", &object_path);
+        g_signal_emit (engine,
+                       engine_signals[FOCUS_OUT_ID],
+                       0,
+                       object_path);
+        g_dbus_method_invocation_return_value (invocation, NULL);
+        return;
+    }
+
     if (g_strcmp0 (method_name, "CandidateClicked") == 0) {
         guint index, button, state;
         g_variant_get (parameters, "(uuu)", &index, &button, &state);
@@ -1303,6 +1445,23 @@ ibus_engine_service_method_call (IBusService           *service,
     g_return_if_reached ();
 }
 
+/**
+ * _ibus_engine_has_focus_id:
+ *
+ * Implement the "FocusId" method call of the org.freedesktop.IBus interface.
+ */
+static GVariant *
+_ibus_engine_has_focus_id (IBusEngine      *engine,
+                           GDBusConnection *connection,
+                           GError         **error)
+{
+    if (error) {
+        *error = NULL;
+    }
+
+    return g_variant_new_boolean (engine->priv->has_focus_id);
+}
+
 static GVariant *
 ibus_engine_service_get_property (IBusService        *service,
                                   GDBusConnection    *connection,
@@ -1312,7 +1471,18 @@ ibus_engine_service_get_property (IBusService        *service,
                                   const gchar        *property_name,
                                   GError            **error)
 {
-    return IBUS_SERVICE_CLASS (ibus_engine_parent_class)->
+    int i;
+    static const struct {
+        const gchar *method_name;
+        GVariant * (* method_callback) (IBusEngine *,
+                                        GDBusConnection *,
+                                        GError **);
+    } methods [] =  {
+        { "FocusId",                    _ibus_engine_has_focus_id },
+    };
+
+    if (g_strcmp0 (interface_name, IBUS_INTERFACE_ENGINE) != 0) {
+        return IBUS_SERVICE_CLASS (ibus_engine_parent_class)->
                 service_get_property (service,
                                       connection,
                                       sender,
@@ -1320,6 +1490,19 @@ ibus_engine_service_get_property (IBusService        *service,
                                       interface_name,
                                       property_name,
                                       error);
+    }
+
+    for (i = 0; i < G_N_ELEMENTS (methods); i++) {
+        if (g_strcmp0 (methods[i].method_name, property_name) == 0) {
+            return methods[i].method_callback ((IBusEngine *) service,
+                                               connection,
+                                               error);
+        }
+    }
+
+    g_warning ("service_get_property received an unknown property: %s",
+               property_name ? property_name : "(null)");
+    return NULL;
 }
 
 static gboolean
@@ -1386,31 +1569,39 @@ ibus_engine_process_key_event (IBusEngine *engine,
 static void
 ibus_engine_focus_in (IBusEngine *engine)
 {
-    // g_debug ("focus-in");
+}
+
+static void
+ibus_engine_focus_in_id (IBusEngine  *engine,
+                         const gchar *object_path,
+                         const gchar *client)
+{
 }
 
 static void
 ibus_engine_focus_out (IBusEngine *engine)
 {
-    // g_debug ("focus-out");
+}
+
+static void
+ibus_engine_focus_out_id (IBusEngine  *engine,
+                          const gchar *object_path)
+{
 }
 
 static void
 ibus_engine_reset (IBusEngine *engine)
 {
-    // g_debug ("reset");
 }
 
 static void
 ibus_engine_enable (IBusEngine *engine)
 {
-    // g_debug ("enable");
 }
 
 static void
 ibus_engine_disable (IBusEngine *engine)
 {
-    // g_debug ("disable");
 }
 
 static void

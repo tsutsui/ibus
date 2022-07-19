@@ -72,6 +72,8 @@ struct _BusIBusImpl {
      * IBusEngineDesc object. */
     GHashTable *engine_table;
 
+    GHashTable *engine_focus_id_table;
+
     BusInputContext *focused_context;
     BusPanelProxy   *panel;
     BusPanelProxy   *emoji_extension;
@@ -596,6 +598,7 @@ bus_ibus_impl_init (BusIBusImpl *ibus)
     ibus->use_global_engine = TRUE;
     ibus->global_engine_name = NULL;
     ibus->global_previous_engine_name = NULL;
+    ibus->engine_focus_id_table = g_hash_table_new (g_str_hash, g_str_equal);
 
     /* focus the fake_context, if use_global_engine is enabled. */
     if (ibus->use_global_engine)
@@ -2384,3 +2387,13 @@ bus_ibus_impl_get_focused_input_context (BusIBusImpl *ibus)
 
     return ibus->focused_context;
 }
+
+GHashTable *
+bus_ibus_impl_get_engine_focus_id_table (BusIBusImpl *ibus)
+{
+
+    g_assert (BUS_IS_IBUS_IMPL (ibus));
+
+    return ibus->engine_focus_id_table;
+}
+
