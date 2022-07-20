@@ -55,13 +55,13 @@ SUBDIRS = \
 	data \
 	m4 \
 	po \
-	docs \
 	$(ENGINE_DIR) \
 	$(UI_DIR) \
 	tools \
 	$(DAEMON_DIR) \
 	$(PYTHON_LIB_DIRS) \
 	$(SETUP_DIR) \
+	docs \
 	$(NULL)
 
 ACLOCAL_AMFLAGS = -I m4

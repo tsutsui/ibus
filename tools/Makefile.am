@@ -39,22 +39,22 @@ VAPIGEN_VAPIS =
 
 # force include config.h before gi18n.h.
 AM_CPPFLAGS = \
-	-I$(top_srcdir)/src \
-	-I$(top_builddir)/src \
-	-include $(CONFIG_HEADER) \
-	$(NULL)
+    -I$(top_srcdir)/src \
+    -I$(top_builddir)/src \
+    -include $(CONFIG_HEADER) \
+    $(NULL)
 
 AM_CFLAGS = \
-	@GLIB2_CFLAGS@ \
-	@GIO2_CFLAGS@ \
-	@GTHREAD2_CFLAGS@ \
-	-DG_LOG_DOMAIN=\"IBUS\" \
-	-DLIBEXECDIR=\"$(libexecdir)\" \
-	-DIBUS_DISABLE_DEPRECATED \
-	-Wno-unused-variable \
-	-Wno-unused-but-set-variable \
-	-Wno-unused-function \
-	$(NULL)
+    @GLIB2_CFLAGS@ \
+    @GIO2_CFLAGS@ \
+    @GTHREAD2_CFLAGS@ \
+    -DG_LOG_DOMAIN=\"IBUS\" \
+    -DLIBEXECDIR=\"$(libexecdir)\" \
+    -DIBUS_DISABLE_DEPRECATED \
+    -Wno-unused-variable \
+    -Wno-unused-but-set-variable \
+    -Wno-unused-function \
+    $(NULL)
 
 AM_LDADD = \
     @GOBJECT2_LIBS@ \
@@ -63,6 +63,7 @@ AM_LDADD = \
     @GTHREAD2_LIBS@ \
     $(libibus) \
     $(libibusimmodule) \
+    -ldl               \
     $(NULL)
 
 AM_VALAFLAGS = \
