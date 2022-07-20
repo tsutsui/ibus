@@ -7,7 +7,7 @@
 #endif
 
 #define OPTION_TYPE_MESSAGE \
-  N_("Type im-module TYPE = \"gtk2\",  \"gtk3\", \"gtk4\". Default is " \
+  N_("Set im-module TYPE to \"gtk2\",  \"gtk3\" or \"gtk4\". Default is " \
      "\"gtk3\".")
 
 typedef const char * (* IBusIMGetContextIdFunc) (int *argc, char ***argv);

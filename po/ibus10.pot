@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ibus 1.5.26\n"
 "Report-Msgid-Bugs-To: https://github.com/ibus/ibus/issues\n"
-"POT-Creation-Date: 2022-07-07 00:32+0900\n"
-"PO-Revision-Date: 2022-07-07 00:32+0900\n"
+"POT-Creation-Date: 2022-07-20 14:02+0900\n"
+"PO-Revision-Date: 2022-07-20 14:02+0900\n"
 "Last-Translator: Takao Fujiwara <takao.fujiwara1@gmail.com>\n"
 "Language-Team: Source\n"
 "Language: \n"
@@ -3101,7 +3101,7 @@ msgstr ""
 
 #: tools/ibusimmodule.c:10
 msgid ""
-"Type im-module TYPE = \"gtk2\",  \"gtk3\", \"gtk4\". Default is \"gtk3\"."
+"Set im-module TYPE to \"gtk2\",  \"gtk3\" or \"gtk4\". Default is \"gtk3\"."
 msgstr ""
 
 #: tools/main.vala:182
