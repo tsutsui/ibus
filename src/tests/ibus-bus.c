@@ -803,6 +803,33 @@ start_set_preload_engines_async (void)
 }
 
 static void
+_socket_changed_cb (GFileMonitor       *monitor,
+                    GFile              *file,
+                    GFile              *other_file,
+                    GFileMonitorEvent   event_type,
+                    IBusBus            *bus)
+{
+    switch (event_type) {
+    case G_FILE_MONITOR_EVENT_CHANGED:
+        g_debug ("IBus socket file is changed");
+        call_next_async_function ();
+        g_signal_handlers_disconnect_by_func (monitor,
+                                              G_CALLBACK (_socket_changed_cb),
+                                              NULL);
+        g_object_unref (monitor);
+        break;
+    case G_FILE_MONITOR_EVENT_CREATED:
+        g_debug ("IBus socket file is created");
+        break;
+    case G_FILE_MONITOR_EVENT_DELETED:
+        g_debug ("IBus socket file is deleted");
+        break;
+    default:
+        g_debug ("IBus socket file's status is %d\n", event_type);
+    }
+}
+
+static void
 finish_exit_async (GObject *source_object,
                    GAsyncResult *res,
                    gpointer user_data)
@@ -811,15 +838,25 @@ finish_exit_async (GObject *source_object,
     gboolean result = ibus_bus_exit_async_finish (bus,
                                                   res,
                                                   &error);
+    gboolean has_socket_path = GPOINTER_TO_INT (user_data);
+    if (error) {
+        g_warning ("Failed to ibus_bus_exit(): %s", error->message);
+        g_error_free (error);
+    }
     g_assert (result);
-    g_debug ("ibus_bus_exit_finish: OK");
-    g_usleep (G_USEC_PER_SEC);
-    call_next_async_function ();
+    if (has_socket_path == FALSE) {
+        g_debug ("ibus_bus_exit_finish: OK socket file: none");
+        g_usleep (G_USEC_PER_SEC);
+        call_next_async_function ();
+    } else {
+        g_debug ("ibus_bus_exit_finish: OK socket file: monitored");
+    }
 }
 
 static void
 start_exit_async (void)
 {
+    gboolean has_socket_path = FALSE;
     /* When `./runtest ibus-bus` runs, ibus-daemon sometimes failed to
      * restart because closing a file descriptor was failed in
      * bus/server.c:_restart_server() with a following error:
@@ -828,12 +865,37 @@ start_exit_async (void)
      * fail to restart ibus-daemon.
      */
     g_usleep (G_USEC_PER_SEC);
+    /* IBus socket file can be deleted after finish_exit_async() is called
+     * so the next ibus_bus_new_async() in test_bus_new_async() could be failed
+     * if the socket file is deleted after ibus_bus_new_async() is called
+     * in case that the socket file is not monitored.
+     */
+    if (!g_getenv ("IBUS_ADDRESS")) {
+        const gchar *address_path = ibus_get_socket_path ();
+        GFile *file;
+        GError *error = NULL;
+        GFileMonitor *monitor;
+
+        g_assert (address_path);
+        file = g_file_new_for_path (address_path);
+        g_assert (file);
+        has_socket_path = TRUE;
+        monitor = g_file_monitor (file, G_FILE_MONITOR_NONE, NULL, &error);
+        if (error) {
+            g_warning ("Failed to monitor socket file: %s", error->message);
+            g_error_free (error);
+        }
+        g_assert (monitor);
+        g_signal_connect (monitor, "changed",
+                          G_CALLBACK (_socket_changed_cb), NULL);
+        g_object_unref (file);
+    }
     ibus_bus_exit_async (bus,
                          TRUE, /* restart */
                          -1, /* timeout */
                          NULL, /* cancellable */
                          finish_exit_async,
-                         NULL); /* user_data */
+                         GINT_TO_POINTER (has_socket_path)); /* user_data */
 }
 
 static gboolean
