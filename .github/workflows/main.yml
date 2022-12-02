@@ -1,0 +1,200 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        container: ["fedora:37", "fedora:38", "ubuntu:jammy"]
+    steps:
+      - name: Check container sha tags
+        run: |
+          docker pull "${{ matrix.container }}"
+          docker inspect "${{ matrix.container }}" --format=${{ '{{.RepoDigests}}{{.Created}}' }}
+
+
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - container: fedora:37
+            ucd_dir: /usr/share/unicode/ucd
+          - container: fedora:38
+            ucd_dir: /usr/share/unicode/ucd
+          - container: ubuntu:jammy
+            ucd_dir: /usr/share/unicode
+
+    container:
+      image: ${{ matrix.container }}
+
+    steps:
+      - name: Install distro packages
+        env:
+         # For autogen.sh
+         UBUNTU_PACKAGES_AUTOGEN: >
+           autopoint
+           strace
+           wget
+         # For make from
+         # https://packages.ubuntu.com/search?searchon=sourcenames&keywords=ibus
+         UBUNTU_PACKAGES_MAKE: >
+           desktop-file-utils
+           dbus-x11
+           gobject-introspection
+           gtk-doc-tools
+           iso-codes
+           libdconf-dev
+           libgirepository1.0-dev
+           libglib2.0-dev
+           libgtk-3-bin
+           libgtk-3-dev
+           libgtk2.0-dev
+           libnotify-dev
+           libtool
+           libwayland-dev
+           python-gi-dev
+           python3-all
+           systemd
+           unicode-cldr-core
+           unicode-data
+           valac
+         FEDORA_PACKAGES_MAKE: >
+           gettext-devel
+           libtool
+           gtk2-devel
+           gtk3-devel
+           gtk4-devel
+           dbus-glib-devel
+           dbus-python-devel
+           desktop-file-utils
+           gtk-doc
+           dconf-devel
+           dbus-x11
+           python3-devel
+           python3-gobject
+           git
+           vala
+           iso-codes-devel
+           libnotify-devel
+           wayland-devel
+           cldr-emoji-annotation
+           unicode-emoji
+           unicode-ucd
+           systemd
+         # for gtkdoc-fixxref
+         FEDORA_PACKAGES_GTKDOC: >
+           glib2-doc
+         # for ibus-keypress
+         FEDORA_PACKAGES_CI_KEY: >
+           libXtst-devel
+         # for gcc -fanalyzer -fsanitize=address -fsanitize=leak options
+         # xkeyboard-config-devel to make ibus/engine/simle.xml.in
+         FEDORA_PACKAGES_DISTRO: >
+           libasan
+           xkeyboard-config-devel
+           patch
+           strace
+           wget
+
+        run: |
+          case "${{ matrix.container }}" in
+          ubuntu*)
+            cat /etc/lsb-release
+            echo "apt-get update -qq -y"
+            apt-get update -qq -y
+            echo "apt-get install -q -y git"
+            apt-get install -q -y git
+            PACKAGES=$(echo "$UBUNTU_PACKAGES_AUTOGEN" | tr -d '\n')
+            PACKAGES=$(echo "$PACKAGES $UBUNTU_PACKAGES_MAKE" | tr -d '\n')
+            echo "apt-get install -y $PACKAGES"
+            apt-get install -y $PACKAGES
+            dpkg -l | grep unicode-data
+            ;;
+          fedora*)
+            cat /etc/fedora-release
+            echo "dnf -y update"
+            dnf -y update
+            echo "dnf -y install git which"
+            dnf -y install git which
+            PACKAGES=$(echo "$FEDORA_PACKAGES_MAKE" | tr -d '\n')
+            PACKAGES=$(echo "$PACKAGES $FEDORA_PACKAGES_GTKDOC" | tr -d '\n')
+            PACKAGES=$(echo "$PACKAGES $FEDORA_PACKAGES_CI_KEY" | tr -d '\n')
+            PACKAGES=$(echo "$PACKAGES $FEDORA_PACKAGES_DISTRO" | tr -d '\n')
+            echo "dnf -y install $PACKAGES"
+            dnf -y install $PACKAGES
+            ;;
+          *)
+            echo "Not supported ${{ matrix.container }}"
+            ls /etc/*release
+            cat /etc/*release
+            exit 1
+            ;;
+          esac
+          pwd
+          echo $GITHUB_WORKSPACE
+          ls -a
+
+      - uses: actions/checkout@v2
+        with:
+          #repository: ibus/ibus
+          fetch-depth: 200
+
+      - name: Fetch git tags
+        run: |
+          pwd
+          id
+          ls -al
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+          git branch
+          git fetch --prune --unshallow --tags
+          echo $PATH
+
+      # https://github.com/orgs/community/discussions/39646
+      # Heard GTK fixes this issue recently
+      - name: Apply additional patches for GitHub action + Docker
+        run: |
+          wget -O ibus-xx-bus-docker-spawn.patch https://github.com/fujiwarat/ibus/commit/d7d9247f517dbee97be551555f6abda3aa57dd39.patch
+          patch -p1 < ./ibus-xx-bus-docker-spawn.patch
+
+      - name: Run autogen
+        # configure options from
+        # https://salsa.debian.org/debian/ibus/-/blob/master/debian/rules
+        run: >
+          ./autogen.sh
+          --enable-gtk-doc
+          --with-python=/usr/bin/python3
+          --with-ucd-dir=${{ matrix.ucd_dir }}
+          --enable-install-tests
+
+      - name: Run make
+        # Set the cutom DESTDIR because the default DESTDIR
+        # /home/travis/bulid/fujiwarat/$PKG/ibus/ibus-$VERSION/_inst seems to
+        # be too long and failed to set DESTDIR to install
+        # bindings/pygobject/IBus.py
+        run: >
+          export DISABLE_DAEMONIZE_IN_TESTS=1;
+          make distcheck
+          DISTCHECK_CONFIGURE_FLAGS="
+          --enable-gtk-doc
+          --disable-schemas-install
+          --enable-memconf
+          --with-python=/usr/bin/python3
+          --with-ucd-dir=${{ matrix.ucd_dir }}
+          --enable-install-tests
+          "
+          DISABLE_GUI_TESTS="
+          ibus-compose ibus-keypress test-stress xkb-latin-layouts
+          "
+          VERBOSE=1
+          DESTDIR="$HOME/build/$USER/dest"
+
