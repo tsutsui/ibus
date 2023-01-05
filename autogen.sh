@@ -82,7 +82,7 @@ cd "$olddir"
 cd "$srcdir"
 (test "x$SAVE_DIST_FILES" = "x0" ) && {
     # rm engine/simple.xml.in src/ibusemojigen.h src/ibusunicodegen.h
-    for d in engine src; do
+    for d in engine src src/compose; do
         echo "make -C $d maintainer-clean-generic"
         make -C $d maintainer-clean-generic
    done
