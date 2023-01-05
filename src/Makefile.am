@@ -3,7 +3,7 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2015 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2021 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
 # Copyright (c) 2007-2017 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ if ENABLE_TESTS
 TESTS_DIR = tests
 endif
 
-SUBDIRS = . $(TESTS_DIR)
+SUBDIRS = . compose $(TESTS_DIR)
 
 # libibus = libibus-@IBUS_API_VERSION@.la
 libibus = libibus-1.0.la
@@ -41,7 +41,7 @@ INTROSPECTION_COMPILER_ARGS = \
     $(NULL)
 INTROSPECTION_GIRS =
 CLEANFILES =
-noinst_PROGRAMS =
+noinst_PROGRAMS = gen-internal-compose-table
 
 # C preprocessor flags
 AM_CPPFLAGS =                                           \
@@ -111,6 +111,7 @@ libibus_1_0_la_SOURCES =    \
     ibuscomposetable.c      \
     ibusenumtypes.c         \
     ibusmarshalers.c        \
+    ibusresources.c         \
     $(ibus_sources)         \
     $(NULL)
 ibus_marshalers_sources =   \
@@ -120,6 +121,10 @@ ibus_marshalers_sources =   \
 ibus_enumtypes_sources =    \
     ibusenumtypes.c         \
     ibusenumtypes.h         \
+    $(NULL)
+ibus_resources_sources =    \
+    ibusresources.c         \
+    ibusresources.h         \
     $(NULL)
 ibus_headers =              \
     ibus.h                  \
@@ -171,11 +176,11 @@ ibusinclude_HEADERS =       \
     $(ibus_public_headers)  \
     $(NULL)
 ibus_private_headers =          \
-    gtkimcontextsimpleseqs.h    \
     ibuscomposetable.h          \
     ibusemojigen.h              \
     ibusenginesimpleprivate.h   \
     ibusinternal.h              \
+    ibusresources.h             \
     ibusunicodegen.h            \
     keyname-table.h             \
     $(NULL)
@@ -183,9 +188,24 @@ noinst_HEADERS =            \
     $(ibus_private_headers) \
     $(NULL)
 
+gen_internal_compose_table_SOURCES = \
+    gencomposetable.c   \
+    ibuscomposetable.c  \
+    ibuserror.c         \
+    ibuskeynames.c      \
+    ibuskeyuni.c        \
+    $(NULL)
+gen_internal_compose_table_CFLAGS = $(AM_CFLAGS)
+gen_internal_compose_table_LDADD = \
+    @GLIB2_LIBS@        \
+    @GOBJECT2_LIBS@     \
+    @GIO2_LIBS@         \
+    $(NULL)
+
 BUILT_SOURCES =                 \
     $(ibus_marshalers_sources)  \
     $(ibus_enumtypes_sources)   \
+    $(ibus_resources_sources)   \
     $(NULL)
 
 if HAVE_INTROSPECTION
@@ -241,6 +261,28 @@ ibusmarshalers.c: ibusmarshalers.h ibusmarshalers.list
 	$(AM_V_GEN) (echo "#include \"ibusmarshalers.h\""; \
 	$(GLIB_GENMARSHAL) --prefix=_ibus_marshal $(srcdir)/ibusmarshalers.list --body --internal) > $@.tmp && \
 	mv $@.tmp $@
+
+# gen GResource
+ibus.gresources.xml: ibus.gresources.xml.in
+	$(AM_V_GEN) sed -e "s|\@ENDIAN\@|$(ENDIAN)|g" \
+	$< > $@.tmp && \
+	mv $@.tmp $@
+
+compose/sequences-$(ENDIAN)-endian: gen-internal-compose-table
+	$(AM_V_GEN) $(MKDIR_P) $(builddir)/compose && \
+	$(builddir)/gen-internal-compose-table && \
+	mv $(builddir)/sequences-big-endian $(builddir)/compose && \
+	mv $(builddir)/sequences-little-endian $(builddir)/compose
+
+ibusresources.h: ibus.gresources.xml compose/sequences-$(ENDIAN)-endian
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-header --internal \
+	    --target=ibusresources.h --external-data --c-name _ibus \
+	    --manual-register ibus.gresources.xml
+
+ibusresources.c: ibus.gresources.xml compose/sequences-$(ENDIAN)-endian
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-source --internal \
+	    --target=ibusresources.c --c-name _ibus --manual-register \
+	    ibus.gresources.xml
 
 if ENABLE_EMOJI_DICT
 AM_CPPFLAGS += -DENABLE_EMOJI_DICT
@@ -330,10 +372,6 @@ emoji_parser_LDADD =            \
     $(GLIB2_LIBS)               \
     $(GOBJECT2_LIBS)            \
     $(NULL)
-
-clean-local:
-	-rm -rf dicts
-	$(NULL)
 endif
 
 if ENABLE_UNICODE_DICT
@@ -377,14 +415,11 @@ unicode_parser_LDADD =          \
     $(GLIB2_LIBS)               \
     $(libibus)                  \
     $(NULL)
-
-clean-local:
-	-rm -rf dicts
-	$(NULL)
 endif
 
 EXTRA_DIST =                    \
     emoji-parser.c              \
+    ibus.gresources.xml.in      \
     ibusversion.h.in            \
     ibusmarshalers.list         \
     ibusenumtypes.h.template    \
@@ -394,6 +429,7 @@ EXTRA_DIST =                    \
 
 CLEANFILES +=                   \
     $(BUILT_SOURCES)            \
+    ibus.gresources.xml         \
     stamp-ibusmarshalers.h      \
     stamp-ibusenumtypes.h       \
     $(NULL)
@@ -409,5 +445,13 @@ DISTCLEANFILES =                \
     $(MAINTAINERCLEANFILES)     \
     ibusversion.h               \
     $(NULL)
+
+clean-local:
+	-rm -rf dicts;                                                      \
+	if test x"$(srcdir)" != x"$(builddir)" ; then                       \
+	    rm -f  $(builddir)/compose/sequences-big-endian;                \
+	    rm -f  $(builddir)/compose/sequences-little-endian;             \
+	fi;
+	$(NULL)
 
 -include $(top_srcdir)/git.mk

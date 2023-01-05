@@ -1,7 +1,7 @@
 /* -*- mode: C; c-basic-offset: 4; indent-tabs-mode: nil; -*- */
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
- * Copyright (C) 2016-2019 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2016-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2016 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -32,25 +32,29 @@ G_BEGIN_DECLS
 #define IS_DEAD_KEY(k) \
       ((k) >= IBUS_KEY_dead_grave && (k) <= IBUS_KEY_dead_greek)
 
-extern const IBusComposeTableCompactEx ibus_compose_table_compact;
-extern const IBusComposeTableCompactEx ibus_compose_table_compact_32bit;
 
 struct _IBusComposeTablePrivate
 {
-    guint16 *data_first;
-    guint32 *data_second;
+    const guint16 *data_first;
+    const guint32 *data_second;
     gsize first_n_seqs;
     gsize second_size;
 };
 
-struct _IBusComposeTableCompactPrivate
-{
-    const guint32 *data2;
-};
 
 gboolean ibus_check_algorithmically (const guint16              *compose_buffer,
                                      int                         n_compose,
                                      gunichar                   *output);
+GVariant *
+         ibus_compose_table_serialize
+                                    (IBusComposeTableEx
+                                                                *compose_table,
+                                     gboolean                   reverse_endian);
+IBusComposeTableEx *
+         ibus_compose_table_deserialize
+                                    (const char                 *contents,
+                                     gsize                       length,
+                                     gboolean                   reverse_endian);
 gboolean ibus_compose_table_check   (const IBusComposeTableEx   *table,
                                      guint16                    *compose_buffer,
                                      int                         n_compose,
@@ -58,13 +62,6 @@ gboolean ibus_compose_table_check   (const IBusComposeTableEx   *table,
                                      gboolean                   *compose_match,
                                      GString                    *output,
                                      gboolean                    is_32bit);
-gboolean ibus_compose_table_compact_check
-                                    (const IBusComposeTableCompactEx
-                                                                *table,
-                                     guint16                    *compose_buffer,
-                                     int                         n_compose,
-                                     gboolean                   *compose_finish,
-                                     gunichar                  **output_chars);
 gunichar ibus_keysym_to_unicode     (guint16                     keysym,
                                      gboolean                    combining,
                                      gboolean                   *need_space);

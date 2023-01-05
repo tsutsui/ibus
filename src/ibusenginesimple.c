@@ -2,7 +2,7 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2014 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2015-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2014-2017 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -33,12 +33,6 @@
 #include "ibuskeys.h"
 #include "ibuskeysyms.h"
 #include "ibusutil.h"
-
-/* This file contains the table of the compose sequences,
- * static const guint16 gtk_compose_seqs_compact[] = {}
- * It is generated from the compose-parse.py script.
- */
-#include "gtkimcontextsimpleseqs.h"
 
 #include <memory.h>
 #include <stdlib.h>
@@ -90,33 +84,6 @@ struct _IBusEngineSimplePrivate {
     IBusEngineDict     *emoji_dict;
     IBusLookupTable    *lookup_table;
     gboolean            lookup_table_visible;
-};
-
-/* From the values below, the value 30 means the number of different first keysyms
- * that exist in the Compose file (from Xorg). When running compose-parse.py without
- * parameters, you get the count that you can put here. Needed when updating the
- * gtkimcontextsimpleseqs.h header file (contains the compose sequences).
- * Assign the value of "Number of different first items" of compose-parse.py
- * to n_seqs in IBusComposeTableCompact
- */
-IBusComposeTableCompactPrivate ibus_compose_table_compact_32bit_priv = {
-    gtk_compose_seqs_compact_32bit_second
-};
-
-const IBusComposeTableCompactEx ibus_compose_table_compact = {
-    NULL,
-    gtk_compose_seqs_compact,
-    5,
-    30,
-    6
-};
-
-const IBusComposeTableCompactEx ibus_compose_table_compact_32bit = {
-    &ibus_compose_table_compact_32bit_priv,
-    gtk_compose_seqs_compact_32bit_first,
-    5,
-    9,
-    6
 };
 
 guint COMPOSE_BUFFER_SIZE = 20;
@@ -174,6 +141,12 @@ ibus_engine_simple_class_init (IBusEngineSimpleClass *class)
 static void
 ibus_engine_simple_init (IBusEngineSimple *simple)
 {
+    GBytes *data;
+    GError *error = NULL;
+    const char *contents;
+    gsize length = 0;
+    IBusComposeTableEx *en_compose_table;
+
     simple->priv = IBUS_ENGINE_SIMPLE_GET_PRIVATE (simple);
     simple->priv->compose_buffer = g_new0(guint16, COMPOSE_BUFFER_SIZE + 1);
     simple->priv->hex_mode_enabled =
@@ -181,6 +154,22 @@ ibus_engine_simple_init (IBusEngineSimple *simple)
         g_getenv("IBUS_ENABLE_CONTROL_SHIFT_U") != NULL;
     simple->priv->tentative_match = g_string_new ("");
     simple->priv->tentative_match_len = 0;
+    data = g_resources_lookup_data ("/org/freedesktop/ibus/compose/sequences",
+                                    G_RESOURCE_LOOKUP_FLAGS_NONE,
+                                    &error);
+    if (error) {
+        g_warning ("Nout found compose resource %s", error->message);
+        g_clear_error (&error);
+        return;
+    }
+    contents = g_bytes_get_data (data, &length);
+    en_compose_table = ibus_compose_table_deserialize (contents, length, FALSE);
+    if (!en_compose_table) {
+        g_warning ("Failed to load EN compose table");
+    } else {
+        global_tables = ibus_compose_table_list_add_table (global_tables,
+                                                           en_compose_table);
+    }
 }
 
 
@@ -785,7 +774,6 @@ ibus_engine_simple_check_all_compose_table (IBusEngineSimple *simple,
     GString *output = g_string_new ("");
     gboolean success = FALSE;
     gboolean is_32bit = FALSE;
-    gunichar *output_chars = NULL;
     gunichar output_char = '\0';
 
     /* GtkIMContextSimple output the first compose char in case of
@@ -850,57 +838,6 @@ ibus_engine_simple_check_all_compose_table (IBusEngineSimple *simple,
     g_string_free (output, TRUE);
     output = NULL;
 
-    if (ibus_compose_table_compact_check (&ibus_compose_table_compact,
-                                          priv->compose_buffer,
-                                          n_compose,
-                                          &compose_finish,
-                                          &output_chars)) {
-        priv->in_compose_sequence = TRUE;
-        if (compose_finish) {
-            if (success) {
-                g_string_append_unichar (priv->tentative_match, *output_chars);
-                priv->tentative_match_len = n_compose;
-            } else {
-                ibus_engine_simple_commit_char (simple, *output_chars);
-                priv->compose_buffer[0] = 0;
-            }
-            g_free (output_chars);
-            ibus_engine_simple_update_preedit_text (simple);
-            return TRUE;
-        }
-        success = TRUE;
-    }
-    g_free (output_chars);
-    output_chars = NULL;
-    if (ibus_compose_table_compact_check (&ibus_compose_table_compact_32bit,
-                                          priv->compose_buffer,
-                                          n_compose,
-                                          &compose_finish,
-                                          &output_chars)) {
-        priv->in_compose_sequence = TRUE;
-        if (compose_finish) {
-            GError *error = NULL;
-            char *str = g_ucs4_to_utf8 (output_chars, -1, NULL, NULL, &error);
-            if (!str) {
-                g_warning ("Failed to output multiple characters: %s",
-                           error->message);
-                g_error_free (error);
-            } else if (success) {
-                g_string_append (priv->tentative_match, str);
-                priv->tentative_match_len = n_compose;
-            } else {
-                ibus_engine_simple_commit_str (simple, str);
-                priv->compose_buffer[0] = 0;
-            }
-            g_free (str);
-            g_free (output_chars);
-            ibus_engine_simple_update_preedit_text (simple);
-            return TRUE;
-        }
-        success = TRUE;
-    }
-    g_free (output_chars);
-    output_chars = NULL;
     if (ibus_check_algorithmically (priv->compose_buffer,
                                     n_compose,
                                     &output_char)) {

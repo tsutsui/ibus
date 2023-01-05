@@ -3,8 +3,8 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2016 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
-# Copyright (c) 2007-2022 Red Hat, Inc.
+# Copyright (c) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2007-2023 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -150,6 +150,37 @@ AC_CHECK_FUNCS(daemon)
 # Check dlclose() in libc.so.
 AC_CHECK_LIB(c, dlclose, LIBDL="", [AC_CHECK_LIB(dl, dlclose, LIBDL="-ldl")])
 AC_SUBST(LIBDL)
+
+# Check endianness.
+AC_MSG_CHECKING([build system endianness])
+ENDIAN=unknown
+AC_RUN_IFELSE(
+    [AC_LANG_PROGRAM(
+        [[
+            #include <endian.h>
+            #if __BYTE_ORDER != __LITTLE_ENDIAN
+            #error
+            #endif
+        ]]
+    )],
+    [ENDIAN=little]
+)
+AC_RUN_IFELSE(
+    [AC_LANG_PROGRAM(
+        [[
+            #include <endian.h>
+            #if __BYTE_ORDER != __BIG_ENDIAN
+            #error
+            #endif
+        ]]
+    )],
+    [ENDIAN=big]
+)
+if test x"$ENDIAN" != xlittle  -a x"$ENDIAN" != xbig; then
+    AC_MSG_ERROR([Cannot deermine endianness without endian.h])
+fi
+AC_MSG_RESULT($ENDIAN)
+AC_SUBST(ENDIAN)
 
 # Check packages.
 # Check glib2.
@@ -844,6 +875,7 @@ m4/Makefile
 portal/Makefile
 setup/Makefile
 src/Makefile
+src/compose/Makefile
 src/ibusversion.h
 src/tests/Makefile
 tools/Makefile
@@ -863,6 +895,7 @@ Build options:
   Install prefix                $prefix
   Build shared libs             $enable_shared
   Build static libs             $enable_static
+  Build endianness              $ENDIAN
   CFLAGS                        $CFLAGS
   PYTHON                        $PYTHON
   PYTHON2                       $PYTHON2
