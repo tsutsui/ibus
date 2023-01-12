@@ -633,14 +633,13 @@ AC_SUBST(IBUS_ICON_KEYBOARD)
 # --disable-surrounding-text option.
 AC_ARG_ENABLE(surrounding-text,
     AS_HELP_STRING([--disable-surrounding-text],
-        [Enable surrounding-text support]),
+        [Disable surrounding-text support]),
     [enable_surrounding_text=$enableval],
     [enable_surrounding_text=yes]
 )
 if test x"$enable_surrounding_text" = x"yes"; then
     AC_DEFINE(ENABLE_SURROUNDING, TRUE, [Enable surrounding-text support])
-else
-    enable_surrounding_text="no (disabled, use --enable-surrounding-text to enable)"
+    enable_surrounding_text="yes (enabled, use --disable-surrounding-text to disable)"
 fi
 
 # --disable-ui
