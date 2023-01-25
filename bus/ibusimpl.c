@@ -2,7 +2,7 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2013 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2011-2021 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2011-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2008-2021 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -287,8 +287,10 @@ bus_ibus_impl_class_init (BusIBusImplClass *class)
 /**
  * _panel_destroy_cb:
  *
- * A callback function which is called when (1) the connection to the panel process is terminated,
- * or (2) ibus_proxy_destroy (ibus->panel); is called. See src/ibusproxy.c for details.
+ * A callback function which is called when (1) the connection to the panel
+ * process is terminated,
+ * or (2) ibus_proxy_destroy (ibus->panel); is called. See src/ibusproxy.c for
+ * details.
  */
 static void
 _panel_destroy_cb (BusPanelProxy *panel,
@@ -360,9 +362,8 @@ bus_ibus_impl_set_panel_extension_keys (BusIBusImpl *ibus,
     if (ibus->extension_register_keys)
         g_variant_unref (ibus->extension_register_keys);
     ibus->extension_register_keys = g_variant_ref_sink (parameters);
-    if (ibus->focused_context != NULL) {
-            engine = bus_input_context_get_engine (ibus->focused_context);
-    }
+    if (ibus->focused_context)
+        engine = bus_input_context_get_engine (ibus->focused_context);
     if (!engine)
         return;
     bus_engine_proxy_panel_extension_register_keys (engine, parameters);
@@ -429,8 +430,7 @@ _panel_update_auxiliary_text_received_cb (BusPanelProxy *panel,
 
     if (!ibus->panel)
         return;
-    bus_panel_proxy_update_auxiliary_text (
-            ibus->panel, text, visible);
+    bus_panel_proxy_update_auxiliary_text (ibus->panel, text, visible);
 }
 
 static void
@@ -443,8 +443,10 @@ _registry_changed_cb (IBusRegistry *registry,
 /*
  * _dbus_name_owner_changed_cb:
  *
- * A callback function to be called when the name-owner-changed signal is sent to the dbus object.
- * This usually means a client (e.g. a panel/config/engine process or an application) is connected/disconnected to/from the bus.
+ * A callback function to be called when the name-owner-changed signal is sent
+ * to the dbus object.
+ * This usually means a client (e.g. a panel/config/engine process or an
+ * application) is connected/disconnected to/from the bus.
  */
 static void
 _dbus_name_owner_changed_cb (BusDBusImpl   *dbus,
@@ -561,7 +563,8 @@ _dbus_name_owner_changed_cb (BusDBusImpl   *dbus,
 /**
  * bus_ibus_impl_init:
  *
- * The constructor of BusIBusImpl. Initialize all member variables of a BusIBusImpl object.
+ * The constructor of #BusIBusImpl. Initialize all member variables of a
+ * #BusIBusImpl object.
  */
 static void
 bus_ibus_impl_init (BusIBusImpl *ibus)
@@ -645,7 +648,8 @@ bus_ibus_impl_destroy (BusIBusImpl *ibus)
                 if (flag == FALSE) {
                     gpointer old;
                     old = signal (SIGTERM, SIG_IGN);
-                    /* send TERM signal to the whole process group (i.e. engines, panel, and config daemon.) */
+                    /* send TERM signal to the whole process group (i.e.
+                     * engines, panel, and config daemon.) */
                     kill (-getpid (), SIGTERM);
                     signal (SIGTERM, old);
                     flag = TRUE;
@@ -661,35 +665,29 @@ bus_ibus_impl_destroy (BusIBusImpl *ibus)
     g_list_free_full (ibus->register_engine_list, g_object_unref);
     ibus->register_engine_list = NULL;
 
-    if (ibus->factory_dict != NULL) {
-        g_hash_table_destroy (ibus->factory_dict);
-        ibus->factory_dict = NULL;
-    }
+    if (ibus->factory_dict)
+        g_clear_pointer (&ibus->factory_dict, g_hash_table_destroy);
 
-    if (ibus->keymap != NULL) {
-        g_object_unref (ibus->keymap);
-        ibus->keymap = NULL;
-    }
+    if (ibus->keymap)
+        g_clear_pointer (&ibus->keymap, g_object_unref);
 
-    g_free (ibus->global_engine_name);
-    ibus->global_engine_name = NULL;
+    g_clear_pointer (&ibus->global_engine_name, g_free);
+    g_clear_pointer (&ibus->global_previous_engine_name, g_free);
 
-    g_free (ibus->global_previous_engine_name);
-    ibus->global_previous_engine_name = NULL;
-
-    if (ibus->fake_context) {
-        g_object_unref (ibus->fake_context);
-        ibus->fake_context = NULL;
-    }
+    if (ibus->fake_context)
+        g_clear_pointer (&ibus->fake_context, g_object_unref);
 
     bus_ibus_impl_registry_destroy (ibus);
 
+    if (ibus->engine_focus_id_table)
+        g_clear_pointer (&ibus->engine_focus_id_table, g_hash_table_destroy);
     if (ibus->engine_active_surrounding_text_table != NULL) {
-        g_hash_table_destroy (ibus->engine_active_surrounding_text_table);
-        ibus->engine_active_surrounding_text_table = NULL;
+        g_clear_pointer (&ibus->engine_active_surrounding_text_table,
+                         g_hash_table_destroy);
     }
 
-    IBUS_OBJECT_CLASS (bus_ibus_impl_parent_class)->destroy (IBUS_OBJECT (ibus));
+    IBUS_OBJECT_CLASS (bus_ibus_impl_parent_class)->destroy (
+            IBUS_OBJECT (ibus));
 }
 
 /**
@@ -749,7 +747,8 @@ _find_engine_desc_by_name (BusIBusImpl *ibus,
 /**
  * _context_request_engine_cb:
  *
- * A callback function to be called when the "request-engine" signal is sent to the context.
+ * A callback function to be called when the "request-engine" signal is sent to
+ * the context.
  */
 static IBusEngineDesc *
 _context_request_engine_cb (BusInputContext *context,
@@ -788,12 +787,13 @@ bus_ibus_impl_set_context_engine_from_desc (BusIBusImpl     *ibus,
                                             BusInputContext *context,
                                             IBusEngineDesc  *desc)
 {
-    bus_input_context_set_engine_by_desc (context,
-                                          desc,
-                                          g_gdbus_timeout, /* timeout in msec. */
-                                          NULL, /* we do not cancel the call. */
-                                          NULL, /* use the default callback function. */
-                                          NULL);
+    bus_input_context_set_engine_by_desc (
+            context,
+            desc,
+            g_gdbus_timeout, /* timeout in msec. */
+            NULL, /* we do not cancel the call. */
+            NULL, /* use the default callback function. */
+            NULL);
 }
 
 static void
@@ -827,7 +827,8 @@ bus_ibus_impl_set_focused_context (BusIBusImpl     *ibus,
 
     g_assert (BUS_IS_IBUS_IMPL (ibus));
     g_assert (context == NULL || BUS_IS_INPUT_CONTEXT (context));
-    g_assert (context == NULL || bus_input_context_get_capabilities (context) & IBUS_CAP_FOCUS);
+    g_assert (context == NULL ||
+              bus_input_context_get_capabilities (context) & IBUS_CAP_FOCUS);
 
     /* Do noting if it is focused context. */
     if (ibus->focused_context == context) {
@@ -938,8 +939,8 @@ bus_ibus_impl_set_global_engine_by_name (BusIBusImpl *ibus,
     if (!ibus->use_global_engine)
         return;
 
-    BusInputContext *context =
-            ibus->focused_context != NULL ? ibus->focused_context : ibus->fake_context;
+    BusInputContext *context = ibus->focused_context != NULL
+                               ? ibus->focused_context : ibus->fake_context;
 
     if (context == NULL) {
         return;
@@ -1008,7 +1009,8 @@ bus_ibus_impl_check_global_engine (BusIBusImpl *ibus)
 /**
  * _context_engine_changed_cb:
  *
- * A callback function to be called when the "engine-changed" signal is sent to the context.
+ * A callback function to be called when the "engine-changed" signal is sent to
+ * the context.
  * Update global engine as well if necessary.
  */
 static void
@@ -1023,7 +1025,8 @@ _context_engine_changed_cb (BusInputContext *context,
         BusEngineProxy *engine = bus_input_context_get_engine (context);
         if (engine != NULL) {
             /* only set global engine if engine is not NULL */
-            const gchar *name = ibus_engine_desc_get_name (bus_engine_proxy_get_desc (engine));
+            const gchar *name = ibus_engine_desc_get_name (
+                    bus_engine_proxy_get_desc (engine));
             if (g_strcmp0 (name, ibus->global_engine_name) == 0)
                 return;
             g_free (ibus->global_previous_engine_name);
@@ -1037,8 +1040,10 @@ _context_engine_changed_cb (BusInputContext *context,
 /**
  * _context_focus_in_cb:
  *
- * A callback function to be called when the "focus-in" signal is sent to the context.
- * If necessary, enables the global engine on the context and update ibus->focused_context.
+ * A callback function to be called when the "focus-in" signal is sent to the
+ * context.
+ * If necessary, enables the global engine on the context and update
+ * ibus->focused_context.
  */
 static void
 _context_focus_in_cb (BusInputContext *context,
@@ -1059,7 +1064,8 @@ _context_focus_in_cb (BusInputContext *context,
 /**
  * _context_focus_out_cb:
  *
- * A callback function to be called when the "focus-out" signal is sent to the context.
+ * A callback function to be called when the "focus-out" signal is sent to the
+ * context.
  */
 static void
 _context_focus_out_cb (BusInputContext    *context,
@@ -1069,7 +1075,8 @@ _context_focus_out_cb (BusInputContext    *context,
     g_assert (BUS_IS_INPUT_CONTEXT (context));
 
     /* Do noting if context does not support focus.
-     * Actually, the context should emit focus signals, if it does not support focus */
+     * Actually, the context should emit focus signals, if it does not support
+     * focus */
     if ((bus_input_context_get_capabilities (context) & IBUS_CAP_FOCUS) == 0) {
         return;
     }
@@ -1127,7 +1134,8 @@ bus_ibus_impl_create_input_context (BusIBusImpl   *ibus,
     g_object_ref_sink (context);
     ibus->contexts = g_list_append (ibus->contexts, context);
 
-    /* Installs glib signal handlers so that the ibus object could be notified when e.g. an IBus.InputContext D-Bus method is called. */
+    /* Installs glib signal handlers so that the ibus object could be notified
+     * when e.g. an IBus.InputContext D-Bus method is called. */
     static const struct {
         gchar *name;
         GCallback callback;
@@ -1149,7 +1157,8 @@ bus_ibus_impl_create_input_context (BusIBusImpl   *ibus,
 
     bus_input_context_enable (context);
 
-    /* register the context object so that the object could handle IBus.InputContext method calls. */
+    /* register the context object so that the object could handle
+     * IBus.InputContext method calls. */
     bus_dbus_impl_register_object (BUS_DEFAULT_DBUS,
                                    (IBusService *) context);
     g_object_ref (context);
@@ -1159,14 +1168,15 @@ bus_ibus_impl_create_input_context (BusIBusImpl   *ibus,
 /**
  * _ibus_create_input_context:
  *
- * Implement the "CreateInputContext" method call of the org.freedesktop.IBus interface.
+ * Implement the "CreateInputContext" method call of the org.freedesktop.IBus
+ * interface.
  */
 static void
 _ibus_create_input_context (BusIBusImpl           *ibus,
                             GVariant              *parameters,
                             GDBusMethodInvocation *invocation)
 {
-    const gchar *client_name = NULL;  // e.g. "gtk-im"
+    const gchar *client_name = NULL;  /* e.g. "gtk-im" */
     g_variant_get (parameters, "(&s)", &client_name);
 
     BusConnection *connection =
@@ -1176,9 +1186,11 @@ _ibus_create_input_context (BusIBusImpl           *ibus,
                                                 connection,
                                                 client_name);
     if (context) {
-        const gchar *path = ibus_service_get_object_path ((IBusService *) context);
+        const gchar *path =
+                ibus_service_get_object_path ((IBusService *) context);
         /* the format-string 'o' is for a D-Bus object path. */
-        g_dbus_method_invocation_return_value (invocation, g_variant_new ("(o)", path));
+        g_dbus_method_invocation_return_value (invocation,
+                                               g_variant_new ("(o)", path));
         g_object_unref (context);
     }
     else {
@@ -1259,14 +1271,16 @@ _component_destroy_cb (BusComponent *component,
     g_assert (BUS_IS_IBUS_IMPL (ibus));
     g_assert (BUS_IS_COMPONENT (component));
 
-    ibus->registered_components = g_list_remove (ibus->registered_components, component);
+    ibus->registered_components = g_list_remove (ibus->registered_components,
+                                                 component);
 
     /* remove engines from engine_list */
     GList *engines = bus_component_get_engines (component);
     GList *p;
     for (p = engines; p != NULL; p = p->next) {
         if (g_list_find (ibus->register_engine_list, p->data)) {
-            ibus->register_engine_list = g_list_remove (ibus->register_engine_list, p->data);
+            ibus->register_engine_list =
+                    g_list_remove (ibus->register_engine_list, p->data);
             g_object_unref (p->data);
         }
     }
@@ -1389,7 +1403,8 @@ _ibus_list_engines_depre (BusIBusImpl           *ibus,
 /**
  * _ibus_get_engines_by_names:
  *
- * Implement the "GetEnginesByNames" method call of the org.freedesktop.IBus interface.
+ * Implement the "GetEnginesByNames" method call of the org.freedesktop.IBus
+ * interface.
  */
 static void
 _ibus_get_engines_by_names (BusIBusImpl           *ibus,
@@ -1414,7 +1429,8 @@ _ibus_get_engines_by_names (BusIBusImpl           *ibus,
                 "v",
                 ibus_serializable_serialize ((IBusSerializable *)desc));
     }
-    g_dbus_method_invocation_return_value (invocation, g_variant_new ("(av)", &builder));
+    g_dbus_method_invocation_return_value (invocation,
+                                           g_variant_new ("(av)", &builder));
 }
 
 /**
@@ -1609,7 +1625,7 @@ _ibus_get_global_engine (BusIBusImpl     *ibus,
 
         GVariant *variant = ibus_serializable_serialize (
                 (IBusSerializable *) desc);
-        // Set type "v" for introspection_xml.
+        /* Set type "v" for introspection_xml. */
         retval = g_variant_new_variant (variant);
         if (!retval) {
             g_set_error (error,
@@ -1752,12 +1768,13 @@ _ibus_set_global_engine (BusIBusImpl           *ibus,
     SetGlobalEngineData *data = g_slice_new0 (SetGlobalEngineData);
     data->ibus = g_object_ref (ibus);
     data->invocation = invocation;
-    bus_input_context_set_engine_by_desc (context,
-                                          desc,
-                                          g_gdbus_timeout, /* timeout in msec. */
-                                          NULL, /* we do not cancel the call. */
-                                          (GAsyncReadyCallback) _ibus_set_global_engine_ready_cb,
-                                          data);
+    bus_input_context_set_engine_by_desc (
+            context,
+            desc,
+            g_gdbus_timeout, /* timeout in msec. */
+            NULL, /* we do not cancel the call. */
+            (GAsyncReadyCallback) _ibus_set_global_engine_ready_cb,
+            data);
 }
 
 /**
@@ -2109,19 +2126,17 @@ BusFactoryProxy *
 bus_ibus_impl_lookup_factory (BusIBusImpl *ibus,
                               const gchar *path)
 {
-    g_assert (BUS_IS_IBUS_IMPL (ibus));
-
     BusFactoryProxy *factory;
 
-    factory = (BusFactoryProxy *) g_hash_table_lookup (ibus->factory_dict, path);
-
+    g_assert (BUS_IS_IBUS_IMPL (ibus));
+    factory = (BusFactoryProxy *) g_hash_table_lookup (ibus->factory_dict,
+                                                       path);
     return factory;
 }
 
 IBusKeymap *
 bus_ibus_impl_get_keymap (BusIBusImpl *ibus)
 {
-
     g_assert (BUS_IS_IBUS_IMPL (ibus));
 
     return ibus->keymap;

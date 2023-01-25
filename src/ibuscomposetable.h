@@ -46,6 +46,8 @@ struct _IBusComposeTable
 struct _IBusComposeTableEx
 {
     IBusComposeTablePrivate *priv;
+    /* @data is const value to accept mmap data and the releasable allocation
+     * is assigned to @rawdata. */
     const guint16 *data;
     gint max_seq_len;
     gint n_seqs;
@@ -54,6 +56,17 @@ struct _IBusComposeTableEx
 };
 
 
+/**
+ * ibus_compose_table_new_with_file:
+ * @compose_file: The path of the compose file
+ * @compose_tables: (nullable): The list of other @IBusComposeTableEx
+ * and the generating @IBusComposeTableEx excludes the compose keys
+ * which are included in the other @IBusComposeTableEx.
+ *
+ * Generate @IBusComposeTableEx from the compose file.
+ *
+ * Returns: @IBusComposeTableEx
+ */
 IBusComposeTableEx *
                   ibus_compose_table_new_with_file (const gchar *compose_file,
                                                     GSList

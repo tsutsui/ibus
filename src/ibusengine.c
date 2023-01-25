@@ -2,7 +2,7 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2013 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2018-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2018-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2008-2021 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -371,7 +371,7 @@ ibus_engine_class_init (IBusEngineClass *class)
 
     /* install properties */
     /**
-     * IBusEngine:name:
+     * IBusEngine:engine-name:
      *
      * Name of this IBusEngine.
      */
@@ -385,6 +385,16 @@ ibus_engine_class_init (IBusEngineClass *class)
                         G_PARAM_CONSTRUCT_ONLY |
                         G_PARAM_STATIC_STRINGS));
 
+    /**
+     * IBusEngine:has-focus-id:
+     *
+     * Use #IBusEngine::focus_in_id()/focus_out_id() class method insteads of
+     * focus_in()/focus_out() class methods when this property is set to %TRUE.
+     * Otherwise, use #IBusEngine::focus_in()/focus_out class methods.
+     * This property can only be set at construct time.
+     *
+     * See also: IBusEngine::focus-in-id
+     */
     g_object_class_install_property (gobject_class,
                     PROP_HAS_FOCUS_ID,
                     g_param_spec_boolean ("has-focus-id",
@@ -577,7 +587,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * in extended class to receive this signal.
      *
      * See also:  ibus_input_context_reset().
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[RESET] =
         g_signal_new (I_("reset"),
@@ -598,7 +609,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * in extended class to receive this signal.
      *
      * See also:  ibus_bus_set_global_engine().
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[ENABLE] =
         g_signal_new (I_("enable"),
@@ -619,7 +631,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * in extended class to receive this signal.
      *
      * See also:  ibus_bus_set_global_engine().
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[DISABLE] =
         g_signal_new (I_("disable"),
@@ -644,7 +657,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * in extended class to receive this signal.
      *
      * See also:  ibus_input_context_set_cursor_location().
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[SET_CURSOR_LOCATION] =
         g_signal_new (I_("set-cursor-location"),
@@ -670,7 +684,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * in extended class to receive this signal.
      *
      * See also:  ibus_input_context_set_capabilities().
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[SET_CAPABILITIES] =
         g_signal_new (I_("set-capabilities"),
@@ -691,7 +706,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * Implement the member function IBusEngineClass::page_up
      * in extended class to receive this signal.
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[PAGE_UP] =
         g_signal_new (I_("page-up"),
@@ -711,7 +727,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * Implement the member function IBusEngineClass::page_down
      * in extended class to receive this signal.
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[PAGE_DOWN] =
         g_signal_new (I_("page-down"),
@@ -731,7 +748,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * Implement the member function IBusEngineClass::cursor_up
      * in extended class to receive this signal.
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[CURSOR_UP] =
         g_signal_new (I_("cursor-up"),
@@ -751,7 +769,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * Implement the member function IBusEngineClass::cursor_down
      * in extended class to receive this signal.
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[CURSOR_DOWN] =
         g_signal_new (I_("cursor-down"),
@@ -774,7 +793,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * Implement the member function IBusEngineClass::candidate_clicked
      * in extended class to receive this signal.
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[CANDIDATE_CLICKED] =
         g_signal_new (I_("candidate-clicked"),
@@ -799,7 +819,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * Implement the member function IBusEngineClass::property_activate
      * in extended class to receive this signal.
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[PROPERTY_ACTIVATE] =
         g_signal_new (I_("property-activate"),
@@ -822,7 +843,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * Implement the member function IBusEngineClass::property_side
      * in extended class to receive this signal.
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[PROPERTY_SHOW] =
         g_signal_new (I_("property-show"),
@@ -844,7 +866,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * Implement the member function IBusEngineClass::property_hide
      * in extended class to receive this signal.
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[PROPERTY_HIDE] =
         g_signal_new (I_("property-hide"),
@@ -860,14 +883,16 @@ ibus_engine_class_init (IBusEngineClass *class)
     /**
      * IBusEngine::process-hand-writing-event:
      * @engine: An IBusEngine.
-     * @coordinates: An array of double (0.0 to 1.0) which represents a stroke (i.e. [x1, y1, x2, y2, x3, y3, ...]).
+     * @coordinates: An array of double (0.0 to 1.0) which represents a stroke
+     *               (i.e. [x1, y1, x2, y2, x3, y3, ...]).
      * @coordinates_len: The number of elements in the array.
      *
      * Emitted when a hand writing operation is cancelled.
      * Implement the member function IBusEngineClass::cancel_hand_writing
      * in extended class to receive this signal.
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[PROCESS_HAND_WRITING_EVENT] =
         g_signal_new (I_("process-hand-writing-event"),
@@ -890,7 +915,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * Implement the member function IBusEngineClass::cancel_hand_writing
      * in extended class to receive this signal.
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[CANCEL_HAND_WRITING] =
         g_signal_new (I_("cancel-hand-writing"),
@@ -916,7 +942,8 @@ ibus_engine_class_init (IBusEngineClass *class)
      * If anchor_pos equals to cursor_pos, it means "there are no selection"
      * or "does not support selection retrival".
      *
-     * <note><para>Argument @user_data is ignored in this function.</para></note>
+     * <note><para>Argument @user_data is ignored in this function.</para>
+     * </note>
      */
     engine_signals[SET_SURROUNDING_TEXT] =
         g_signal_new (I_("set-surrounding-text"),
@@ -1265,7 +1292,8 @@ ibus_engine_service_method_call (IBusService           *service,
                                                    keycode,
                                                    state);
         }
-        g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", retval));
+        g_dbus_method_invocation_return_value (invocation,
+                                               g_variant_new ("(b)", retval));
         return;
     }
     if (g_strcmp0 (method_name, "PanelExtensionReceived") == 0) {
@@ -1449,8 +1477,10 @@ ibus_engine_service_method_call (IBusService           *service,
 
         coordinates = g_variant_get_fixed_array (g_variant_get_child_value (parameters, 0), &coordinates_len, sizeof (gdouble));
         g_return_if_fail (coordinates != NULL);
-        g_return_if_fail (coordinates_len >= 4); /* The array should contain at least one line. */
-        g_return_if_fail (coordinates_len <= G_MAXUINT); /* to prevent overflow in the cast in g_signal_emit */
+        /* The array should contain at least one line. */
+        g_return_if_fail (coordinates_len >= 4);
+        /* to prevent overflow in the cast in g_signal_emit */
+        g_return_if_fail (coordinates_len <= G_MAXUINT);
         g_return_if_fail ((coordinates_len & 1) == 0);
 
         g_signal_emit (engine, engine_signals[PROCESS_HAND_WRITING_EVENT], 0,
@@ -1656,38 +1686,32 @@ ibus_engine_set_cursor_location (IBusEngine *engine,
                                  gint        w,
                                  gint        h)
 {
-    // g_debug ("set-cursor-location (%d, %d, %d, %d)", x, y, w, h);
 }
 
 static void
 ibus_engine_set_capabilities (IBusEngine *engine,
                               guint       caps)
 {
-    // g_debug ("set-capabilities (0x%04x)", caps);
 }
 
 static void
 ibus_engine_page_up (IBusEngine *engine)
 {
-    // g_debug ("page-up");
 }
 
 static void
 ibus_engine_page_down (IBusEngine *engine)
 {
-    // g_debug ("page-down");
 }
 
 static void
 ibus_engine_cursor_up (IBusEngine *engine)
 {
-    // g_debug ("cursor-up");
 }
 
 static void
 ibus_engine_cursor_down (IBusEngine *engine)
 {
-    // g_debug ("cursor-down");
 }
 
 static void
@@ -1696,7 +1720,6 @@ ibus_engine_candidate_clicked (IBusEngine *engine,
                                guint       button,
                                guint       state)
 {
-    // g_debug ("candidate-clicked");
 }
 
 static void
@@ -1704,19 +1727,16 @@ ibus_engine_property_activate (IBusEngine  *engine,
                                const gchar *prop_name,
                                guint        prop_state)
 {
-    // g_debug ("property-activate ('%s', %d)", prop_name, prop_state);
 }
 
 static void
 ibus_engine_property_show (IBusEngine *engine, const gchar *prop_name)
 {
-    // g_debug ("property-show ('%s')", prop_name);
 }
 
 static void
 ibus_engine_property_hide (IBusEngine *engine, const gchar *prop_name)
 {
-    // g_debug ("property-hide ('%s')", prop_name);
 }
 
 static void
@@ -1734,7 +1754,6 @@ ibus_engine_set_surrounding_text (IBusEngine *engine,
     engine->priv->surrounding_text = (IBusText *) g_object_ref_sink (text ? text : text_empty);
     engine->priv->surrounding_cursor_pos = cursor_pos;
     engine->priv->selection_anchor_pos = anchor_pos;
-    // g_debug ("set-surrounding-text ('%s', %d, %d)", text->text, cursor_pos, anchor_pos);
 }
 
 static void
@@ -1742,17 +1761,18 @@ ibus_engine_process_hand_writing_event (IBusEngine         *engine,
                                         const gdouble      *coordinates,
                                         guint               coordinates_len)
 {
-    // guint i;
-    // g_debug ("process-hand-writing-event (%u)", coordinates_len);
-    // for (i = 0; i < coordinates_len; i++)
-    //     g_debug (" %lf", coordinates[i]);
+#if 0
+    guint i;
+    g_debug ("process-hand-writing-event (%u)", coordinates_len);
+    for (i = 0; i < coordinates_len; i++)
+        g_debug (" %lf", coordinates[i]);
+#endif
 }
 
 static void
 ibus_engine_cancel_hand_writing (IBusEngine         *engine,
                                  guint               n_strokes)
 {
-    // g_debug ("cancel-hand-writing (%u)", n_strokes);
 }
 
 static void
@@ -1760,7 +1780,6 @@ ibus_engine_set_content_type (IBusEngine *engine,
                               guint       purpose,
                               guint       hints)
 {
-    // g_debug ("set-content-type (%u %u)", purpose, hints);
 }
 
 static void
@@ -2085,8 +2104,6 @@ ibus_engine_get_surrounding_text (IBusEngine   *engine,
     ibus_engine_emit_signal (engine,
                              "RequireSurroundingText",
                              NULL);
-
-    // g_debug ("get-surrounding-text ('%s', %d, %d)", (*text)->text, *cursor_pos, *anchor_pos);
 }
 
 void
