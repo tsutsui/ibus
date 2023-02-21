@@ -1,8 +1,8 @@
 /* -*- mode: C; c-basic-offset: 4; indent-tabs-mode: nil; -*- */
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
- * Copyright (C) 2018-2021 Takao Fujiwara <takao.fujiwara1@gmail.com>
- * Copyright (C) 2018-2021 Red Hat, Inc.
+ * Copyright (C) 2018-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2018-2023 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -866,6 +866,10 @@ const static char *unicode_blocks[] = {
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
        msgmerge -C gucharmap.po ibus.po ibus.pot */
+    N_("Arabic Extended-C"),
+    /* TRANSLATORS: You might refer the translations from gucharmap with
+                    the following command:
+       msgmerge -C gucharmap.po ibus.po ibus.pot */
     N_("Old Sogdian"),
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
@@ -990,6 +994,10 @@ const static char *unicode_blocks[] = {
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
        msgmerge -C gucharmap.po ibus.po ibus.pot */
+    N_("Devanagari Extended-A"),
+    /* TRANSLATORS: You might refer the translations from gucharmap with
+                    the following command:
+       msgmerge -C gucharmap.po ibus.po ibus.pot */
     N_("Bhaiksuki"),
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
@@ -1007,6 +1015,10 @@ const static char *unicode_blocks[] = {
                     the following command:
        msgmerge -C gucharmap.po ibus.po ibus.pot */
     N_("Makasar"),
+    /* TRANSLATORS: You might refer the translations from gucharmap with
+                    the following command:
+       msgmerge -C gucharmap.po ibus.po ibus.pot */
+    N_("Kawi"),
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
        msgmerge -C gucharmap.po ibus.po ibus.pot */
@@ -1138,6 +1150,10 @@ const static char *unicode_blocks[] = {
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
        msgmerge -C gucharmap.po ibus.po ibus.pot */
+    N_("Kaktovik Numerals"),
+    /* TRANSLATORS: You might refer the translations from gucharmap with
+                    the following command:
+       msgmerge -C gucharmap.po ibus.po ibus.pot */
     N_("Mayan Numerals"),
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
@@ -1166,6 +1182,10 @@ const static char *unicode_blocks[] = {
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
        msgmerge -C gucharmap.po ibus.po ibus.pot */
+    N_("Cyrillic Extended-D"),
+    /* TRANSLATORS: You might refer the translations from gucharmap with
+                    the following command:
+       msgmerge -C gucharmap.po ibus.po ibus.pot */
     N_("Nyiakeng Puachue Hmong"),
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
@@ -1175,6 +1195,10 @@ const static char *unicode_blocks[] = {
                     the following command:
        msgmerge -C gucharmap.po ibus.po ibus.pot */
     N_("Wancho"),
+    /* TRANSLATORS: You might refer the translations from gucharmap with
+                    the following command:
+       msgmerge -C gucharmap.po ibus.po ibus.pot */
+    N_("Nag Mundari"),
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
        msgmerge -C gucharmap.po ibus.po ibus.pot */
@@ -1291,6 +1315,10 @@ const static char *unicode_blocks[] = {
                     the following command:
        msgmerge -C gucharmap.po ibus.po ibus.pot */
     N_("CJK Unified Ideographs Extension G"),
+    /* TRANSLATORS: You might refer the translations from gucharmap with
+                    the following command:
+       msgmerge -C gucharmap.po ibus.po ibus.pot */
+    N_("CJK Unified Ideographs Extension H"),
     /* TRANSLATORS: You might refer the translations from gucharmap with
                     the following command:
        msgmerge -C gucharmap.po ibus.po ibus.pot */
