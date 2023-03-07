@@ -230,6 +230,9 @@ jobs:
             pkg_add cldr-emoji-annotation unicode-character-database unicode-emoji
             pkg_add py39-gobject3 glib2 dconf gettext-tools gobject-introspection gettext-lib hicolor-icon-theme vala dbus libnotify iso-codes gtk2+ gtk3+
             pkg_add glib2-tools gtk-doc gdbus-codegen git-base
+            cp /usr/pkg/share/examples/rc.d/dbus /etc/rc.d/dbus
+            echo dbus=YES >> /etc/rc.conf
+            /etc/rc.d/dbus start
             git config --global --add safe.directory $GITHUB_WORKSPACE
 
           run: >
