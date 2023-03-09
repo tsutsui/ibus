@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, ci-netbsd, ci-netbsd-docker ]
   pull_request:
 
 jobs:
@@ -197,3 +197,129 @@ jobs:
           VERBOSE=1
           DESTDIR="$HOME/build/$USER/dest"
 
+
+  build-netbsd-docker:
+    name: "build (NetBSD/amd64 9.3 with pkgsrc on docker)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          #repository: ibus/ibus
+          fetch-depth: 200
+
+      - name: Setup NetBSD docker
+        run: |
+          touch docker.log
+          /usr/bin/docker pull madworx/netbsd:latest
+          /usr/bin/docker image inspect madworx/netbsd:latest
+          ssh-keygen -f ~/.ssh/id_rsa-docker -N ""
+          cat > ~/.ssh/config <<'EOF'
+          Host localhost
+            IdentityFile ~/.ssh/id_rsa-docker
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
+          echo 'Starting NetBSD in docker VM...'
+          /usr/bin/docker run --rm --privileged -e "SSH_PUBKEY=$(cat ~/.ssh/id_rsa-docker.pub)" -p 2222:22 madworx/netbsd:latest >> docker.log &
+          echo 'Waiting booting NetBSD to multiuser...'
+          tail -f docker.log &
+          while true; do if grep -q -m 1 "NetBSD/amd64 (netbsd) (constty)" docker.log; then break; else sleep 1; fi; done
+          echo 'Ready.'
+
+      - name: Setup environment
+        run: |
+          ssh -p 2222 root@localhost sh << 'EOF'
+          . /root/.profile
+          uname -a
+          ftp -o - http://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/comp.tar.xz | tar -C / -zxpf - ./usr/bin ./usr/include ./usr/lib ./usr/libexec ./usr/sbin ./usr/share
+          ftp -o - http://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xbase.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
+          ftp -o - http://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xcomp.tar.xz | tar -C / -zxpf - ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
+          export PKG_PATH=http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/amd64/9.3/All
+          pkg_add -u pkgconf autoconf automake libtool-base intltool gmake
+          pkg_add -u cldr-emoji-annotation unicode-character-database unicode-emoji
+          pkg_add -u py39-gobject3 glib2 dconf gettext-tools gobject-introspection gettext-lib hicolor-icon-theme vala dbus libnotify iso-codes gtk2+ gtk3+
+          pkg_add -u glib2-tools gtk-doc gdbus-codegen git-base
+          /usr/pkg/sbin/mozilla-rootcerts install
+          EOF
+
+      - name: Fetch git tags
+        run: |
+          ssh -p 2222 root@localhost sh << 'EOF'
+          . /root/.profile
+          git clone https://github.com/ibus/ibus ~/ibus
+          git config --global --add safe.directory ~/ibus
+          cd ~/ibus
+          git fetch --prune --unshallow --tags
+          pwd
+          id
+          ls -al
+          EOF
+
+      - name: Run autogen
+        run: |
+          ssh -p 2222 root@localhost sh << 'EOF'
+          . /root/.profile
+          cd ~/ibus
+          MAKE=gmake \
+          MSGFMT=/usr/pkg/bin/msgfmt \
+          LDFLAGS="-L/usr/pkg/lib -Wl,-R/usr/pkg/lib -L/usr/lib -Wl,-R/usr/lib -L/usr/X11R7/lib -Wl,-R/usr/X11R7/lib" \
+          ./autogen.sh \
+          --sysconfdir=/usr/pkg/etc \
+          --localedir=/usr/pkg/share/locale \
+          --enable-dconf \
+          --enable-gtk2 \
+          --enable-gtk3 \
+          --enable-surrounding-text \
+          --enable-introspection=yes \
+          --disable-systemd-services \
+          --with-python=/usr/pkg/bin/python3.9 \
+          --with-unicode-emoji-dir=/usr/pkg/share/unicode/emoji \
+          --with-emoji-annotation-dir=/usr/pkg/share/unicode/cldr/common/annotations \
+          --with-ucd-dir=/usr/pkg/share/unicode/ucd \
+          --x-includes=/usr/X11R7/include \
+          --x-libraries=/usr/X11R7/lib \
+          --prefix=/usr/pkg \
+          --mandir=/usr/pkg/man \
+          --enable-option-checking=yes \
+          --enable-gtk-doc \
+          --enable-install-tests
+          EOF
+
+      - name: Run make
+        run: |
+          ssh -p 2222 root@localhost sh << 'EOF'
+          . /root/.profile
+          cd ~/ibus
+          export DISABLE_DAEMONIZE_IN_TESTS=1
+          gmake distcheck \
+          LDFLAGS="-L/usr/pkg/lib -Wl,-R/usr/pkg/lib -L/usr/lib -Wl,-R/usr/lib -L/usr/X11R7/lib -Wl,-R/usr/X11R7/lib" \
+          DISTCHECK_CONFIGURE_FLAGS=" \
+          MAKE=\"gmake\" \
+          MSGFMT=\"/usr/pkg/bin/msgfmt\" \
+          --enable-gtk-doc \
+          --disable-schemas-compile \
+          --enable-memconf \
+          --sysconfdir=/usr/pkg/etc \
+          --localedir=/usr/pkg/share/locale \
+          --enable-dconf \
+          --enable-gtk2 \
+          --enable-gtk3 \
+          --enable-surrounding-text \
+          --enable-introspection=yes \
+          --disable-systemd-services \
+          --with-python=/usr/pkg/bin/python3.9 \
+          --with-unicode-emoji-dir=/usr/pkg/share/unicode/emoji \
+          --with-emoji-annotation-dir=/usr/pkg/share/unicode/cldr/common/annotations \
+          --with-ucd-dir=/usr/pkg/share/unicode/ucd \
+          --x-includes=/usr/X11R7/include \
+          --x-libraries=/usr/X11R7/lib \
+          --prefix=/usr/pkg \
+          --mandir=/usr/pkg/man \
+          --enable-install-tests \
+          " \
+          DISABLE_GUI_TESTS=" \
+          ibus-compose ibus-keypress test-stress xkb-latin-layouts \
+          " \
+          VERBOSE=1
+          EOF
