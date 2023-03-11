@@ -210,6 +210,7 @@ jobs:
 
       - name: Setup NetBSD docker
         run: |
+          uname -a
           touch docker.log
           /usr/bin/docker pull madworx/netbsd:latest
           /usr/bin/docker image inspect madworx/netbsd:latest
@@ -230,6 +231,7 @@ jobs:
       - name: Setup environment
         run: |
           ssh -p 2222 root@localhost sh << 'EOF'
+          set -o xtrace
           . /root/.profile
           uname -a
           ftp -o - http://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/comp.tar.xz | tar -C / -zxpf - ./usr/bin ./usr/include ./usr/lib ./usr/libexec ./usr/sbin ./usr/share
@@ -246,6 +248,7 @@ jobs:
       - name: Fetch git tags
         run: |
           ssh -p 2222 root@localhost sh << 'EOF'
+          set -o xtrace
           . /root/.profile
           git clone https://github.com/ibus/ibus ~/ibus
           git config --global --add safe.directory ~/ibus
@@ -259,6 +262,7 @@ jobs:
       - name: Run autogen
         run: |
           ssh -p 2222 root@localhost sh << 'EOF'
+          set -o xtrace
           . /root/.profile
           cd ~/ibus
           MAKE=gmake \
@@ -289,6 +293,7 @@ jobs:
       - name: Run make
         run: |
           ssh -p 2222 root@localhost sh << 'EOF'
+          set -o xtrace
           . /root/.profile
           cd ~/ibus
           export DISABLE_DAEMONIZE_IN_TESTS=1
