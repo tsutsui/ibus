@@ -234,6 +234,7 @@ jobs:
           set -o xtrace
           . /root/.profile
           uname -a
+          mount -u -o nfsv2 /
           ftp -o - http://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/comp.tar.xz | tar -C / -zxpf - ./usr/bin ./usr/include ./usr/lib ./usr/libexec ./usr/sbin ./usr/share
           ftp -o - http://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xbase.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
           ftp -o - http://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xcomp.tar.xz | tar -C / -zxpf - ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
