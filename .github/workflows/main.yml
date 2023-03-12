@@ -234,13 +234,18 @@ jobs:
           set -o xtrace
           . /root/.profile
           uname -a
+          mount -u /
           ftp -o - http://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/comp.tar.xz | tar -C / -zxpf - ./usr/bin ./usr/include ./usr/lib ./usr/libexec ./usr/sbin ./usr/share
           ftp -o - http://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xbase.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
           ftp -o - http://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xcomp.tar.xz | tar -C / -zxpf - ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
           export PKG_PATH=http://cdn.netbsd.org/pub/pkgsrc/packages/NetBSD/amd64/9.3/All
+          mount -u /
           pkg_add -u pkgconf autoconf automake libtool-base intltool gmake
+          mount -u /
           pkg_add -u cldr-emoji-annotation unicode-character-database unicode-emoji
+          mount -u /
           pkg_add -u py39-gobject3 glib2 dconf gettext-tools gobject-introspection gettext-lib hicolor-icon-theme vala dbus libnotify iso-codes gtk2+ gtk3+
+          mount -u /
           pkg_add -u glib2-tools gtk-doc gdbus-codegen git-base
           /usr/pkg/sbin/mozilla-rootcerts install
           EOF
@@ -250,6 +255,7 @@ jobs:
           ssh -p 2222 root@localhost sh << 'EOF'
           set -o xtrace
           . /root/.profile
+          mount -u /
           git clone https://github.com/ibus/ibus ~/ibus
           git config --global --add safe.directory ~/ibus
           cd ~/ibus
@@ -264,6 +270,7 @@ jobs:
           ssh -p 2222 root@localhost sh << 'EOF'
           set -o xtrace
           . /root/.profile
+          mount -u /
           cd ~/ibus
           MAKE=gmake \
           MSGFMT=/usr/pkg/bin/msgfmt \
