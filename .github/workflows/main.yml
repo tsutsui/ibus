@@ -222,7 +222,7 @@ jobs:
             UserKnownHostsFile /dev/null
           EOF
           echo 'Starting NetBSD in docker VM...'
-          /usr/bin/docker run --rm --privileged -e "SSH_PUBKEY=$(cat ~/.ssh/id_rsa-docker.pub)" -e "NETDEV=pcnet" -p 2222:22 madworx/netbsd:latest >> docker.log &
+          /usr/bin/docker run --rm --privileged -e "SSH_PUBKEY=$(cat ~/.ssh/id_rsa-docker.pub)" -e "NETDEV=virtio-net-pci" -p 2222:22 madworx/netbsd:latest >> docker.log &
           echo 'Waiting booting NetBSD to multiuser...'
           tail -f docker.log &
           while true; do if grep -q -m 1 "NetBSD/amd64 (netbsd) (constty)" docker.log; then break; else sleep 1; fi; done
