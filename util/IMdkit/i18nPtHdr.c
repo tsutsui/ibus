@@ -1747,11 +1747,13 @@ static void ProcessQueue (XIMS ims, CARD16 connect_id)
         XimProtoHdr *hdr = (XimProtoHdr *) client->pending->p;
         unsigned char *p1 = (unsigned char *) (hdr + 1);
         IMProtocol call_data;
+        XIMPending *old = client->pending;
 
         call_data.major_code = hdr->major_opcode;
         call_data.any.minor_code = hdr->minor_opcode;
         call_data.any.connect_id = connect_id;
 
+        client->pending = old->next;
         switch (hdr->major_opcode)
         {
         case XIM_FORWARD_EVENT:
@@ -1760,12 +1762,7 @@ static void ProcessQueue (XIMS ims, CARD16 connect_id)
         }
         /*endswitch*/
         XFree (hdr);
-        {
-            XIMPending *old = client->pending;
-
-            client->pending = old->next;
-            XFree (old);
-        }
+        XFree (old);
     }
     /*endwhile*/
     return;
