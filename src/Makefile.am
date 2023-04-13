@@ -194,6 +194,7 @@ gen_internal_compose_table_SOURCES = \
     ibuserror.c         \
     ibuskeynames.c      \
     ibuskeyuni.c        \
+    ibusenumtypes.h     \
     $(NULL)
 gen_internal_compose_table_CFLAGS = $(AM_CFLAGS)
 gen_internal_compose_table_LDADD = \
