@@ -2,7 +2,7 @@
  *
  * ibus - The Input Bus
  *
- * Copyright (c) 2017-2021 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (c) 2017-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1799,12 +1799,12 @@ public class IBusEmojier : Gtk.ApplicationWindow {
 
         m_rebuilding_gui = true;
         m_rebuilding_gui_timeout_id =
-                GLib.Timeout.add_seconds(10, () => {
+                GLib.Timeout.add_seconds(5, () => {
                     if (!m_rebuilding_gui) {
                         m_rebuilding_gui_timeout_id = 0;
                         return false;
                     }
-                    warning("Rebuilding GUI is time out.");
+                    debug("Rebuilding GUI is time out.");
                     m_rebuilding_gui = false;
                     m_rebuilding_gui_timeout_id = 0;
                     return false;
@@ -2459,7 +2459,6 @@ public class IBusEmojier : Gtk.ApplicationWindow {
 
 
     public override bool focus_in_event(Gdk.EventFocus event) {
-        m_rebuilding_gui = false;
         return base.focus_in_event(event);
     }
 
