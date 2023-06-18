@@ -21,7 +21,9 @@
 # USA
 
 EXTRA_DIST = \
+    ax_prog_cc_for_build.m4 \
     ibuslocale.m4 \
+    pkg_config_for_build.m4 \
     vapigen.m4 \
     $(NULL)
 
