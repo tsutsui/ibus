@@ -372,8 +372,9 @@ dicts/emoji-%.dict: emoji-parser
 	    echo "Skip $$plus_comment $@"; \
 	fi;
 
-ibusemojigen.h:
-	$(MAKE) $(AM_MAKEFLAGS) dicts/emoji-en.dict
+# #2523 Should use autotool dependency
+ibusemojigen.h: dicts/emoji-en.dict
+	$(MAKE) $(AM_MAKEFLAGS) $^
 
 # We put dicts/emoji-%.dict as the make target for the parallel build
 # and the make target has to be genarated even if the file size is zero.
@@ -424,7 +425,8 @@ dicts/unicode-names.dict: unicode-parser
 	    echo "Generated $@"; \
 	fi;
 
-dicts/unicode-blocks.dict: unicode-parser
+# #2523 Should use autotool dependency
+dicts/unicode-blocks.dict ibusunicodegen.h: unicode-parser
 	$(AM_V_at)input_file="$(UCD_DIR)/Blocks.txt"; \
 	if test ! -f "$$input_file" ; then \
 	    echo "WARNING: Not found $$input_file" 1>&2; \
@@ -435,9 +437,6 @@ dicts/unicode-blocks.dict: unicode-parser
 	        --output-blocks $@; \
 	    echo "Generated $@"; \
 	fi;
-
-ibusunicodegen.h:
-	$(MAKE) $(AM_MAKEFLAGS) dicts/unicode-blocks.dict
 
 unicode_parser_SOURCES =        \
     unicode-parser.c            \
