@@ -37,6 +37,10 @@
 #include <sys/prctl.h>
 #endif
 
+#ifdef G_OS_UNIX
+#include <glib-unix.h>
+#endif
+
 #include "global.h"
 #include "ibusimpl.h"
 #include "server.h"
@@ -319,6 +323,7 @@ main (gint argc, gchar **argv)
             exit (0);
         }
 #ifdef HAVE_SYS_PRCTL_H
+#ifdef G_OS_UNIX
        /* Currently ibus-x11 detects XIOError and assume the error as the
         * desktop session is closed and ibus-x11 calls Exit D-Bus method to
         * exit ibus-daemon. But a few desktop sessions cause XError before
@@ -352,6 +357,7 @@ main (gint argc, gchar **argv)
             g_printerr ("Cannot bind SIGUSR1 for parent death\n");
         else
             g_unix_signal_add (SIGUSR1, (GSourceFunc)_on_sigusr1, NULL);
+#endif
 #endif
     }
     bus_server_run ();
