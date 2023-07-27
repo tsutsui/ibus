@@ -19,8 +19,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ibus 1.5.20\n"
 "Report-Msgid-Bugs-To: https://github.com/ibus/ibus/issues\n"
-"POT-Creation-Date: 2023-05-12 09:10+0900\n"
-"PO-Revision-Date: 2022-10-01 17:30+0000\n"
+"POT-Creation-Date: 2023-07-27 00:14+0900\n"
+"PO-Revision-Date: 2023-07-27 23:31+0900\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Japanese <https://translate.fedoraproject.org/projects/ibus/"
 "ibus/ja/>\n"
@@ -474,7 +474,7 @@ msgstr ""
 "Copyright © 2007-2010 Peng Huang\n"
 "Copyright © 2007-2010 Red Hat, Inc."
 
-#: ibus/lang.py:41 src/ibusutil.c:209 ui/gtk3/panel.vala:1323
+#: ibus/lang.py:41 src/ibusutil.c:209
 msgid "Other"
 msgstr "その他"
 
@@ -491,11 +491,11 @@ msgstr "キャンセル(_C)"
 msgid "_OK"
 msgstr "OK(_O)"
 
-#: setup/emojilang.py:235 setup/enginedialog.py:222
+#: setup/emojilang.py:235 setup/enginedialog.py:224
 msgid "More…"
 msgstr "さらに…"
 
-#: setup/engineabout.py:37 setup/setup.ui:1465 ui/gtk3/panel.vala:1288
+#: setup/engineabout.py:37 setup/setup.ui:1465 ui/gtk3/panel.vala:1446
 msgid "About"
 msgstr "情報"
 
@@ -3339,7 +3339,7 @@ msgstr "ibus-daemon を再起動する"
 msgid "Start ibus-daemon"
 msgstr "ibus-daemon を起動する"
 
-#: tools/main.vala:705
+#: tools/main.vala:705 ui/gtk3/application.vala:306
 msgid "Show version"
 msgstr "バージョンを表示する"
 
@@ -3392,6 +3392,22 @@ msgstr "コマンド:\n"
 #, c-format
 msgid "%s is unknown command!\n"
 msgstr "%s は不明なコマンドです。\n"
+
+#: ui/gtk3/application.vala:311
+msgid "Connect Wayland input method protocol"
+msgstr "Wayland 入力メソッドプロトコルに接続する"
+
+#: ui/gtk3/application.vala:315
+msgid "Execute ibus-daemon if it's not running"
+msgstr "起動していなければ、ibus-daemon を実行する"
+
+#: ui/gtk3/application.vala:319
+msgid "ibus-daemon's arguments"
+msgstr "ibus-daemon の引数"
+
+#: ui/gtk3/application.vala:323
+msgid "Verbose logging"
+msgstr "詳細のログを取る"
 
 #: ui/gtk3/emojier.vala:235
 msgid "Favorites"
@@ -3471,7 +3487,7 @@ msgid "Alias: %s"
 msgstr "別名: %s"
 
 #: ui/gtk3/emojier.vala:2180 ui/gtk3/ibus-extension-gtk3.desktop.in:3
-#: ui/gtk3/ibus-ui-emojier.desktop.in:3 ui/gtk3/panel.vala:1273
+#: ui/gtk3/ibus-ui-emojier.desktop.in:3 ui/gtk3/panel.vala:1431
 msgid "Emoji Choice"
 msgstr "絵文字の選択"
 
@@ -3532,23 +3548,55 @@ msgstr "指定した数字をもつ長さで一致させる"
 msgid "Match with the condition of the specified integer"
 msgstr "指定した数字の条件で一致させる"
 
-#: ui/gtk3/panel.vala:337 ui/gtk3/panel.vala:368
+#: ui/gtk3/panel.vala:363 ui/gtk3/panel.vala:386
 msgid "IBus Panel"
 msgstr "IBus パネル"
 
-#: ui/gtk3/panel.vala:767
+#: ui/gtk3/panel.vala:364
 msgid ""
-"Keymap changes do not work in Plasma Wayland at present. Please use "
-"systemsettings5 instead."
+"You can toggle the activate menu and context one with clicking the mouse "
+"middle button on the panel icon."
 msgstr ""
-"キーマップ変更は現在、Plasma Wayland で動作しません。代わりに "
-"systemsettings5 を使って下さい。"
+"パネルアイコン上でマウスの中ボタンをクリックすることで、動作メニューと状況"
+"メニューを切り替えることが可能です。"
 
-#: ui/gtk3/panel.vala:775
+#: ui/gtk3/panel.vala:836
+#, c-format
+msgid ""
+"IBus should be called from the desktop session in %s. For KDE, you can "
+"launch '%s' utility and go to \"Input Devices\" -> \"Virtual Keyboard\" "
+"section and select \"%s\" icon and click \"Apply\" button to configure IBus "
+"in %s. For other desktop sessions, you can copy the 'Exec=' line in %s file "
+"to a configuration file of the session. Please refer each document about the "
+"\"Wayland input method\" configuration. Before you configure the \"Wayland "
+"input method\", you should make sure that QT_IM_MODULE and GTK_IM_MODULE "
+"environment variables are unset in the desktop session."
+msgstr ""
+"IBus は %s におけるデスクトップセッションから呼ばれるべきです。KDE では、"
+"'%s' を起動し、「入力デバイス」->「仮想キーボード」セクションにいき、"
+"「%s」アイコンを選択し「適用」ボタンをクリックすることで、%s における IBus を"
+"構成することが可能です。他のデスクトップセッションでは、%s ファイルの中で "
+"'Exec=' の行をセッションの構成ファイルにコピーできます。「Wayland 入力"
+"メソッド」構成について、それぞれのドキュメントを参考にしてください。"
+"「Wayland 入力メソッド」を構成する前に、デスクトップセッション内で "
+"QT_IM_MODULE と GTK_IM_MODULE の環境変数は未定義であることを確認してください。"
+
+#: ui/gtk3/panel.vala:858
+#, c-format
+msgid ""
+"Please unset QT_IM_MODULE and GTK_IM_MODULE environment variables and 'ibus-"
+"daemon --panel disable' should be executed as a child process of %s "
+"component."
+msgstr ""
+"QT_IM_MODULE と GTK_IM_MODULE の環境変数を未定義にしてください。そして "
+"'ibus-daemon --panel disable' は %s コンポーネントの子プロセスとして起動"
+"されるべきです。"
+
+#: ui/gtk3/panel.vala:873
 msgid "IBus Notification"
 msgstr "IBus 通知"
 
-#: ui/gtk3/panel.vala:1068
+#: ui/gtk3/panel.vala:1228
 #, c-format
 msgid ""
 "Your configured input method %s does not exist in IBus input methods so "
@@ -3557,14 +3605,14 @@ msgstr ""
 "構成された入力メソッド %s は IBus 入力メソッドに存在しないので、\"US\" レイア"
 "ウトがあなたの入力メソッドの代わりに構成されました。"
 
-#: ui/gtk3/panel.vala:1073
+#: ui/gtk3/panel.vala:1233
 msgid ""
 "At least one of your configured input methods does not exist in IBus input "
 "methods."
 msgstr ""
 "構成された入力メソッドの少なくとも１つが IBus 入力メソッドに存在しません。"
 
-#: ui/gtk3/panel.vala:1076
+#: ui/gtk3/panel.vala:1236
 msgid ""
 "Please run `ibus-setup` command, open \"Input Method\" tab, and configure "
 "your input methods again."
@@ -3572,11 +3620,11 @@ msgstr ""
 "`ibus-setup` をコマンドを実行して、\"入力メソッド\" タブを開いて、入力メソッ"
 "ドを再度構成してください。"
 
-#: ui/gtk3/panel.vala:1245
+#: ui/gtk3/panel.vala:1394
 msgid "IBus is an intelligent input bus for Linux/Unix."
 msgstr "IBus は Linux/Unix のためのインテリジェントな入出力バスです。"
 
-#: ui/gtk3/panel.vala:1249
+#: ui/gtk3/panel.vala:1398
 msgid "translator-credits"
 msgstr ""
 "UTUMI Hirosi <utuhiro78@yahoo.co.jp>\n"
@@ -3584,27 +3632,33 @@ msgstr ""
 "日向原 龍一 <hyu_gabaru@yahoo.co.jp>\n"
 "MIZUMOTO, Noriko <noriko@fedoraproject.org>"
 
-#: ui/gtk3/panel.vala:1268
+#: ui/gtk3/panel.vala:1426
 msgid "Preferences"
 msgstr "設定"
 
-#: ui/gtk3/panel.vala:1294
+#: ui/gtk3/panel.vala:1452
 msgid "Restart"
 msgstr "再起動"
 
-#: ui/gtk3/panel.vala:1298
+#: ui/gtk3/panel.vala:1456
 msgid "Quit"
 msgstr "終了"
 
-#: ui/gtk3/panel.vala:1324
-msgid "No input method"
-msgstr "入力メソッドなし"
-
 #. Translators: If your locale is RTL, the msgstr is "default:RTL".
 #. * Otherwise the msgstr is "default:LTR".
-#: ui/gtk3/propertypanel.vala:368 ui/gtk3/propertypanel.vala:376
+#: ui/gtk3/propertypanel.vala:367 ui/gtk3/propertypanel.vala:375
 msgid "default:LTR"
 msgstr "default:LTR"
+
+#~ msgid ""
+#~ "Keymap changes do not work in Plasma Wayland at present. Please use "
+#~ "systemsettings5 instead."
+#~ msgstr ""
+#~ "キーマップ変更は現在、Plasma Wayland で動作しません。代わりに "
+#~ "systemsettings5 を使って下さい。"
+
+#~ msgid "No input method"
+#~ msgstr "入力メソッドなし"
 
 #~ msgid "<b>Fonts</b>"
 #~ msgstr "<b>フォント</b>"
