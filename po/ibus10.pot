@@ -1,14 +1,14 @@
 # Source translation of ibus.
 # Copyright (C) 2008-2015 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (C) 2015-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (C) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
 # This file is distributed under the same license as the ibus package.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: ibus 1.5.28\n"
 "Report-Msgid-Bugs-To: https://github.com/ibus/ibus/issues\n"
-"POT-Creation-Date: 2023-05-12 07:10+0900\n"
-"PO-Revision-Date: 2023-05-12 07:10+0900\n"
+"POT-Creation-Date: 2023-07-27 00:14+0900\n"
+"PO-Revision-Date: 2023-07-27 00:14+0900\n"
 "Last-Translator: Takao Fujiwara <takao.fujiwara1@gmail.com>\n"
 "Language-Team: Source\n"
 "Language: \n"
@@ -413,7 +413,7 @@ msgid ""
 "Copyright (c) 2007-2010 Red Hat, Inc."
 msgstr ""
 
-#: ibus/lang.py:41 src/ibusutil.c:209 ui/gtk3/panel.vala:1323
+#: ibus/lang.py:41 src/ibusutil.c:209
 msgid "Other"
 msgstr ""
 
@@ -430,11 +430,11 @@ msgstr ""
 msgid "_OK"
 msgstr ""
 
-#: setup/emojilang.py:235 setup/enginedialog.py:222
+#: setup/emojilang.py:235 setup/enginedialog.py:224
 msgid "More…"
 msgstr ""
 
-#: setup/engineabout.py:37 setup/setup.ui:1465 ui/gtk3/panel.vala:1288
+#: setup/engineabout.py:37 setup/setup.ui:1465 ui/gtk3/panel.vala:1446
 msgid "About"
 msgstr ""
 
@@ -3248,7 +3248,7 @@ msgstr ""
 msgid "Start ibus-daemon"
 msgstr ""
 
-#: tools/main.vala:705
+#: tools/main.vala:705 ui/gtk3/application.vala:306
 msgid "Show version"
 msgstr ""
 
@@ -3298,6 +3298,22 @@ msgstr ""
 #: tools/main.vala:754
 #, c-format
 msgid "%s is unknown command!\n"
+msgstr ""
+
+#: ui/gtk3/application.vala:311
+msgid "Connect Wayland input method protocol"
+msgstr ""
+
+#: ui/gtk3/application.vala:315
+msgid "Execute ibus-daemon if it's not running"
+msgstr ""
+
+#: ui/gtk3/application.vala:319
+msgid "ibus-daemon's arguments"
+msgstr ""
+
+#: ui/gtk3/application.vala:323
+msgid "Verbose logging"
 msgstr ""
 
 #: ui/gtk3/emojier.vala:235
@@ -3378,7 +3394,7 @@ msgid "Alias: %s"
 msgstr ""
 
 #: ui/gtk3/emojier.vala:2180 ui/gtk3/ibus-extension-gtk3.desktop.in:3
-#: ui/gtk3/ibus-ui-emojier.desktop.in:3 ui/gtk3/panel.vala:1273
+#: ui/gtk3/ibus-ui-emojier.desktop.in:3 ui/gtk3/panel.vala:1431
 msgid "Emoji Choice"
 msgstr ""
 
@@ -3435,65 +3451,82 @@ msgstr ""
 msgid "Match with the condition of the specified integer"
 msgstr ""
 
-#: ui/gtk3/panel.vala:337 ui/gtk3/panel.vala:368
+#: ui/gtk3/panel.vala:363 ui/gtk3/panel.vala:386
 msgid "IBus Panel"
 msgstr ""
 
-#: ui/gtk3/panel.vala:767
+#: ui/gtk3/panel.vala:364
 msgid ""
-"Keymap changes do not work in Plasma Wayland at present. Please use "
-"systemsettings5 instead."
+"You can toggle the activate menu and context one with clicking the mouse "
+"middle button on the panel icon."
 msgstr ""
 
-#: ui/gtk3/panel.vala:775
+#: ui/gtk3/panel.vala:836
+#, c-format
+msgid ""
+"IBus should be called from the desktop session in %s. For KDE, you can "
+"launch '%s' utility and go to \"Input Devices\" -> \"Virtual Keyboard\" "
+"section and select \"%s\" icon and click \"Apply\" button to configure IBus "
+"in %s. For other desktop sessions, you can copy the 'Exec=' line in %s file "
+"to a configuration file of the session. Please refer each document about the "
+"\"Wayland input method\" configuration. Before you configure the \"Wayland "
+"input method\", you should make sure that QT_IM_MODULE and GTK_IM_MODULE "
+"environment variables are unset in the desktop session."
+msgstr ""
+
+#: ui/gtk3/panel.vala:858
+#, c-format
+msgid ""
+"Please unset QT_IM_MODULE and GTK_IM_MODULE environment variables and 'ibus-"
+"daemon --panel disable' should be executed as a child process of %s "
+"component."
+msgstr ""
+
+#: ui/gtk3/panel.vala:873
 msgid "IBus Notification"
 msgstr ""
 
-#: ui/gtk3/panel.vala:1068
+#: ui/gtk3/panel.vala:1228
 #, c-format
 msgid ""
 "Your configured input method %s does not exist in IBus input methods so "
 "\"US\" layout was configured instead of your input method."
 msgstr ""
 
-#: ui/gtk3/panel.vala:1073
+#: ui/gtk3/panel.vala:1233
 msgid ""
 "At least one of your configured input methods does not exist in IBus input "
 "methods."
 msgstr ""
 
-#: ui/gtk3/panel.vala:1076
+#: ui/gtk3/panel.vala:1236
 msgid ""
 "Please run `ibus-setup` command, open \"Input Method\" tab, and configure "
 "your input methods again."
 msgstr ""
 
-#: ui/gtk3/panel.vala:1245
+#: ui/gtk3/panel.vala:1394
 msgid "IBus is an intelligent input bus for Linux/Unix."
 msgstr ""
 
-#: ui/gtk3/panel.vala:1249
+#: ui/gtk3/panel.vala:1398
 msgid "translator-credits"
 msgstr ""
 
-#: ui/gtk3/panel.vala:1268
+#: ui/gtk3/panel.vala:1426
 msgid "Preferences"
 msgstr ""
 
-#: ui/gtk3/panel.vala:1294
+#: ui/gtk3/panel.vala:1452
 msgid "Restart"
 msgstr ""
 
-#: ui/gtk3/panel.vala:1298
+#: ui/gtk3/panel.vala:1456
 msgid "Quit"
-msgstr ""
-
-#: ui/gtk3/panel.vala:1324
-msgid "No input method"
 msgstr ""
 
 #. Translators: If your locale is RTL, the msgstr is "default:RTL".
 #. * Otherwise the msgstr is "default:LTR".
-#: ui/gtk3/propertypanel.vala:368 ui/gtk3/propertypanel.vala:376
+#: ui/gtk3/propertypanel.vala:367 ui/gtk3/propertypanel.vala:375
 msgid "default:LTR"
 msgstr ""
