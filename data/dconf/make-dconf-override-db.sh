@@ -16,7 +16,7 @@ eval `dbus-launch --sh-syntax`
 
 trap cleanup EXIT
 
-cleanup () {
+cleanup() {
   test $? -eq 0 && exit
   rm -rf $TMPDIR; kill $DBUS_SESSION_BUS_PID
 }

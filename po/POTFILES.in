@@ -54,6 +54,7 @@ src/ibusservice.c
 src/ibusunicodegen.h
 src/ibusutil.c
 src/keyname-table.h
+tools/ibusimmodule.c
 tools/main.vala
 ui/gtk3/application.vala
 ui/gtk3/candidatearea.vala
@@ -63,6 +64,7 @@ ui/gtk3/emojierapp.vala
 ui/gtk3/handle.vala
 ui/gtk3/ibus-extension-gtk3.desktop.in
 ui/gtk3/ibus-ui-emojier.desktop.in
+ui/gtk3/ibus-ui-wayland.desktop.in
 ui/gtk3/iconwidget.vala
 ui/gtk3/keybindingmanager.vala
 ui/gtk3/panel.vala

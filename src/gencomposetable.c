@@ -20,7 +20,7 @@
  * USA
  */
 
-#include <ibus.h>
+/* #2523 Should not include <ibus.h> but each IBus header file. */
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <errno.h>

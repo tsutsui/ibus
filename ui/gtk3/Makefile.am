@@ -3,7 +3,7 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2015 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2022 Takao Fujwiara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2015-2023 Takao Fujwiara <takao.fujiwara1@gmail.com>
 # Copyright (c) 2007-2020 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 NULL =
 
 libibus = $(top_builddir)/src/libibus-@IBUS_API_VERSION@.la
+libibuswaylandim = $(top_builddir)/client/wayland/libibuswaylandim.la
 
 component_DATA = \
 	gtkpanel.xml \
@@ -35,6 +36,13 @@ componentdir = $(pkgdatadir)/component
 		-e 's|@VERSION[@]|$(VERSION)|g' \
 		-e 's|@libexecdir[@]|$(libexecdir)|g' $< > $@.tmp && \
 		mv $@.tmp $@
+	$(NULL)
+%.desktop: %.desktop.in
+	$(AM_V_GEN) sed \
+		-e 's|@libexecdir[@]|$(libexecdir)|g' \
+		-e 's|^#Name=|Name=|' $< > $@.tmp && \
+		mv $@.tmp $@
+	$(NULL)
 
 # force include config.h before gi18n.h.
 AM_CPPFLAGS = \
@@ -78,6 +86,7 @@ AM_VALAFLAGS = \
 	--pkg=ibus-1.0 \
 	--pkg=config \
 	--pkg=xi \
+	--pkg=glibmacro \
 	--target-glib="$(VALA_TARGET_GLIB_VERSION)" \
 	$(NULL)
 
@@ -97,11 +106,19 @@ AM_VALAFLAGS += \
 endif
 
 if ENABLE_APPINDICATOR
-AM_VALAFLAGS += --define=INDICATOR
-endif
-
-if ENABLE_GDK3_WAYLAND
-AM_VALAFLAGS += --pkg=gdk-wayland --define=USE_GDK_WAYLAND
+AM_VALAFLAGS += \
+    --define=INDICATOR \
+    --pkg=Dbusmenu-0.4 \
+    --pkg=DbusmenuGtk3-0.4 \
+    $(NULL)
+AM_CFLAGS += \
+    @DBUSMENU_GLIB_CFLAGS@ \
+    @DBUSMENU_GTK3_CFLAGS@ \
+    $(NULL)
+AM_LDADD += \
+    @DBUSMENU_GLIB_LIBS@ \
+    @DBUSMENU_GTK3_LIBS@ \
+    $(NULL)
 endif
 
 libexec_PROGRAMS = ibus-ui-gtk3
@@ -137,17 +154,26 @@ gen-%.xml.c: %.xml
 	sed -e "s:\":\\\\\":g" -e s:^:\": -e s:\$$:\\\\n\": $< >> $@
 	echo ";" >> $@
 
-CLEANFILES =            \
-    gtkpanel.xml        \
-    $(NULL)
-
-MAINTAINERCLEANFILES =
-
 emoji_headers =         \
     ibusemojidialog.h   \
     $(NULL)
 
-man_seven_in_files = ibus-emoji.7.in
+desktop_in_files = \
+    ibus-ui-emojier.desktop.in \
+    ibus-ui-wayland.desktop.in \
+    ibus-extension-gtk3.desktop.in \
+    $(NULL)
+desktop_notrans_files = $(desktop_in_files:.desktop.in=.desktop)
+desktopdir = $(datadir)/applications
+desktop_DATA =
+
+CLEANFILES =            \
+    $(desktop_notrans_files) \
+    $(desktop_DATA)     \
+    gtkpanel.xml        \
+    $(NULL)
+
+MAINTAINERCLEANFILES =
 
 # References:
 # libappindicator/src/notification-item.xml
@@ -156,17 +182,37 @@ man_seven_in_files = ibus-emoji.7.in
 # kdelibs/kdeui/knotifications/src/org.kde.StatusNotifierWatcher.xml
 EXTRA_DIST =                            \
     $(emoji_headers)                    \
-    $(man_seven_in_files)               \
+    $(desktop_in_files)                 \
     emojierapp.vala                     \
     extension.vala                      \
     gtkextension.xml.in                 \
     gtkpanel.xml.in                     \
     notification-item.xml               \
     notification-watcher.xml            \
-    ibus-ui-emojier.desktop.in          \
-    ibus-extension-gtk3.desktop.in      \
     panelbinding.vala                   \
     $(NULL)
+
+if ENABLE_GDK3_WAYLAND
+AM_CPPFLAGS += \
+    -I$(top_srcdir)/client/wayland \
+    -I$(top_builddir)/client/wayland \
+    $(NULL)
+AM_VALAFLAGS += \
+    --vapidir=$(top_builddir)/client/wayland \
+    --vapidir=$(top_srcdir)/client/wayland \
+    --pkg=ibus-wayland-im-1.0 \
+    --pkg=gdk-wayland --define=USE_GDK_WAYLAND \
+    $(NULL)
+AM_LDADD += \
+    $(libibuswaylandim) \
+    $(NULL)
+desktop_DATA += \
+    org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop \
+    $(NULL)
+org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop: ibus-ui-wayland.desktop
+	$(AM_V_GEN) $(MSGFMT) --desktop --template $< -d $(top_srcdir)/po -o $@
+	$(NULL)
+endif
 
 if ENABLE_EMOJI_DICT
 AM_VALAFLAGS += --define=EMOJI_DICT
@@ -257,45 +303,19 @@ panelbinding.o: $(srcdir)/panelbinding.c
 
 MAINTAINERCLEANFILES += extension.c panelbinding.c
 
-man_seven_files = $(man_seven_in_files:.7.in=.7)
-man_seven_DATA =$(man_seven_files:.7=.7.gz)
+man_seven_DATA = ibus-emoji.7
 man_sevendir = $(mandir)/man7
-%.7: %.7.in
-	$(AM_V_GEN) sed \
-	    -e 's|@VERSION[@]|$(VERSION)|g' $< > $@.tmp && \
-	    mv $@.tmp $@
-%.7.gz: %.7
-	$(AM_V_GEN) gzip -c $< > $@.tmp && mv $@.tmp $@
 
-desktop_in_files = \
-    ibus-ui-emojier.desktop.in \
-    ibus-extension-gtk3.desktop.in \
-    $(NULL)
-desktop_notrans_files = $(desktop_in_files:.desktop.in=.desktop)
-desktop_DATA = \
+desktop_DATA += \
     org.freedesktop.IBus.Panel.Emojier.desktop \
     org.freedesktop.IBus.Panel.Extension.Gtk3.desktop \
     $(NULL)
-desktopdir = $(datadir)/applications
-%.desktop: %.desktop.in
-	$(AM_V_GEN) sed \
-		-e 's|@libexecdir[@]|$(libexecdir)|g' $< > $@.tmp && \
-                mv $@.tmp $@
-	$(NULL)
 org.freedesktop.IBus.Panel.Emojier.desktop: ibus-ui-emojier.desktop
 	$(AM_V_GEN) $(MSGFMT) --desktop --template $< -d $(top_srcdir)/po -o $@
 	$(NULL)
 org.freedesktop.IBus.Panel.Extension.Gtk3.desktop: ibus-extension-gtk3.desktop
 	$(AM_V_GEN) $(MSGFMT) --desktop --template $< -d $(top_srcdir)/po -o $@
 	$(NULL)
-
-CLEANFILES += \
-    $(desktop_DATA) \
-    $(desktop_notrans_files) \
-    $(man_seven_DATA) \
-    $(man_seven_files) \
-    $(NULL)
-
 endif
 # end of ENABLE_EMOJI_DICT
 

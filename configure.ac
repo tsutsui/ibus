@@ -22,20 +22,23 @@
 # USA
 
 
-# If ibus_released is 0, append datestamp to the version number.
-m4_define([ibus_released], [1])
+# If ibus_released is 0, append beta to the version number.
+m4_define([ibus_released], [0])
 
 m4_define([ibus_major_version], [1])
 m4_define([ibus_minor_version], [5])
-m4_define([ibus_micro_version], [28])
+m4_define([ibus_micro_version], [29])
+m4_define([ibus_beta_version], [beta1])
 m4_define([ibus_abi_current], [5])
 m4_define([ibus_abi_revision],
           [m4_eval(100 * ibus_minor_version + ibus_micro_version)])
 m4_define([ibus_abi_age], [0])
 m4_define([ibus_maybe_datestamp],
     m4_esyscmd([test x]ibus_released[ != x1 && date +.%Y%m%d | tr -d '\n\r']))
+m4_define([ibus_beta_suffix],
+          m4_if(ibus_released, 0, -ibus_beta_version))
 m4_define([ibus_version],
-    ibus_major_version.ibus_minor_version.ibus_micro_version[]ibus_maybe_datestamp)
+    ibus_major_version.ibus_minor_version.ibus_micro_version[]ibus_beta_suffix)
 m4_define([ibus_api_version], [ibus_major_version.0])
 
 AC_PREFEQ([2.62])
@@ -64,7 +67,7 @@ AC_SUBST(VALA_TARGET_GLIB_VERSION)
 # Init automake.
 AM_INIT_AUTOMAKE([1.11.1 parallel-tests])
 AM_MAINTAINER_MODE([enable])
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 
 # Support silent build rules. Disable
 # by either passing --disable-silent-rules to configure or passing V=1
@@ -126,19 +129,19 @@ AC_SUBST(DATE_DISPLAY)
 # Check for programs.
 AC_PROG_CC
 AM_PROG_CC_C_O
-AC_PROG_CC_STDC
 AM_PROG_VALAC([0.20])
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
+AX_PROG_CC_FOR_BUILD
 
 # i18n stuff
 AM_GNU_GETTEXT_VERSION([0.19.8])
 AM_GNU_GETTEXT([external])
 
 # Define PACKAGE_VERSION_* variables.
-AM_DISABLE_STATIC
-AC_ISC_POSIX
-AC_HEADER_STDC
+AC_DISABLE_STATIC([])
+AC_SEARCH_LIBS([strerror],[cposix])
+
 LT_INIT
 
 # Check header filess.
@@ -151,14 +154,16 @@ AC_CHECK_FUNCS(daemon)
 AC_CHECK_LIB(c, dlclose, LIBDL="", [AC_CHECK_LIB(dl, dlclose, LIBDL="-ldl")])
 AC_SUBST(LIBDL)
 
+# Check if cross compiling.
+AM_CONDITIONAL(CROSS_COMPILING, test "x$cross_compiling" = xyes)
+
 # Check endianness.
-AC_MSG_CHECKING([build system endianness])
-AC_C_BIGENDIAN([ENDIAN=big],[ENDIAN=little],[ENDIAN=unknown],[])
+AC_C_BIGENDIAN([ENDIAN=big], [ENDIAN=little], [ENDIAN=unknown], [ENDIAN=big])
 if test x"$ENDIAN" != xlittle  -a x"$ENDIAN" != xbig; then
-    AC_MSG_ERROR([Cannot determine endianness])
+    AC_MSG_ERROR([Cannot determine endianness. Use ac_cv_c_bigendian to yes or no])
 fi
-AC_MSG_RESULT($ENDIAN)
 AC_SUBST(ENDIAN)
+ENDIAN_MSG="$ENDIAN (ac_cv_c_bigendian=$ac_cv_c_bigendian)"
 
 # Check packages.
 # Check glib2.
@@ -184,6 +189,14 @@ AH_BOTTOM([
 #  include <errno.h>
 #endif
 ])
+
+if test "x$cross_compiling" = "xyes"; then
+PKG_PROG_PKG_CONFIG_FOR_BUILD
+GLIB_CFLAGS_FOR_BUILD=`$PKG_CONFIG_FOR_BUILD --cflags glib-2.0 gobject-2.0 gio-2.0 gio-unix-2.0 gthread-2.0`
+GLIB_LIBS_FOR_BUILD=`$PKG_CONFIG_FOR_BUILD --libs glib-2.0 gobject-2.0 gio-2.0 gio-unix-2.0 gthread-2.0`
+AC_SUBST(GLIB_CFLAGS_FOR_BUILD)
+AC_SUBST(GLIB_LIBS_FOR_BUILD)
+fi
 
 # --disable-tests option.
 AC_ARG_ENABLE(tests,
@@ -242,7 +255,7 @@ AC_ARG_ENABLE(wayland,
     AS_HELP_STRING([--enable-wayland],
                    [Build wayland support]),
     [enable_wayland=$enableval],
-    [enable_wayland=no]
+    [enable_wayland=yes]
 )
 AM_CONDITIONAL([ENABLE_WAYLAND], [test x"$enable_wayland" = x"yes"])
 
@@ -272,10 +285,14 @@ if test x"$enable_gtk3" = x"yes"; then
     PKG_CHECK_MODULES(GTK3, [
         gtk+-3.0 >= gtk3_required_version
     ])
-    PKG_CHECK_EXISTS([gdk-wayland-3.0],
-        [enable_gdk3_wayland=yes],
-        [enable_gdk3_wayland=no]
-    )
+    if test x"$enable_wayland" = x"yes"; then
+        PKG_CHECK_EXISTS([gdk-wayland-3.0],
+            [enable_gdk3_wayland=yes],
+            [enable_gdk3_wayland=no]
+        )
+    else
+        enable_gdk3_wayland=no
+    fi
 
     gtk3_binary_version=`$PKG_CONFIG --variable=gtk_binary_version gtk+-3.0`
     GTK3_IM_MODULEDIR="$libdir"/gtk-3.0/$gtk3_binary_version/immodules
@@ -349,10 +366,6 @@ if test x"$enable_wayland" = x"yes"; then
 else
     enable_wayland="no (disabled, use --enable-wayland to enable)"
     AC_SUBST(wayland_scanner_rules)
-fi
-
-if test x"$enable_appindicator" = x"yes"; then
-    enable_appindicator="yes (enabled, use --disable-appindicator to disable)"
 fi
 
 # GObject introspection
@@ -644,6 +657,12 @@ if test x"$enable_ui" = x"yes"; then
     enable_ui="yes (enabled, use --disable-ui to disable)"
 fi
 
+if test x"$enable_appindicator" = x"yes"; then
+    PKG_CHECK_MODULES(DBUSMENU_GLIB, [dbusmenu-glib-0.4])
+    PKG_CHECK_MODULES(DBUSMENU_GTK3, [dbusmenu-gtk3-0.4])
+    enable_appindicator="yes (enabled, use --disable-appindicator to disable)"
+fi
+
 # --disable-engine
 AC_ARG_ENABLE(engine,
     AS_HELP_STRING([--disable-engine],
@@ -832,6 +851,7 @@ bindings/Makefile
 bindings/pygobject/Makefile
 bindings/vala/Makefile
 bus/Makefile
+bus/ibus-daemon.1
 bus/services/Makefile
 client/Makefile
 client/gtk2/Makefile
@@ -848,6 +868,8 @@ data/icons/Makefile
 data/its/Makefile
 data/keymaps/Makefile
 data/dconf/Makefile
+data/dconf/00-upstream-settings.5
+data/dconf/ibus.5
 docs/Makefile
 docs/reference/Makefile
 docs/reference/ibus/ibus-docs.sgml
@@ -859,13 +881,16 @@ ibus/interface/Makefile
 m4/Makefile
 portal/Makefile
 setup/Makefile
+setup/ibus-setup.1
 src/Makefile
 src/compose/Makefile
 src/ibusversion.h
 src/tests/Makefile
 tools/Makefile
+tools/ibus.1
 ui/Makefile
 ui/gtk3/Makefile
+ui/gtk3/ibus-emoji.7
 util/Makefile
 util/IMdkit/Makefile
 Makefile
@@ -880,7 +905,7 @@ Build options:
   Install prefix                $prefix
   Build shared libs             $enable_shared
   Build static libs             $enable_static
-  Build endianness              $ENDIAN
+  Build endianness              $ENDIAN_MSG
   CFLAGS                        $CFLAGS
   PYTHON                        $PYTHON
   PYTHON2                       $PYTHON2

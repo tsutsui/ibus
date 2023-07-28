@@ -4,7 +4,7 @@
  *
  * Copyright(c) 2013-2016 Red Hat, Inc.
  * Copyright(c) 2013-2015 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2013-2017 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright(c) 2013-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -51,13 +51,12 @@ public class PropertyPanel : Gtk.Box {
 
         set_visible(true);
 
-        m_root_window = Gdk.get_default_root_window();
-        unowned Gdk.Display display = m_root_window.get_display();
-#if VALA_0_24
-        m_xdisplay = (display as Gdk.X11.Display).get_xdisplay();
-#else
-        m_xdisplay = Gdk.X11Display.get_xdisplay(display);
-#endif
+        var display = BindingCommon.get_xdisplay();
+        if (display != null) {
+            m_xdisplay = display.get_xdisplay();
+            var screen = display.get_default_screen();
+            m_root_window = screen.get_root_window();
+        }
 
         m_toplevel = new Gtk.Window(Gtk.WindowType.POPUP);
         m_toplevel.add_events(Gdk.EventMask.BUTTON_PRESS_MASK);
@@ -389,6 +388,13 @@ public class PropertyPanel : Gtk.Box {
                                                 Gdk.Event  event) {
         X.Event *xevent = (X.Event*) gdkxevent;
         if (xevent.type == X.EventType.PropertyNotify) {
+            if (m_xdisplay == null) {
+                if (m_remove_filter_id > 0) {
+                    GLib.Source.remove(m_remove_filter_id);
+                    m_remove_filter_id = 0;
+                }
+                return Gdk.FilterReturn.CONTINUE;
+            }
             string aname = m_xdisplay.get_atom_name(xevent.xproperty.atom);
             if (aname == "_NET_WORKAREA" && xevent.xproperty.state == 0) {
                 set_default_location();

@@ -4,10 +4,8 @@
 : ${srcdir=$(dirname $0)}
 : ${srcdir:=.}
 : ${SAVE_DIST_FILES:=0}
+: ${MAKE:=make}
 
-if [ -z "$MAKE" ]; then
- MAKE=make
-fi
 olddir=$(pwd)
 # shellcheck disable=SC2016
 PKG_NAME=$(autoconf --trace 'AC_INIT:$1' configure.ac)

@@ -4,7 +4,7 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2015 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2021 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
 # Copyright (c) 2013-2015 Red Hat, Inc.
 #
 # This program is free software; you can redistribute it and/or
@@ -145,6 +145,8 @@ class EngineDialog(Gtk.Dialog):
 
     def __row_activated(self, box, row):
         if row == self.__more_row:
+            # Undo sensitive Gtk.ResponseType.APPLY button
+            self.__list.unselect_row(row)
             self.__show_more()
             return
         if row.back:

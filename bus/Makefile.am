@@ -163,13 +163,7 @@ test_stress_LDADD = \
 	$(NULL)
 
 EXTRA_DIST =                \
-	$(man_one_in_files)     \
 	marshalers.list         \
-	$(NULL)
-
-CLEANFILES = \
-	$(man_one_DATA)            \
-	$(man_one_files)        \
 	$(NULL)
 
 $(libibus):
@@ -180,15 +174,7 @@ test: ibus-daemon
 		G_DEBUG=fatal_warnings \
 		$(builddir)/ibus-daemon -v
 
-man_one_in_files = ibus-daemon.1.in
-man_one_files = $(man_one_in_files:.1.in=.1)
-man_one_DATA =$(man_one_files:.1=.1.gz) 
+man_one_DATA = ibus-daemon.1
 man_onedir = $(mandir)/man1
-%.1: %.1.in
-	$(AM_V_GEN) sed \
-		-e 's|@VERSION[@]|$(VERSION)|g' $< > $@.tmp && \
-		mv $@.tmp $@
-%.1.gz: %.1
-	$(AM_V_GEN) gzip -c $< > $@.tmp && mv $@.tmp $@
 
 -include $(top_srcdir)/git.mk

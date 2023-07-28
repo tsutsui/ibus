@@ -3,7 +3,7 @@
  * ibus - The Input Bus
  *
  * Copyright(c) 2011-2014 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2015-2022 Takao Fujwiara <takao.fujiwara1@gmail.com>
+ * Copyright(c) 2015-2023 Takao Fujwiara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,14 +34,10 @@ class Panel : IBus.PanelService {
     private GLib.Settings m_settings_panel = null;
     private IconType m_icon_type = IconType.STATUS_ICON;
     private Indicator m_indicator;
-#if INDICATOR
-    private GLib.DBusConnection m_session_bus_connection;
-#endif
     private Gtk.StatusIcon m_status_icon;
     private Gtk.Menu m_ime_menu;
     private Gtk.Menu m_sys_menu;
     private IBus.EngineDesc[] m_engines = {};
-    private IBus.EngineDesc m_en_engine;
     private GLib.HashTable<string, IBus.EngineDesc> m_engine_contexts =
             new GLib.HashTable<string, IBus.EngineDesc>(GLib.str_hash,
                                                         GLib.str_equal);
@@ -52,6 +48,8 @@ class Panel : IBus.PanelService {
     private CandidatePanel m_candidate_panel;
     private Switcher m_switcher;
     private uint m_switcher_focus_set_engine_id;
+    private int m_switcher_selected_index = -1;
+    private Thread<bool> m_switcher_waiting_release;
     private PropertyManager m_property_manager;
     private PropertyPanel m_property_panel;
     private GLib.Pid m_setup_pid = 0;
@@ -74,40 +72,59 @@ class Panel : IBus.PanelService {
     private string m_icon_prop_key = "";
     private int m_property_icon_delay_time = 500;
     private uint m_property_icon_delay_time_id;
+    private uint m_menu_update_delay_time = 100;
+    private uint m_menu_update_delay_time_id;
     private bool m_is_wayland;
+    private bool m_is_wayland_im;
 #if INDICATOR
     private bool m_is_kde = is_kde();
+    private bool m_is_context_menu;
 #else
     private bool m_is_kde = false;
 #endif
     private ulong m_popup_menu_id;
     private ulong m_activate_id;
     private ulong m_registered_status_notifier_item_id;
+    private unowned FileStream m_log;
+    private bool m_verbose;
 
     private GLib.List<BindingCommon.Keybinding> m_keybindings =
             new GLib.List<BindingCommon.Keybinding>();
 
-    public Panel(IBus.Bus bus) {
+#if USE_GDK_WAYLAND
+    public signal void realize_surface(void *surface);
+    public signal void update_shortcut_keys(
+            IBus.ProcessKeyEventData[] data,
+            BindingCommon.KeyEventFuncType ftype);
+#endif
+
+    public Panel(IBus.Bus bus,
+                 bool     is_wayland_im) {
         GLib.assert(bus.is_connected());
         // Chain up base class constructor
         GLib.Object(connection : bus.get_connection(),
                     object_path : "/org/freedesktop/IBus/Panel");
 
         m_bus = bus;
+        m_is_wayland_im = is_wayland_im;
 
 #if USE_GDK_WAYLAND
-        Gdk.set_allowed_backends("*");
-        var display = Gdk.DisplayManager.get().open_display(null);
+        var display = Gdk.Display.get_default();
         Type instance_type = display.get_type();
         Type wayland_type = typeof(GdkWayland.Display);
         m_is_wayland = instance_type.is_a(wayland_type);
-        Gdk.set_allowed_backends("x11");
 #else
         m_is_wayland = false;
         warning("Checking Wayland is disabled");
 #endif
 
         init_settings();
+
+        // indicator.set_menu() requires m_property_manager.
+        m_property_manager = new PropertyManager();
+        m_property_manager.property_activate.connect((w, k, s) => {
+            property_activate(k, s);
+        });
 
         // init ui
 #if INDICATOR
@@ -127,19 +144,22 @@ class Panel : IBus.PanelService {
         m_candidate_panel.cursor_down.connect((w) => this.cursor_down());
         m_candidate_panel.candidate_clicked.connect(
                 (w, i, b, s) => this.candidate_clicked(i, b, s));
+#if USE_GDK_WAYLAND
+        m_candidate_panel.realize_surface.connect(
+                (w, s) => this.realize_surface(s));
+#endif
 
         m_switcher = new Switcher();
+#if USE_GDK_WAYLAND
+        m_switcher.realize_surface.connect(
+                (w, s) => this.realize_surface(s));
+#endif
         // The initial shortcut is "<Super>space"
         bind_switch_shortcut();
 
         if (m_switcher_delay_time >= 0) {
             m_switcher.set_popup_delay_time((uint) m_switcher_delay_time);
         }
-
-        m_property_manager = new PropertyManager();
-        m_property_manager.property_activate.connect((w, k, s) => {
-            property_activate(k, s);
-        });
 
         m_property_panel = new PropertyPanel();
         m_property_panel.property_activate.connect((w, k, s) => {
@@ -271,7 +291,6 @@ class Panel : IBus.PanelService {
                                            Gdk.Rectangle         area,
                                            Gdk.Window?           window,
                                            Gtk.MenuPositionFunc? func) {
-#if VALA_0_34
         Gdk.Gravity rect_anchor = Gdk.Gravity.SOUTH_WEST;
         Gdk.Gravity menu_anchor = Gdk.Gravity.NORTH_WEST;
 
@@ -283,10 +302,21 @@ class Panel : IBus.PanelService {
         // Gdk.X11.Window.foreign_for_display.
         // https://git.gnome.org/browse/gtk+/tree/gtk/gtkmenu.c?h=gtk-3-22#n2251
         menu.popup_at_rect(window, area, rect_anchor, menu_anchor, null);
-#else
-        menu.popup(null, null, func, 0, Gtk.get_current_event_time());
-#endif
     }
+
+
+    private static bool is_gnome() {
+        unowned string? desktop =
+            Environment.get_variable("XDG_CURRENT_DESKTOP");
+        if (desktop == "GNOME")
+            return true;
+        if (desktop == null || desktop == "(null)")
+            desktop = Environment.get_variable("XDG_SESSION_DESKTOP");
+        if (desktop == "gnome" || desktop == "GNOME")
+            return true;
+        return false;
+    }
+
 
 #if INDICATOR
     private static bool is_kde() {
@@ -327,38 +357,26 @@ class Panel : IBus.PanelService {
 
     private void init_indicator() {
         m_icon_type = IconType.INDICATOR;
-        GLib.Bus.get.begin(GLib.BusType.SESSION, null, (obj, res) => {
-            try {
-                m_session_bus_connection = GLib.Bus.get.end(res);
-                m_indicator =
-                        new Indicator("ibus-ui-gtk3",
-                                      m_session_bus_connection,
-                                      Indicator.Category.APPLICATION_STATUS);
-                m_indicator.title = _("IBus Panel");
-                m_registered_status_notifier_item_id =
-                        m_indicator.registered_status_notifier_item.connect(
-                                () => {
+        m_indicator = new Indicator("ibus-ui-gtk3",
+                                    Indicator.Category.APPLICATION_STATUS);
+        m_indicator.title = "%s\n%s".printf(
+                _("IBus Panel"),
+                _("You can toggle the activate menu and context one with " +
+                   "clicking the mouse middle button on the panel icon."));
+        m_registered_status_notifier_item_id =
+                m_indicator.registered_status_notifier_item.connect(() => {
                     m_indicator.set_status(Indicator.Status.ACTIVE);
                     state_changed();
                 });
-                m_popup_menu_id =
-                        m_indicator.context_menu.connect((x, y, w, b, t) => {
-                    popup_menu_at_pointer_window(
-                        create_context_menu(),
-                        x, y, w,
-                        m_indicator.position_context_menu);
+        m_popup_menu_id =
+                m_indicator.secondary_activate.connect(() => {
+                    m_is_context_menu = !m_is_context_menu;
+                    if (m_is_context_menu)
+                        m_indicator.set_menu(create_context_menu());
+                    else
+                        m_indicator.set_menu(create_activate_menu());
                 });
-                m_activate_id =
-                        m_indicator.activate.connect((x, y, w) => {
-                    popup_menu_at_pointer_window(
-                            create_activate_menu(),
-                            x, y, w,
-                            m_indicator.position_activate_menu);
-                });
-            } catch (GLib.IOError e) {
-                warning("Failed to get the session bus: %s", e.message);
-            }
-        });
+        m_indicator.set_menu(create_activate_menu());
     }
 #endif
 
@@ -378,10 +396,27 @@ class Panel : IBus.PanelService {
         Gdk.Rectangle area = { 0, 0, 0, 0 };
         Gdk.Window? window = null;
         Gtk.MenuPositionFunc? func = null;
-#if VALA_0_34
+        m_status_icon.set_from_icon_name("ibus-keyboard");
+        var display = BindingCommon.get_xdisplay();
+        if (display == null) {
+            warning("No Gdk.X11.Display");
+            return;
+        }
         window = Gdk.X11.Window.lookup_for_display(
-                Gdk.Display.get_default() as Gdk.X11.Display,
+                display,
                 m_status_icon.get_x11_window_id()) as Gdk.Window;
+        if (window == null && !BindingCommon.default_is_xdisplay()) {
+            unowned X.Display xdisplay = display.get_xdisplay();
+            X.Window root = xdisplay.default_root_window();
+            window = Gdk.X11.Window.lookup_for_display(
+                    display,
+                    root);
+            if (window == null) {
+                window = new Gdk.X11.Window.foreign_for_display(
+                        display,
+                        root);
+            }
+        }
         if (window == null) {
             warning("StatusIcon does not have GdkWindow");
             return;
@@ -395,20 +430,16 @@ class Panel : IBus.PanelService {
         // in gdk_window_impl_move_to_rect()
         area.x -= win_x;
         area.y -= win_y;
-#else
-        func = m_status_icon.position_menu;
-#endif
         m_popup_menu_id = m_status_icon.popup_menu.connect((b, t) => {
                 popup_menu_at_area_window(
-                        create_context_menu(),
+                        create_context_menu(true),
                         area, window, func);
         });
         m_activate_id = m_status_icon.activate.connect(() => {
                 popup_menu_at_area_window(
-                        create_activate_menu(),
+                        create_activate_menu(true),
                         area, window, func);
         });
-        m_status_icon.set_from_icon_name("ibus-keyboard");
     }
 
     private void bind_switch_shortcut() {
@@ -416,15 +447,34 @@ class Panel : IBus.PanelService {
 
         var keybinding_manager = KeybindingManager.get_instance();
 
+        BindingCommon.KeyEventFuncType ftype =
+                BindingCommon.KeyEventFuncType.IME_SWITCHER;
         foreach (var accelerator in accelerators) {
             BindingCommon.keybinding_manager_bind(
                     keybinding_manager,
                     ref m_keybindings,
                     accelerator,
-                    BindingCommon.KeyEventFuncType.IME_SWITCHER,
+                    ftype,
                     handle_engine_switch_normal,
                     handle_engine_switch_reverse);
         }
+#if USE_GDK_WAYLAND
+        if (BindingCommon.default_is_xdisplay())
+            return;
+        IBus.ProcessKeyEventData[] keys = {};
+        IBus.ProcessKeyEventData key;
+        foreach (var kb in m_keybindings) {
+            key = { kb.keysym, kb.reverse ? 1 : 0, kb.modifiers };
+            keys += key;
+        }
+        if (keys.length == 0)
+            return;
+        key = { 0, };
+        keys += key;
+        m_bus.set_global_shortcut_keys_async(
+                IBus.BusGlobalBindingType.IME_SWITCHER,
+                keys, -1, null);
+#endif
     }
 
 /*
@@ -582,11 +632,6 @@ class Panel : IBus.PanelService {
         GLib.List<IBus.EngineDesc> xkb_engines = get_engines_from_xkb(engines);
         GLib.List<IBus.EngineDesc> im_engines =
                 get_engines_from_locale(engines);
-
-        if (m_is_wayland) {
-            if (xkb_engines.length() > 0)
-                xkb_engines = new GLib.List<IBus.EngineDesc>();
-        }
 
         string[] names = {};
         foreach (unowned IBus.EngineDesc engine in xkb_engines)
@@ -759,34 +804,11 @@ class Panel : IBus.PanelService {
         return -1;
     }
 
+
     private void update_version_1_5_8() {
         inited_engines_order = false;
     }
 
-    private void update_version_1_5_26() {
-        var message = _("Keymap changes do not work in Plasma Wayland at " +
-                        "present. Please use systemsettings5 instead.");
-#if ENABLE_LIBNOTIFY
-        if (!Notify.is_initted()) {
-            Notify.init ("ibus");
-        }
-
-        var notification = new Notify.Notification(
-                _("IBus Notification"),
-                message,
-                "ibus");
-        notification.set_timeout(30 * 1000);
-        notification.set_category("hotkey");
-
-        try {
-            notification.show();
-        } catch (GLib.Error e) {
-            warning (message);
-        }
-#else
-        warning (message);
-#endif
-    }
 
     private void set_version() {
         string prev_version = m_settings_general.get_string("version");
@@ -794,9 +816,6 @@ class Panel : IBus.PanelService {
 
         if (compare_versions(prev_version, "1.5.8") < 0)
             update_version_1_5_8();
-
-        if (compare_versions(prev_version, "1.5.26") < 0)
-            update_version_1_5_26();
 
         current_version = "%d.%d.%d".printf(IBus.MAJOR_VERSION,
                                             IBus.MINOR_VERSION,
@@ -809,8 +828,76 @@ class Panel : IBus.PanelService {
         m_settings_general.set_string("version", current_version);
     }
 
+
+    private void check_wayland() {
+        string message = null;
+        if (m_is_wayland && !m_is_wayland_im && !is_gnome()) {
+            var format =
+                    _("IBus should be called from the desktop session in " +
+                      "%s. For KDE, you can launch '%s' " +
+                      "utility and go to \"Input Devices\" -> " +
+                      "\"Virtual Keyboard\" section and select " +
+                      "\"%s\" icon and click \"Apply\" button to " +
+                      "configure IBus in %s. For other desktop " +
+                      "sessions, you can copy the 'Exec=' line in %s file " +
+                      "to a configuration file of the session. " +
+                      "Please refer each document about the \"Wayland " +
+                      "input method\" configuration. Before you configure " +
+                      "the \"Wayland input method\", you should make sure " +
+                      "that QT_IM_MODULE and GTK_IM_MODULE environment " +
+                      "variables are unset in the desktop session.");
+                message = format.printf(
+                        "Wayland",
+                        "systemsettings5",
+                        "IBus Wayland",
+                        "Wayland",
+                        "org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop");
+        } else if (m_is_wayland && m_is_wayland_im && !is_gnome()) {
+            if (Environment.get_variable("QT_IM_MODULE") == "ibus") {
+                var format =
+                        _("Please unset QT_IM_MODULE and GTK_IM_MODULE " +
+                          "environment variables and 'ibus-daemon --panel " +
+                          "disable' should be executed as a child process " +
+                          "of %s component.");
+                message = format.printf(Environment.get_prgname());
+            }
+        }
+        if (message == null)
+            return;
+#if ENABLE_LIBNOTIFY
+        if (!Notify.is_initted()) {
+            Notify.init ("ibus");
+        }
+
+        var notification = new Notify.Notification(
+                _("IBus Notification"),
+                message,
+                "ibus");
+        notification.set_timeout(60 * 1000);
+        notification.set_category("wayland");
+
+        try {
+            notification.show();
+        } catch (GLib.Error e) {
+            warning (message);
+        }
+#else
+        warning (message);
+#endif
+    }
+
+
+    private void save_log(string format) {
+        if (m_log == null)
+            return;
+        m_log.puts(format);
+        m_log.flush();
+    }
+
+
     public void load_settings() {
         set_version();
+        check_wayland();
 
         init_engines_order();
 
@@ -880,6 +967,32 @@ class Panel : IBus.PanelService {
         }
     }
 
+
+    /**
+     * set_global_shortcut_key_state:
+     *
+     * Handle IME switcher dialog or Emojier on the focused context only
+     * so this API is assumed to use in Wayland.
+     */
+    public void
+    set_global_shortcut_key_state(IBus.BusGlobalBindingType type,
+                                  bool                      is_pressed,
+                                  bool                      is_backward) {
+        switch(type) {
+        case IBus.BusGlobalBindingType.IME_SWITCHER:
+            handle_engine_switch_focused(is_pressed, is_backward);
+            break;
+        default: break;
+        }
+    }
+
+
+    public void set_log(FileStream log, bool verbose) {
+        m_log = log;
+        m_verbose = verbose;
+    }
+
+
     private void engine_contexts_insert(IBus.EngineDesc engine) {
         if (m_use_global_engine)
             return;
@@ -929,20 +1042,13 @@ class Panel : IBus.PanelService {
     }
 
     private void switch_engine(int i, bool force = false) {
-        if (m_is_wayland)
-            GLib.assert(i >= 0 && i <= m_engines.length);
-        else
-            GLib.assert(i >= 0 && i < m_engines.length);
+        GLib.assert(i >= 0 && i < m_engines.length);
 
         // Do not need switch
         if (i == 0 && !force)
             return;
 
-        IBus.EngineDesc engine;
-        if (m_is_wayland && m_engines.length == 0)
-            engine = m_en_engine;
-        else
-            engine = m_engines[i];
+        IBus.EngineDesc engine = m_engines[i];
 
         set_engine(engine);
     }
@@ -1002,6 +1108,66 @@ class Panel : IBus.PanelService {
     }
 
 
+    private void handle_engine_switch_focused(bool pressed,
+                                              bool reverse) {
+        if (m_engines.length == 0)
+            return;
+        if (pressed) {
+            int i = reverse ? m_engines.length - 1 : 1;
+            if (m_switcher_selected_index >= 0) {
+                i = reverse ? (m_switcher_selected_index - 1)
+                    : (m_switcher_selected_index + 1);
+                i = i < 0 ? m_engines.length - 1
+                    : i == m_engines.length ? 0 : i;
+            }
+            if (m_switcher_delay_time >= 0)
+                m_switcher_selected_index = m_switcher.run_popup(m_engines, i);
+            else
+                m_switcher_selected_index = i;
+            if (m_verbose) {
+                save_log("Panel.%s switcher release %d timer\n".printf(
+                         GLibMacro.G_STRFUNC, m_switcher_selected_index));
+            }
+            m_switcher_waiting_release = null;
+            // TODO: "GlobalShortcutKeyResponded" signal can causes a freeze
+            // due to the GMainLoop dead lock for the key release events and
+            // add 5 seconds timeout here to release the key virtually for the
+            // workaround.
+            //
+            // Timeout.add_seconds() or Idle.add() slso causes the freeze
+            // due to the GMainLoop dead lock and use Thread instead.
+            m_switcher_waiting_release = new Thread<bool>("wait release",
+                                                          () => {
+                Thread.usleep(5000000);
+                handle_engine_switch_release(true);
+                m_switcher_waiting_release = null;
+                return true;
+            });
+        } else {
+            m_switcher_waiting_release = null;
+            handle_engine_switch_release(false);
+        }
+    }
+
+    private void handle_engine_switch_release(bool is_timeout) {
+        if (m_verbose) {
+            save_log("Panel.%s switcher release %d %s\n".printf(
+                     GLibMacro.G_STRFUNC, m_switcher_selected_index,
+                     is_timeout ? "timeout" : "normal"));
+        }
+        // TODO: Unfortunatelly hide() also depends on GMainLoop and can
+        // causes a freeze.
+        m_switcher.hide();
+        while (Gtk.events_pending())
+            Gtk.main_iteration ();
+        // If GLib.Thread() callback is called.
+        if (m_switcher_selected_index < 0)
+            return;
+        switch_engine(m_switcher_selected_index);
+        m_switcher_selected_index = -1;
+    }
+
+
     private void run_preload_engines(IBus.EngineDesc[] engines, int index) {
         string[] names = {};
 
@@ -1038,17 +1204,11 @@ class Panel : IBus.PanelService {
         string[] names = {};
 
         foreach (var name in order_names) {
-            if (m_is_wayland && name.has_prefix("xkb:"))
-                name = "xkb:us::eng";
-            if (name in names)
-                continue;
             if (name in engine_names)
                 names += name;
         }
 
         foreach (var name in engine_names) {
-            if (m_is_wayland && name.has_prefix("xkb:"))
-                name = "xkb:us::eng";
             if (name in names)
                 continue;
             names += name;
@@ -1090,19 +1250,8 @@ class Panel : IBus.PanelService {
 
         if (m_engines.length == 0) {
             m_engines = engines;
-            // Do not show engines in panel icon and suggest systemsettings5
-            // in Plasma Wayland in case all engines are XKB.
-            if (m_is_wayland && m_engines.length == 1 &&
-                m_engines[0].get_name() == "xkb:us::eng") {
-                m_engines = {};
-                if (m_en_engine == null) {
-                    m_en_engine =
-                            m_bus.get_engines_by_names({"xkb:us::eng"})[0];
-                }
-            }
             switch_engine(0, true);
-            if (m_engines.length > 0)
-                run_preload_engines(m_engines, 1);
+            run_preload_engines(m_engines, 1);
         } else {
             var current_engine = m_engines[0];
             m_engines = engines;
@@ -1259,19 +1408,28 @@ class Panel : IBus.PanelService {
         }
     }
 
-    private Gtk.Menu create_context_menu() {
-        // Show system menu
-        if (m_sys_menu == null) {
-            Gtk.MenuItem item;
-            m_sys_menu = new Gtk.Menu();
+    private Gtk.Menu create_context_menu(bool use_x11 = false) {
+        if (m_sys_menu != null)
+            return m_sys_menu;
 
-            item = new Gtk.MenuItem.with_label(_("Preferences"));
-            item.activate.connect((i) => show_setup_dialog());
-            m_sys_menu.append(item);
+        Gdk.Display display_backup = null;
+        if (use_x11 && !BindingCommon.default_is_xdisplay()) {
+            display_backup = Gdk.Display.get_default();
+            Gdk.DisplayManager.get().set_default_display(
+                    (Gdk.Display)BindingCommon.get_xdisplay());
+        }
+
+        // Show system menu
+        Gtk.MenuItem item;
+        m_sys_menu = new Gtk.Menu();
+
+        item = new Gtk.MenuItem.with_label(_("Preferences"));
+        item.activate.connect((i) => show_setup_dialog());
+        m_sys_menu.append(item);
 
 #if EMOJI_DICT
-            item = new Gtk.MenuItem.with_label(_("Emoji Choice"));
-            item.activate.connect((i) => {
+        item = new Gtk.MenuItem.with_label(_("Emoji Choice"));
+        item.activate.connect((i) => {
                 IBus.ExtensionEvent event = new IBus.ExtensionEvent(
                         "name", "emoji", "is-enabled", true,
                         "params", "category-list");
@@ -1281,31 +1439,39 @@ class Panel : IBus.PanelService {
                  * the purpose to IBus.ExtensionEvent above.
                  */
                 panel_extension(event);
-            });
-            m_sys_menu.append(item);
+        });
+        m_sys_menu.append(item);
 #endif
 
-            item = new Gtk.MenuItem.with_label(_("About"));
-            item.activate.connect((i) => show_about_dialog());
-            m_sys_menu.append(item);
+        item = new Gtk.MenuItem.with_label(_("About"));
+        item.activate.connect((i) => show_about_dialog());
+        m_sys_menu.append(item);
 
-            m_sys_menu.append(new Gtk.SeparatorMenuItem());
+        m_sys_menu.append(new Gtk.SeparatorMenuItem());
 
-            item = new Gtk.MenuItem.with_label(_("Restart"));
-            item.activate.connect((i) => m_bus.exit(true));
-            m_sys_menu.append(item);
+        item = new Gtk.MenuItem.with_label(_("Restart"));
+        item.activate.connect((i) => m_bus.exit(true));
+        m_sys_menu.append(item);
 
-            item = new Gtk.MenuItem.with_label(_("Quit"));
-            item.activate.connect((i) => m_bus.exit(false));
-            m_sys_menu.append(item);
+        item = new Gtk.MenuItem.with_label(_("Quit"));
+        item.activate.connect((i) => m_bus.exit(false));
+        m_sys_menu.append(item);
 
-            m_sys_menu.show_all();
-        }
+        m_sys_menu.show_all();
+
+        if (display_backup != null)
+            Gdk.DisplayManager.get().set_default_display(display_backup);
 
         return m_sys_menu;
     }
 
-    private Gtk.Menu create_activate_menu() {
+    private Gtk.Menu create_activate_menu(bool use_x11 = false) {
+        Gdk.Display display_backup = null;
+        if (use_x11 && !BindingCommon.default_is_xdisplay()) {
+            display_backup = Gdk.Display.get_default();
+            Gdk.DisplayManager.get().set_default_display(
+                    (Gdk.Display)BindingCommon.get_xdisplay());
+        }
         m_ime_menu = new Gtk.Menu();
 
         // Show properties and IME switching menu
@@ -1319,10 +1485,6 @@ class Panel : IBus.PanelService {
             var longname = engine.get_longname();
             var textdomain = engine.get_textdomain();
             var transname = GLib.dgettext(textdomain, longname);
-            if (m_is_wayland && engine.get_name().has_prefix("xkb:")) {
-                language = _("Other");
-                transname = _("No input method");
-            }
             var item = new Gtk.MenuItem.with_label(
                 "%s - %s".printf (IBus.get_language_name(language), transname));
             // Make a copy of engine to workaround a bug in vala.
@@ -1344,6 +1506,8 @@ class Panel : IBus.PanelService {
         // Do not take focuse to avoid some focus related issues.
         m_ime_menu.set_take_focus(false);
 
+        if (display_backup != null)
+            Gdk.DisplayManager.get().set_default_display(display_backup);
         return m_ime_menu;
     }
 
@@ -1519,6 +1683,22 @@ class Panel : IBus.PanelService {
         m_property_manager.set_properties(props);
         m_property_panel.set_properties(props);
         set_properties(props);
+
+        if (m_icon_type != IconType.INDICATOR)
+            return;
+        if (m_is_context_menu)
+            return;
+        if (m_menu_update_delay_time_id > 0) {
+            GLib.Source.remove(m_menu_update_delay_time_id);
+            m_menu_update_delay_time_id = 0;
+        }
+        m_menu_update_delay_time_id =
+                Timeout.add(
+                        m_menu_update_delay_time,
+                        () => {
+                            m_indicator.set_menu(create_activate_menu ());
+                            return false;
+                        });
     }
 
     public override void update_property(IBus.Property prop) {
@@ -1571,8 +1751,6 @@ class Panel : IBus.PanelService {
         /* Do not change the order of m_engines during running switcher. */
         if (m_switcher.is_running())
             return;
-        if (m_engines.length == 0)
-            return;
 
         if (m_icon_type == IconType.INDICATOR) {
             // Wait for the callback of the session bus.
@@ -1600,7 +1778,7 @@ class Panel : IBus.PanelService {
 
             if (engine != null) {
                 var name = engine.get_name();
-                if (!m_is_wayland && name.length >= 4 && name[0:4] == "xkb:")
+                if (name.length >= 4 && name[0:4] == "xkb:")
                     language = m_switcher.get_xkb_language(engine);
             }
 

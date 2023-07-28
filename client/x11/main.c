@@ -2,7 +2,7 @@
 /* vim:set et sts=4: */
 /* ibus
  * Copyright (C) 2007-2015 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2015-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2007-2015 Red Hat, Inc.
  *
  * main.c:
@@ -49,6 +49,8 @@
 #include <getopt.h>
 
 #define ESC_SEQUENCE_ISO10646_1 "\033%G"
+/* Wait for about 120 secs to return a key from async process-key-event. */
+#define MAX_WAIT_KEY_TIME       120000
 
 #define LOG(level, fmt_args...) \
     if (g_debug_level >= (level)) { \
@@ -124,7 +126,7 @@ static gint     g_debug_level = 0;
 
 static IBusBus *_bus = NULL;
 
-static char _use_sync_mode = 2;
+static char _use_sync_mode = 1;
 
 static void
 _xim_preedit_start (XIMS xims, const X11IC *x11ic)
@@ -378,9 +380,9 @@ xim_create_ic (XIMS xims, IMChangeICStruct *call_data)
 
     if (x11ic->input_style & XIMPreeditCallbacks)
         capabilities |= IBUS_CAP_PREEDIT_TEXT;
-    if (_use_sync_mode == 1)
-        capabilities |= IBUS_CAP_SYNC_PROCESS_KEY_V2;
     ibus_input_context_set_capabilities (x11ic->context, capabilities);
+    if (_use_sync_mode == 1)
+        ibus_input_context_set_post_process_key_event (x11ic->context, TRUE);
 
     g_hash_table_insert (_x11_ic_table,
                          GINT_TO_POINTER (x11ic->icid), (gpointer)x11ic);
@@ -425,6 +427,7 @@ xim_destroy_ic (XIMS xims, IMChangeICStruct *call_data)
     return 1;
 }
 
+
 static int
 xim_set_ic_focus (XIMS xims, IMChangeFocusStruct *call_data)
 {
@@ -442,6 +445,7 @@ xim_set_ic_focus (XIMS xims, IMChangeFocusStruct *call_data)
 
     return 1;
 }
+
 
 static int
 xim_unset_ic_focus (XIMS xims, IMChangeFocusStruct *call_data)
@@ -461,12 +465,42 @@ xim_unset_ic_focus (XIMS xims, IMChangeFocusStruct *call_data)
 
 }
 
+
+static void
+_xim_forward_key_event_done (X11IC   *x11ic,
+                             XEvent  *event,
+                             gboolean processed)
+{
+    IMForwardEventStruct fe;
+    if (processed) {
+        if (!x11ic->has_preedit_area) {
+            _xim_set_cursor_location (x11ic);
+        }
+        return;
+    }
+    g_assert (x11ic);
+    g_assert (event);
+
+    memset (&fe, 0, sizeof (fe));
+    fe.major_code = XIM_FORWARD_EVENT;
+    fe.icid = x11ic->icid;
+    fe.connect_id = x11ic->connect_id;
+    fe.sync_bit = 0;
+    fe.serial_number = 0L;
+    fe.event = *event;
+    IMForwardEvent (_xims, (XPointer) &fe);
+}
+
+
 typedef struct {
-    IMForwardEventStruct *pfe;
     int                   count;
     guint                 count_cb_id;
     gboolean              retval;
+    X11IC                *x11ic;
+    CARD16                connect_id;
+    XEvent                event;
 } ProcessKeyEventReplyData;
+
 
 static void
 _process_key_event_done (GObject      *object,
@@ -474,7 +508,7 @@ _process_key_event_done (GObject      *object,
                          gpointer      user_data)
 {
     IBusInputContext *context = (IBusInputContext *)object;
-    IMForwardEventStruct *pfe = (IMForwardEventStruct*) user_data;
+    ProcessKeyEventReplyData *data = (ProcessKeyEventReplyData *)user_data;
 
     GError *error = NULL;
     gboolean retval = ibus_input_context_process_key_event_async_finish (
@@ -488,17 +522,17 @@ _process_key_event_done (GObject      *object,
     }
 
     if (g_hash_table_lookup (_connections,
-                             GINT_TO_POINTER ((gint) pfe->connect_id))
+                             GINT_TO_POINTER ((gint)data->connect_id))
         == NULL) {
-        g_slice_free (IMForwardEventStruct, pfe);
+        g_slice_free (ProcessKeyEventReplyData, data);
         return;
     }
 
-    if (retval == FALSE) {
-        IMForwardEvent (_xims, (XPointer) pfe);
-    }
-    g_slice_free (IMForwardEventStruct, pfe);
+    if (retval == FALSE)
+        _xim_forward_key_event_done (data->x11ic, &data->event, retval);
+    g_slice_free (ProcessKeyEventReplyData, data);
 }
+
 
 static void
 _process_key_event_reply_done (GObject      *object,
@@ -518,9 +552,25 @@ _process_key_event_reply_done (GObject      *object,
     }
     g_return_if_fail (data);
     data->retval = retval;
+    if (g_hash_table_lookup (_connections,
+                             GINT_TO_POINTER ((gint)data->connect_id))
+        == NULL) {
+        return;
+    }
+    /* _xim_forward_key_event_done() should be called in
+     * _process_key_event_reply_done() because g_main_context_iteration()
+     * can call another xim_forward_event() and xim_forward_event() can be
+     * nested and the first _process_key_event_reply_done() is returned
+     * at last with g_main_context_iteration() so
+     * if _xim_forward_key_event_done() is called out of
+     * _process_key_event_reply_done(), the key events order
+     * can be swapped.
+     */
+    _xim_forward_key_event_done (data->x11ic, &data->event, retval);
     data->count = 0;
     g_source_remove (data->count_cb_id);
 }
+
 
 static gboolean
 _process_key_event_count_cb (gpointer user_data)
@@ -529,13 +579,124 @@ _process_key_event_count_cb (gpointer user_data)
     g_return_val_if_fail (data, G_SOURCE_REMOVE);
     if (!data->count)
         return G_SOURCE_REMOVE;
-    /* Wait for about 10 secs. */
-    if (data->count++ == 10000) {
-        data->count = 0;
+    if (data->count++ == MAX_WAIT_KEY_TIME) {
+        g_warning ("Key event is not returned for %usecs.", MAX_WAIT_KEY_TIME);
         return G_SOURCE_REMOVE;
     }
     return G_SOURCE_CONTINUE;
 }
+
+
+static int
+_process_key_event_sync (X11IC                *x11ic,
+                         IMForwardEventStruct *call_data,
+                         GdkEventKey          *event)
+{
+    gboolean retval;
+
+    g_assert (x11ic);
+    g_assert (call_data);
+    g_assert (event);
+    retval = ibus_input_context_process_key_event (
+            x11ic->context,
+            event->keyval,
+            event->hardware_keycode - 8,
+            event->state);
+    ibus_input_context_post_process_key_event (x11ic->context);
+    _xim_forward_key_event_done (x11ic, &call_data->event, retval);
+    return 1;
+}
+
+
+static int
+_process_key_event_async (X11IC                *x11ic,
+                          IMForwardEventStruct *call_data,
+                          GdkEventKey          *event)
+{
+    ProcessKeyEventReplyData *data;
+
+    g_assert (x11ic);
+    g_assert (call_data);
+    g_assert (event);
+    if (!(data = g_slice_new0 (ProcessKeyEventReplyData))) {
+        g_warning ("Cannot allocate async data");
+        return _process_key_event_sync (x11ic, call_data, event);
+    }
+    data->connect_id = call_data->connect_id;
+    data->x11ic = x11ic;
+    data->event = call_data->event;
+    ibus_input_context_process_key_event_async (x11ic->context,
+                                                event->keyval,
+                                                event->hardware_keycode - 8,
+                                                event->state,
+                                                -1,
+                                                NULL,
+                                                _process_key_event_done,
+                                                data);
+    return 1;
+}
+
+
+static int
+_process_key_event_hybrid_async (X11IC                *x11ic,
+                                 IMForwardEventStruct *call_data,
+                                 GdkEventKey          *event)
+{
+    GSource *source;
+    ProcessKeyEventReplyData *data = NULL;
+    gboolean bus_retval;
+
+    g_assert (x11ic);
+    g_assert (call_data);
+    g_assert (event);
+    source = g_timeout_source_new (1);
+    if (source)
+        data = g_slice_new0 (ProcessKeyEventReplyData);
+    if (!data) {
+        int xim_retval;
+        g_warning ("Cannot wait for the reply of the process key event.");
+        xim_retval = _process_key_event_sync (x11ic, call_data, event);
+        if (source)
+            g_source_destroy (source);
+        return xim_retval;
+    }
+    data->count = 1;
+    g_source_attach (source, NULL);
+    g_source_unref (source);
+    data->count_cb_id = g_source_get_id (source);
+    data->connect_id = call_data->connect_id;
+    data->x11ic = x11ic;
+    data->event = call_data->event;
+    ibus_input_context_process_key_event_async (x11ic->context,
+                                                event->keyval,
+                                                event->hardware_keycode - 8,
+                                                event->state,
+                                                -1,
+                                                NULL,
+                                                _process_key_event_reply_done,
+                                                data);
+    g_source_set_callback (source, _process_key_event_count_cb,
+                           data, NULL);
+    while (data->count > 0 && data->count < MAX_WAIT_KEY_TIME)
+        g_main_context_iteration (NULL, TRUE);
+    /* #2498 Checking source->ref_count might cause Nautilus hang up
+     */
+    bus_retval = data->retval;
+    if (data->count == 0) {
+        g_slice_free (ProcessKeyEventReplyData, data);
+        return 1;
+    }
+
+    g_slice_free (ProcessKeyEventReplyData, data);
+    if (g_hash_table_lookup (_connections,
+                             GINT_TO_POINTER ((gint)call_data->connect_id))
+        == NULL) {
+        return 1;
+    }
+    _xim_forward_key_event_done (x11ic, &call_data->event, bus_retval);
+    return 1;
+}
+
 
 static int
 xim_forward_event (XIMS xims, IMForwardEventStruct *call_data)
@@ -543,13 +704,13 @@ xim_forward_event (XIMS xims, IMForwardEventStruct *call_data)
     X11IC *x11ic;
     XKeyEvent *xevent;
     GdkEventKey event;
-    gboolean retval;
 
     LOG (1, "XIM_FORWARD_EVENT ic=%d connect_id=%d",
-                call_data->icid, call_data->connect_id);
+         call_data->icid, call_data->connect_id);
 
-    x11ic = (X11IC *) g_hash_table_lookup (_x11_ic_table,
-                                           GINT_TO_POINTER ((gint) call_data->icid));
+    x11ic = (X11IC *) g_hash_table_lookup (
+            _x11_ic_table,
+            GINT_TO_POINTER ((gint) call_data->icid));
     g_return_val_if_fail (x11ic != NULL, 0);
 
     xevent = (XKeyEvent*) &(call_data->event);
@@ -565,129 +726,15 @@ xim_forward_event (XIMS xims, IMForwardEventStruct *call_data)
     }
 
     switch (_use_sync_mode) {
-    case 1: {
-        retval = ibus_input_context_process_key_event (
-                                      x11ic->context,
-                                      event.keyval,
-                                      event.hardware_keycode - 8,
-                                      event.state);
-        if (retval) {
-            if (!x11ic->has_preedit_area) {
-                _xim_set_cursor_location (x11ic);
-            }
-            return 1;
-        }
-
-        IMForwardEventStruct fe;
-        memset (&fe, 0, sizeof (fe));
-
-        fe.major_code = XIM_FORWARD_EVENT;
-        fe.icid = x11ic->icid;
-        fe.connect_id = x11ic->connect_id;
-        fe.sync_bit = 0;
-        fe.serial_number = 0L;
-        fe.event = call_data->event;
-
-        IMForwardEvent (_xims, (XPointer) &fe);
-
-        retval = 1;
-        break;
+    case 1:
+        return _process_key_event_sync (x11ic, call_data, &event);
+    case 2:
+        return _process_key_event_hybrid_async (x11ic, call_data, &event);
+    default:
+        return _process_key_event_async (x11ic, call_data, &event);
     }
-    case 2: {
-        GSource *source = g_timeout_source_new (1);
-        ProcessKeyEventReplyData *data = NULL;
-        IMForwardEventStruct fe;
-
-        if (source)
-            data = g_slice_new0 (ProcessKeyEventReplyData);
-        if (!data) {
-            g_warning ("Cannot wait for the reply of the process key event.");
-            retval = ibus_input_context_process_key_event (
-                    x11ic->context,
-                    event.keyval,
-                    event.hardware_keycode - 8,
-                    event.state);
-            if (source)
-                g_source_destroy (source);
-        } else {
-            CARD16 connect_id = x11ic->connect_id;
-            data->count = 1;
-            g_source_attach (source, NULL);
-            g_source_unref (source);
-            data->count_cb_id = g_source_get_id (source);
-            ibus_input_context_process_key_event_async (
-                    x11ic->context,
-                    event.keyval,
-                    event.hardware_keycode - 8,
-                    event.state,
-                    -1,
-                    NULL,
-                    _process_key_event_reply_done,
-                    data);
-            g_source_set_callback (source, _process_key_event_count_cb,
-                                   data, NULL);
-            while (data->count)
-                g_main_context_iteration (NULL, TRUE);
-            if (source->ref_count > 0) {
-                /* g_source_get_id() could causes a SEGV */
-                g_info ("Broken GSource.ref_count and maybe a timing "
-                        "issue in %p.", source);
-            }
-            retval = data->retval;
-            g_slice_free (ProcessKeyEventReplyData, data);
-
-            if (g_hash_table_lookup (_connections,
-                                     GINT_TO_POINTER ((gint)connect_id))
-                == NULL) {
-                return 1;
-            }
-        }
-
-        if (retval) {
-            if (! x11ic->has_preedit_area) {
-                _xim_set_cursor_location (x11ic);
-            }
-            return 1;
-        }
-
-        memset (&fe, 0, sizeof (fe));
-
-        fe.major_code = XIM_FORWARD_EVENT;
-        fe.icid = x11ic->icid;
-        fe.connect_id = x11ic->connect_id;
-        fe.sync_bit = 0;
-        fe.serial_number = 0L;
-        fe.event = call_data->event;
-
-        IMForwardEvent (_xims, (XPointer) &fe);
-
-        retval = 1;
-        break;
-    }
-    default: {
-        IMForwardEventStruct *pfe;
-
-        pfe = g_slice_new0 (IMForwardEventStruct);
-        pfe->major_code = XIM_FORWARD_EVENT;
-        pfe->icid = x11ic->icid;
-        pfe->connect_id = x11ic->connect_id;
-        pfe->sync_bit = 0;
-        pfe->serial_number = 0L;
-        pfe->event = call_data->event;
-
-        ibus_input_context_process_key_event_async (
-                                      x11ic->context,
-                                      event.keyval,
-                                      event.hardware_keycode - 8,
-                                      event.state,
-                                      -1,
-                                      NULL,
-                                      _process_key_event_done,
-                                      pfe);
-        retval = 1;
-    }
-    }
-    return retval;
+    g_assert_not_reached ();
+    return 0;
 }
 
 
@@ -962,10 +1009,9 @@ _xim_forward_key_event (X11IC   *x11ic,
                         guint    keycode,
                         guint    state)
 {
-    g_return_if_fail (x11ic != NULL);
-
-    IMForwardEventStruct fe = {0};
     XEvent xkp = {0};
+
+    g_return_if_fail (x11ic != NULL);
 
     xkp.xkey.type = (state & IBUS_RELEASE_MASK) ? KeyRelease : KeyPress;
     xkp.xkey.serial = 0L;
@@ -975,20 +1021,14 @@ _xim_forward_key_event (X11IC   *x11ic,
     xkp.xkey.window =
         x11ic->focus_window ? x11ic->focus_window : x11ic->client_window;
     xkp.xkey.subwindow = None;
-    xkp.xkey.root = DefaultRootWindow (GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()));
+    xkp.xkey.root = DefaultRootWindow (
+            GDK_DISPLAY_XDISPLAY (gdk_display_get_default ()));
 
     xkp.xkey.time = 0;
     xkp.xkey.state = state;
     xkp.xkey.keycode = (keycode == 0) ? 0 : keycode + 8;
 
-    fe.major_code = XIM_FORWARD_EVENT;
-    fe.icid = x11ic->icid;
-    fe.connect_id = x11ic->connect_id;
-    fe.sync_bit = 0;
-    fe.serial_number = 0L;
-    fe.event = xkp;
-
-    IMForwardEvent (_xims, (XPointer) & fe);
+    _xim_forward_key_event_done (x11ic, &xkp, FALSE);
 }
 
 static void
@@ -1180,7 +1220,7 @@ _init_ibus (void)
                         G_CALLBACK (_bus_disconnected_cb), NULL);
 
     /* https://github.com/ibus/ibus/issues/1713 */
-    _use_sync_mode = _get_char_env ("IBUS_ENABLE_SYNC_MODE", 2);
+    _use_sync_mode = _get_char_env ("IBUS_ENABLE_SYNC_MODE", 1);
 }
 
 static void
