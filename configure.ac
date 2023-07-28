@@ -22,20 +22,23 @@
 # USA
 
 
-# If ibus_released is 0, append datestamp to the version number.
-m4_define([ibus_released], [1])
+# If ibus_released is 0, append beta to the version number.
+m4_define([ibus_released], [0])
 
 m4_define([ibus_major_version], [1])
 m4_define([ibus_minor_version], [5])
-m4_define([ibus_micro_version], [28])
+m4_define([ibus_micro_version], [29])
+m4_define([ibus_beta_version], [beta1])
 m4_define([ibus_abi_current], [5])
 m4_define([ibus_abi_revision],
           [m4_eval(100 * ibus_minor_version + ibus_micro_version)])
 m4_define([ibus_abi_age], [0])
 m4_define([ibus_maybe_datestamp],
     m4_esyscmd([test x]ibus_released[ != x1 && date +.%Y%m%d | tr -d '\n\r']))
+m4_define([ibus_beta_suffix],
+          m4_if(ibus_released, 0, -ibus_beta_version))
 m4_define([ibus_version],
-    ibus_major_version.ibus_minor_version.ibus_micro_version[]ibus_maybe_datestamp)
+    ibus_major_version.ibus_minor_version.ibus_micro_version[]ibus_beta_suffix)
 m4_define([ibus_api_version], [ibus_major_version.0])
 
 AC_PREFEQ([2.62])
