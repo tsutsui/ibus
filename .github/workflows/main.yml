@@ -238,6 +238,7 @@ jobs:
             --enable-surrounding-text
             --enable-introspection=yes
             --disable-systemd-services
+            --disable--appindicator
             --with-python=/usr/pkg/bin/python3.9
             --with-unicode-emoji-dir=/usr/pkg/share/unicode/emoji
             --with-emoji-annotation-dir=/usr/pkg/share/unicode/cldr/common/annotations
@@ -270,6 +271,7 @@ jobs:
             --enable-surrounding-text
             --enable-introspection=yes
             --disable-systemd-services
+            --disable--appindicator
             --with-python=/usr/pkg/bin/python3.9
             --with-unicode-emoji-dir=/usr/pkg/share/unicode/emoji
             --with-emoji-annotation-dir=/usr/pkg/share/unicode/cldr/common/annotations
