@@ -74,8 +74,8 @@
         'ru(xal)', 'se(rus)', 'se(rus_nodeadkeys)', 'se(swl)', 'sy',
         'sy(syc)', 'sy(syc_phonetic)', 'th', 'th(pat)', 'th(tis)',
         'tj', 'tj(legacy)', 'tz', 'ua', 'ua(homophonic)',
-        'ua(legacy)', 'ua(phonetic)', 'ua(rstu)', 'ua(rstu_ru)',
-        'ua(typewriter)', 'ua(winkeys)', 'us(chr)', 'us(rus)', 'uz' ]
+        'ua(legacy)', 'ua(phonetic)', 'ua(typewriter)', 'ua(winkeys)',
+        'us(chr)', 'us(rus)', 'uz' ]
       </default>
       <summary>Latin layouts which have no ASCII</summary>
       <description>US layout is appended to the Latin layouts. variant can be omitted.</description>

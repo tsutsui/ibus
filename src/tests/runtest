@@ -44,8 +44,7 @@ MACHINE=`uname -m`
 if test x"$MACHINE" = xx86_64 ; then
     GTK_QUERY_MODULE=gtk-query-immodules-3.0-64
 fi
-which $GTK_QUERY_MODULE
-if [ $? -ne 0 ] ; then
+if ! command -v $GTK_QUERY_MODULE &> /dev/null ; then
     GTK_QUERY_MODULE=gtk-query-immodules-3.0
 fi
 
