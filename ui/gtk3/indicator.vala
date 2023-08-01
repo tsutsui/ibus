@@ -26,6 +26,8 @@
  * for left click on the indicator.
  */
 
+// I have no idea to exempt this file to make ibus_ui_gtk3_vala.stamp
+#if INDICATOR
 public extern string _notification_item;
 public extern string _notification_watcher;
 
@@ -644,3 +646,4 @@ class Indicator : IBus.Service
     public signal void secondary_activate();
     public signal void registered_status_notifier_item();
 }
+#endif

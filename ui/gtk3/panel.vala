@@ -33,7 +33,9 @@ class Panel : IBus.PanelService {
     private GLib.Settings m_settings_hotkey = null;
     private GLib.Settings m_settings_panel = null;
     private IconType m_icon_type = IconType.STATUS_ICON;
+#if INDICATOR
     private Indicator m_indicator;
+#endif
     private Gtk.StatusIcon m_status_icon;
     private Gtk.Menu m_ime_menu;
     private Gtk.Menu m_sys_menu;
@@ -685,7 +687,9 @@ class Panel : IBus.PanelService {
 
             m_status_icon.set_visible(
                     m_settings_panel.get_boolean("show-icon-on-systray"));
-        } else if (m_icon_type == IconType.INDICATOR) {
+        }
+#if INDICATOR
+        else if (m_icon_type == IconType.INDICATOR) {
             if (m_indicator == null)
                 return;
 
@@ -694,6 +698,7 @@ class Panel : IBus.PanelService {
             else
                 m_indicator.set_status(Indicator.Status.PASSIVE);
         }
+#endif
     }
 
     private void set_lookup_table_orientation() {
@@ -748,7 +753,9 @@ class Panel : IBus.PanelService {
                 if (m_status_icon != null && m_switcher != null)
                     state_changed();
             }
-        } else if (m_icon_type == IconType.INDICATOR) {
+        }
+#if INDICATOR
+        else if (m_icon_type == IconType.INDICATOR) {
             if (m_xkb_icon_image.size() > 0) {
                 m_xkb_icon_image.remove_all();
 
@@ -756,6 +763,7 @@ class Panel : IBus.PanelService {
                     state_changed();
             }
         }
+#endif
     }
 
     private void set_property_icon_delay_time() {
@@ -1550,11 +1558,13 @@ class Panel : IBus.PanelService {
                 Gdk.Pixbuf pixbuf = create_icon_pixbuf_with_string(symbol);
                 m_status_icon.set_from_pixbuf(pixbuf);
             }
+#if INDICATOR
             else if (m_icon_type == IconType.INDICATOR) {
                 Cairo.ImageSurface image =
                         create_cairo_image_surface_with_string(symbol, true);
                 m_indicator.set_cairo_image_surface_full(image, "");
             }
+#endif
 
             return false;
         });
@@ -1684,6 +1694,7 @@ class Panel : IBus.PanelService {
         m_property_panel.set_properties(props);
         set_properties(props);
 
+#if INDICATOR
         if (m_icon_type != IconType.INDICATOR)
             return;
         if (m_is_context_menu)
@@ -1699,6 +1710,7 @@ class Panel : IBus.PanelService {
                             m_indicator.set_menu(create_activate_menu ());
                             return false;
                         });
+#endif
     }
 
     public override void update_property(IBus.Property prop) {
@@ -1752,11 +1764,13 @@ class Panel : IBus.PanelService {
         if (m_switcher.is_running())
             return;
 
+#if INDICATOR
         if (m_icon_type == IconType.INDICATOR) {
             // Wait for the callback of the session bus.
             if (m_indicator == null)
                 return;
         }
+#endif
 
         var icon_name = "ibus-keyboard";
 
@@ -1771,8 +1785,10 @@ class Panel : IBus.PanelService {
         if (icon_name[0] == '/') {
             if (m_icon_type == IconType.STATUS_ICON)
                 m_status_icon.set_from_file(icon_name);
+#if INDICATOR
             else if (m_icon_type == IconType.INDICATOR)
                 m_indicator.set_icon_full(icon_name, "");
+#endif
         } else {
             string language = null;
 
@@ -1788,24 +1804,30 @@ class Panel : IBus.PanelService {
                             create_icon_pixbuf_with_string(language);
                     m_status_icon.set_from_pixbuf(pixbuf);
                 }
+#if INDICATOR
                 else if (m_icon_type == IconType.INDICATOR) {
                     Cairo.ImageSurface image =
                             create_cairo_image_surface_with_string(language,
                                                                    true);
                     m_indicator.set_cairo_image_surface_full(image, "");
                 }
+#endif
             } else {
                 var theme = Gtk.IconTheme.get_default();
                 if (theme.lookup_icon(icon_name, 48, 0) != null) {
                     if (m_icon_type == IconType.STATUS_ICON)
                         m_status_icon.set_from_icon_name(icon_name);
+#if INDICATOR
                     else if (m_icon_type == IconType.INDICATOR)
                         m_indicator.set_icon_full(icon_name, "");
+#endif
                 } else {
                     if (m_icon_type == IconType.STATUS_ICON)
                         m_status_icon.set_from_icon_name("ibus-engine");
+#if INDICATOR
                     else if (m_icon_type == IconType.INDICATOR)
                         m_indicator.set_icon_full("ibus-engine", "");
+#endif
                 }
             }
         }

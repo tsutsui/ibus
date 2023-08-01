@@ -90,6 +90,32 @@ AM_VALAFLAGS = \
 	--target-glib="$(VALA_TARGET_GLIB_VERSION)" \
 	$(NULL)
 
+libexec_PROGRAMS = ibus-ui-gtk3
+
+ibus_ui_gtk3_SOURCES = \
+    application.vala \
+    bindingcommon.vala \
+    candidatearea.vala \
+    candidatepanel.vala \
+    emojier.vala \
+    handle.vala \
+    iconwidget.vala \
+    keybindingmanager.vala \
+    panel.vala \
+    pango.vala \
+    property.vala \
+    propertypanel.vala \
+    separator.vala \
+    switcher.vala \
+    xkblayout.vala \
+    gen-notification-item.xml.c \
+    gen-notification-watcher.xml.c \
+    $(NULL)
+
+ibus_ui_gtk3_LDADD = \
+	$(AM_LDADD) \
+	$(NULL)
+
 if ENABLE_LIBNOTIFY
 AM_CFLAGS += \
        @LIBNOTIFY_CFLAGS@ \
@@ -119,34 +145,10 @@ AM_LDADD += \
     @DBUSMENU_GLIB_LIBS@ \
     @DBUSMENU_GTK3_LIBS@ \
     $(NULL)
+ibus_ui_gtk3_SOURCES += \
+    indicator.vala \
+    $(NULL)
 endif
-
-libexec_PROGRAMS = ibus-ui-gtk3
-
-ibus_ui_gtk3_SOURCES = \
-	application.vala \
-	bindingcommon.vala \
-	candidatearea.vala \
-	candidatepanel.vala \
-	emojier.vala \
-	handle.vala \
-	iconwidget.vala \
-	indicator.vala \
-	keybindingmanager.vala \
-	panel.vala \
-	pango.vala \
-	property.vala \
-	propertypanel.vala \
-	separator.vala \
-	switcher.vala \
-	xkblayout.vala \
-	gen-notification-item.xml.c \
-	gen-notification-watcher.xml.c \
-	$(NULL)
-
-ibus_ui_gtk3_LDADD = \
-	$(AM_LDADD) \
-	$(NULL)
 
 gen-%.xml.c: %.xml
 	echo "Building $@ from $<"
