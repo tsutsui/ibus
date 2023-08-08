@@ -529,7 +529,7 @@ void         ibus_input_context_set_client_commit_preedit
  * commit-text and forwar-key-event signals during
  * calling ibus_input_context_process_key_event() if it's %TRUE.
  *
- * Since: 1.5.00
+ * Since: 1.5.29
  * Stability: Unstable
  */
 void         ibus_input_context_set_post_process_key_event
@@ -545,7 +545,7 @@ void         ibus_input_context_set_post_process_key_event
  *
  * See also ibus_input_context_set_post_process_key_event().
  *
- * Since: 1.5.00
+ * Since: 1.5.29
  * Stability: Unstable
  */
 void         ibus_input_context_post_process_key_event

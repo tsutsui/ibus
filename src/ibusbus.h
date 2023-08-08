@@ -74,7 +74,7 @@ typedef struct _IBusBusPrivate IBusBusPrivate;
  * @IBUS_BUS_GLOBAL_BINDING_TYPE_EMOJI_TYPING: Emoji typing
  *
  * Type enumeration of IBusBusGlobalBindingType.
- * Since: 1.5.00
+ * Since: 1.5.29
  * Stability: Unstable
  */
 typedef enum {
@@ -1208,7 +1208,7 @@ gboolean     ibus_bus_preload_engines_async_finish
  * Set global shorcut keys for the Wayland session.
  *
  * Returns: %TRUE if the global shortcut keys are set. %FALSE otherwise.
- * Since: 1.5.00
+ * Since: 1.5.29
  * Stability: Unstable
  */
 gboolean     ibus_bus_set_global_shortcut_keys
@@ -1229,7 +1229,7 @@ gboolean     ibus_bus_set_global_shortcut_keys
  * @user_data: The data to pass to callback.
  *
  * Sete global shorcut keys for the Wayland session asynchronously.
- * Since: 1.5.00
+ * Since: 1.5.29
  * Stability: Unstable
  */
 void         ibus_bus_set_global_shortcut_keys_async
@@ -1254,7 +1254,7 @@ void         ibus_bus_set_global_shortcut_keys_async
  * Finishes an operation started with ibus_bus_set_global_shortcut_keys_async().
  *
  * Returns: %TRUE if the global shortcut keys are set. %FALSE otherwise.
- * Since: 1.5.00
+ * Since: 1.5.29
  * Stability: Unstable
  */
 gboolean     ibus_bus_set_global_shortcut_keys_async_finish
