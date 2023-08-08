@@ -42,7 +42,7 @@ struct _IBusComposeTablePrivate
 };
 
 
-gboolean ibus_check_algorithmically (const guint16              *compose_buffer,
+gboolean ibus_check_algorithmically (const guint                *compose_buffer,
                                      int                         n_compose,
                                      gunichar                   *output);
 GVariant *
@@ -56,13 +56,13 @@ IBusComposeTableEx *
                                      gsize                       length,
                                      gboolean                   reverse_endian);
 gboolean ibus_compose_table_check   (const IBusComposeTableEx   *table,
-                                     guint16                    *compose_buffer,
+                                     guint                      *compose_buffer,
                                      int                         n_compose,
                                      gboolean                   *compose_finish,
                                      gboolean                   *compose_match,
                                      GString                    *output,
                                      gboolean                    is_32bit);
-gunichar ibus_keysym_to_unicode     (guint16                     keysym,
+gunichar ibus_keysym_to_unicode     (guint                       keysym,
                                      gboolean                    combining,
                                      gboolean                   *need_space);
 

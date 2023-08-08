@@ -209,7 +209,10 @@ if test x"$ENVS" = x ; then
 else
     LANG_backup=$LANG
     i=1
-    for e in $ENVS; do
+    # "for e in $ENVS" separates the variable by space but not line feed.
+    # "echo $ENVS | while read e" does not forward `retval`
+    # to the parent process.
+    while read e; do
         first=`echo "$e" | cut -c1-1`
         if test x"$first" = x"#" ; then
             continue
@@ -220,7 +223,9 @@ else
         run_test_case $@
         echo ""
         i=`expr $i + 1`
-    done
+    done << EOF_ENVS
+    `echo "$ENVS"`
+EOF_ENVS
     export LANG=$LANG_backup
 fi
 

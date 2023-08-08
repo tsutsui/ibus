@@ -478,7 +478,8 @@ ibus_compose_list_parse_file (const char *compose_file,
             }
         }
         if (include && *include) {
-            GList *rest = ibus_compose_list_parse_file (include,
+            GList *rest = ibus_compose_list_parse_file (
+                    include,
                     max_compose_len);
             if (rest) {
                 compose_list = g_list_concat (compose_list, rest);
@@ -498,12 +499,12 @@ ibus_compose_list_check_duplicated (GList  *compose_list,
                                     GSList *compose_tables)
 {
     GList *list;
-    static guint16 *keysyms;
+    static guint *keysyms;
     GList *removed_list = NULL;
     IBusComposeData *compose_data;
     GString *output = g_string_new ("");
 
-    keysyms = g_new (guint16, max_compose_len + 1);
+    keysyms = g_new (guint, max_compose_len + 1);
 
     for (list = compose_list; list != NULL; list = list->next) {
         int i;
@@ -523,7 +524,7 @@ ibus_compose_list_check_duplicated (GList  *compose_list,
 
         for (i = 0; i < max_compose_len + 1; i++) {
             gunichar codepoint = compose_data->sequence[i];
-            keysyms[i] = (guint16) codepoint;
+            keysyms[i] = (guint)codepoint;
 
             if (codepoint == 0)
                 break;
@@ -600,6 +601,34 @@ ibus_compose_list_check_duplicated (GList  *compose_list,
 }
 
 
+/*
+ * Actual typed keysyms have a flag against the definition.
+ * https://gitlab.freedesktop.org/xorg/lib/libx11/-/blob/master/nls/en_US.UTF-8/Compose.pre#L4559
+ */
+guint
+ibus_compose_key_flag (guint key)
+{
+    const char *name;
+    if (key <= 0xff)
+        return 0;
+    name = ibus_keyval_name (key);
+    /* If name is null, the key sequence is expressed as "<Uxxxx>" format in
+     * the Compose file and the typed keysym has the flag.
+     */
+    if (!name)
+        return 0x1000000;
+    /* "<Pointer_EnableKeys>" is not described in the Compose file but <UFEF9>
+     * in the file.
+     */
+    if (*name == 'P' && *(name + 1) == 'o' && *(name + 2) == 'i')
+        return 0x1000000;
+    /* Other names, "<Multi_key>", "<dead_*>", "<Cyrillic_*>" are described in
+     * the Compose file.
+     */
+    return 0;
+}
+
+
 static int
 ibus_compose_data_compare (gpointer a,
                            gpointer b,
@@ -619,6 +648,8 @@ ibus_compose_data_compare (gpointer a,
         gunichar code_a = compose_data_a->sequence[i];
         gunichar code_b = compose_data_b->sequence[i];
 
+        code_a += ibus_compose_key_flag (code_a);
+        code_b += ibus_compose_key_flag (code_b);
         if (code_a != code_b)
             return code_a - code_b;
         if (code_a == 0 && code_b == 0)
@@ -1542,13 +1573,16 @@ static int
 compare_seq (const void *key, const void *value)
 {
     int i = 0;
-    const guint16 *keysyms = key;
+    const guint *keysyms = key;
     const guint16 *seq = value;
 
     while (keysyms[i]) {
-        if (keysyms[i] < seq[i])
+        guint typed_key = keysyms[i];
+        guint saved_key = (guint)seq[i];
+        guint flag = ibus_compose_key_flag (saved_key);
+        if (typed_key < (saved_key + flag))
             return -1;
-        else if (keysyms[i] > seq[i])
+        else if (typed_key > (saved_key + flag))
             return 1;
 
         i++;
@@ -1558,9 +1592,40 @@ compare_seq (const void *key, const void *value)
 }
 
 
+/**
+ * ibus_compose_table_check:
+ * @table: An #IBusComposeTableEx.
+ * @compose_buffer: (array length=n_compose):
+                    A candidate typed key sequence to generate compose chars.
+ * @n_compose: The length of compose_buffer.
+ * @compose_finish: If typed key sequence is finished for the compose chars.
+ * @compose_match: If typed key sequence is matched partically.
+ * @output: Matched compse chars.
+ * @is_32bit: The type of #IBusComposeTableEx.
+ *
+ * If the current @comopse_buffer matches a compose sequence partically in
+ * #IBusComposeTableEx, return %TRUE otherwise %FALSE.
+ * If the matched compose sequence can be converted to a Unicode string,
+ * %TRUE is set to @compose_match and the converted string is assgined to
+ * @output to update the preedit text.
+ * If the current @comopse_buffer matches a compose sequence fully in
+ * #IBusComposeTableEx, %TRUE is set to @compose_finish and the generated
+ * compose character is assigned to @output.
+ *
+ * #IBusComposeTableEx includes 16bit key sequences and the corresponded
+ * compose characters. #IBusComposeTableEx has two types, one is
+ * 16bit and one compose char and another is 32bit or more than two chars.
+ * If #IBusComposeTableEx is 16bit and one compose char, @is_32bit is %TRUE.
+ *
+ * @compose_buffer is the typed key sequence but not limitted to 16bit.
+ * E.g.
+ * Shift + t is 0x100fef9 keysym with Arabic keyboard.
+ * Shift + NumLock is 0xfef9 keysym with keypad:pointerkeys XKB option.
+ * So compare_seq() compares the 32bit key sequence and 16bit one.
+ */
 gboolean
 ibus_compose_table_check (const IBusComposeTableEx *table,
-                          guint16                  *compose_buffer,
+                          guint                    *compose_buffer,
                           int                       n_compose,
                           gboolean                 *compose_finish,
                           gboolean                 *compose_match,
@@ -1749,7 +1814,7 @@ check_normalize_nfc (gunichar* combination_buffer, int n_compose)
 
 
 gboolean
-ibus_check_algorithmically (const guint16 *compose_buffer,
+ibus_check_algorithmically (const guint   *compose_buffer,
                             int            n_compose,
                             gunichar      *output_char)
 
@@ -1818,7 +1883,7 @@ ibus_check_algorithmically (const guint16 *compose_buffer,
 
 
 gunichar
-ibus_keysym_to_unicode (guint16   keysym,
+ibus_keysym_to_unicode (guint     keysym,
                         gboolean  combining,
                         gboolean *need_space) {
 #define CASE(keysym_suffix, unicode, sp)                                      \

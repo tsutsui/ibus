@@ -45,7 +45,7 @@
         COMPOSE_BUFFER_SIZE < IBUS_MAX_COMPOSE_LEN) {                   \
         COMPOSE_BUFFER_SIZE = ((index) + 10) < IBUS_MAX_COMPOSE_LEN     \
                               ? ((index) + 10) : IBUS_MAX_COMPOSE_LEN;  \
-        (buffer) = g_renew (guint16, (buffer), COMPOSE_BUFFER_SIZE + 1);\
+        (buffer) = g_renew (guint, (buffer), COMPOSE_BUFFER_SIZE + 1);  \
     }                                                                   \
     if ((index) < COMPOSE_BUFFER_SIZE) {                                \
         (buffer)[(index)] = (value);                                    \
@@ -70,7 +70,7 @@ typedef struct {
 } IBusEngineDict;
 
 struct _IBusEngineSimplePrivate {
-    guint16            *compose_buffer;
+    guint              *compose_buffer;
     GString            *tentative_match;
     int                 tentative_match_len;
     char               *tentative_emoji;
@@ -147,7 +147,7 @@ ibus_engine_simple_init (IBusEngineSimple *simple)
     IBusComposeTableEx *en_compose_table;
 
     simple->priv = IBUS_ENGINE_SIMPLE_GET_PRIVATE (simple);
-    simple->priv->compose_buffer = g_new0(guint16, COMPOSE_BUFFER_SIZE + 1);
+    simple->priv->compose_buffer = g_new0 (guint, COMPOSE_BUFFER_SIZE + 1);
     simple->priv->hex_mode_enabled =
         g_getenv("IBUS_ENABLE_CTRL_SHIFT_U") != NULL ||
         g_getenv("IBUS_ENABLE_CONTROL_SHIFT_U") != NULL;
@@ -326,7 +326,7 @@ ibus_engine_simple_update_preedit_text (IBusEngineSimple *simple)
             g_string_append (s, priv->tentative_match->str);
         } else {
             for (i = 0; priv->compose_buffer[i]; ++i) {
-                guint16 keysym = priv->compose_buffer[i];
+                guint keysym = priv->compose_buffer[i];
                 gboolean show_keysym = TRUE;
                 gboolean need_space = FALSE;
                 gunichar ch;
@@ -588,15 +588,15 @@ no_sequence_matches (IBusEngineSimple *simple,
      * match pending.
      */
     if (priv->tentative_match_len > 0) {
-        guint16 *compose_buffer;
+        guint *compose_buffer;
         int len = priv->tentative_match_len;
         int i;
         char *str;
 
-        compose_buffer = alloca (sizeof (guint16) * COMPOSE_BUFFER_SIZE);
+        compose_buffer = alloca (sizeof (guint) * COMPOSE_BUFFER_SIZE);
         memcpy (compose_buffer,
                 priv->compose_buffer,
-                sizeof (guint16) * COMPOSE_BUFFER_SIZE);
+                sizeof (guint) * COMPOSE_BUFFER_SIZE);
 
         str = g_strdup (priv->tentative_match->str);
         ibus_engine_simple_commit_str (simple, str);
@@ -649,9 +649,10 @@ no_sequence_matches (IBusEngineSimple *simple,
         ch = ibus_keyval_to_unicode (keyval);
         /* IBUS_CHANGE: RH#769133
          * Since we use ibus xkb engines as the disable state,
-         * do not commit the characters locally without in_hex_sequence. */
-        if (ch != 0 && !g_unichar_iscntrl (ch) &&
-            priv->in_hex_sequence) {
+         * Super-space and space key can launch IBus Emojier.
+         */
+        if (ch != 0 && !g_unichar_iscntrl (ch) && ch > 0x7F) {
+            ibus_engine_simple_commit_char (simple, ch);
             return TRUE;
         } else {
             return FALSE;

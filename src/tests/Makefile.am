@@ -3,7 +3,7 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2015 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
 # Copyright (c) 2007-2018 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
@@ -98,6 +98,7 @@ test_execs = $(TESTS:ibus-compose=ibus-compose-locales)
 test_metas = $(addsuffix .test, $(test_execs))
 test_sources_DATA = \
     $(test_metas) \
+    ibus-compose.basic \
     ibus-compose.emoji \
     ibus-compose.env \
     $(NULL)
@@ -151,6 +152,7 @@ EXTRA_DIST = \
     $(test_metas_in) \
     $(TESTS_SCRIPT) \
     runtest \
+    ibus-compose.basic \
     ibus-compose.emoji \
     ibus-compose.env \
     ibus-compose-locales.in \
