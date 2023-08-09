@@ -47,9 +47,10 @@ cd "$srcdir"
         rpm -q $FEDORA_PKG1 || exit 1
         rpm -q $FEDORA_PKG2 || exit 1
         rpm -q $FEDORA_PKG3 || exit 1
-        dnf update --assumeno $FEDORA_PKG1 || exit 1
-        dnf update --assumeno $FEDORA_PKG2 || exit 1
-        dnf update --assumeno $FEDORA_PKG3 || exit 1
+        (grep -qE '37|38' /etc/fedora-release) && DNF=dnf || DNF=dnf5
+        $DNF update --assumeno $FEDORA_PKG1 || exit 1
+        $DNF update --assumeno $FEDORA_PKG2 || exit 1
+        $DNF update --assumeno $FEDORA_PKG3 || exit 1
     }
 }
 

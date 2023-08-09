@@ -28,6 +28,12 @@ jobs:
         include:
           - container: fedora:38
             ucd_dir: /usr/share/unicode/ucd
+          - container: fedora:38
+            ucd_dir: /usr/share/unicode/ucd
+            test_config: '--disable-wayland'
+          - container: fedora:38
+            ucd_dir: /usr/share/unicode/ucd
+            test_config: '--disable-appindicator'
           - container: fedora:39
             ucd_dir: /usr/share/unicode/ucd
           - container: ubuntu:jammy
@@ -96,6 +102,8 @@ jobs:
            glib2-doc
          # for ibus-keypress
          FEDORA_PACKAGES_CI_KEY: >
+           gnome-shell
+           gnome-shell-extension-no-overview
            libXtst-devel
          # for gcc -fanalyzer -fsanitize=address -fsanitize=leak options
          # xkeyboard-config-devel to make ibus/engine/simle.xml.in
@@ -121,16 +129,23 @@ jobs:
             ;;
           fedora*)
             cat /etc/fedora-release
-            echo "dnf -y update"
-            dnf -y update
-            echo "dnf -y install git which"
-            dnf -y install git which
+            DNF=dnf5
+            if test "${{ matrix.container }}" = "fedora:38" ; then
+                DNF=dnf
+            fi
+            echo "$DNF -y update"
+            $DNF -y update
+            echo "$DNF -y install git which"
+            $DNF -y install git which
             PACKAGES=$(echo "$FEDORA_PACKAGES_MAKE" | tr -d '\n')
             PACKAGES=$(echo "$PACKAGES $FEDORA_PACKAGES_GTKDOC" | tr -d '\n')
             PACKAGES=$(echo "$PACKAGES $FEDORA_PACKAGES_CI_KEY" | tr -d '\n')
             PACKAGES=$(echo "$PACKAGES $FEDORA_PACKAGES_DISTRO" | tr -d '\n')
-            echo "dnf -y install $PACKAGES"
-            dnf -y install $PACKAGES
+            echo "$DNF -y install $PACKAGES"
+            $DNF -y install $PACKAGES
+            rpm -q gnome-shell
+            V=$(rpm -q gnome-shell | sed -e 's/gnome-shell-\([0-9]*\)[.-~].*/\1/')
+            grep $V /usr/share/gnome-shell/extensions/no-overview@fthx/metadata.json
             ;;
           *)
             echo "Not supported ${{ matrix.container }}"
@@ -167,6 +182,7 @@ jobs:
           --with-python=/usr/bin/python3
           --with-ucd-dir=${{ matrix.ucd_dir }}
           --enable-install-tests
+          ${{ matrix.test_config }}
 
       - name: Run make
         # Set the cutom DESTDIR because the default DESTDIR
@@ -183,6 +199,7 @@ jobs:
           --with-python=/usr/bin/python3
           --with-ucd-dir=${{ matrix.ucd_dir }}
           --enable-install-tests
+          ${{ matrix.test_config }}
           "
           DISABLE_GUI_TESTS="
           ibus-compose ibus-keypress test-stress xkb-latin-layouts
