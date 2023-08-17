@@ -21,16 +21,22 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
-# You can copy this file to .git/hooks/commit-msg with the file permission
+# You can copy this file to .git/hooks/post-merge with the file permission
 # '0755'.
 # This script is useful not to commit invalid commit IDs every time and
 # leave a temporary version(1.5.00) in source files when a release is
 # bumped.
+# Unfortunately .git/hooks/pre-merge-commit does not run for git merge
+# fast-forwarding and I use post-merge instead as a workaround
+# but post-merge succeed the last merge so need to run git reset --hard
+# if this script outputs warnings.
 
 REPO="ibus/ibus"
 TMP_VER="1.5.00"
 
-echo -e "\033[37;1mIBus commit-msg\033[0m"
+export GIT_PAGER=cat
+
+echo -e "\033[37;1mIBus post-merge\033[0m"
 
 check_commit_message()
 {
@@ -48,13 +54,15 @@ diff $THIS_FILE .github/hooks/$(basename $THIS_FILE) || {
     exit 1
 }
 
-test "" = "$(grep '^Signed-off-by: ' "$1" |
+test "" = "$(git log --pretty=email HEAD^...HEAD |
+    grep '^Signed-off-by: ' |
     sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
     echo >&2 Duplicate Signed-off-by lines.
     exit 1
 }
 
-for ID in $(grep '^Fixes: ' "$1" | awk '{print $2}')
+for ID in $(git log --pretty=email HEAD~100...HEAD |
+    grep '^Fixes: ' | awk '{print $2}')
 do
     echo "$ID" | grep -q "^http" && {
         echo $ID | grep -q "$REPO/commit/" && {
@@ -66,7 +74,7 @@ do
     }
 done
 
-head -1 "$1" | grep -q '^Release ' && {
+git log --pretty=email HEAD^...HEAD | grep -q "^Subject: \[PATCH\] Release" && {
     FILES=$(grep "Since: $TMP_VER" $(git ls-files))
     if test x"$FILES" != x ; then
         echo >&2 "You need to replace $TMP_VER with the releasing version"
