@@ -41,6 +41,10 @@ echo -e "\033[37;1mIBus post-merge\033[0m"
 check_commit_message()
 {
     ID=$1
+    case "$ID" in
+    39b6907) # Ignore old invalid ID.
+        return;;
+    esac
     # Check files in the current branch only but not cached commits
     git log --pretty=oneline | grep -q "$ID" || {
         echo >&2 "Invalid commit ID: $ID"
