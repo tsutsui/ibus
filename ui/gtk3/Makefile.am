@@ -27,8 +27,8 @@ libibus = $(top_builddir)/src/libibus-@IBUS_API_VERSION@.la
 libibuswaylandim = $(top_builddir)/client/wayland/libibuswaylandim.la
 
 component_DATA = \
-	gtkpanel.xml \
-	$(NULL)
+    gtkpanel.xml \
+    $(NULL)
 componentdir = $(pkgdatadir)/component
 
 %.xml: %.xml.in
@@ -46,49 +46,50 @@ componentdir = $(pkgdatadir)/component
 
 # force include config.h before gi18n.h.
 AM_CPPFLAGS = \
-	-I$(top_srcdir)/src \
-	-I$(top_builddir)/src \
-	-include $(CONFIG_HEADER) \
-	$(NULL)
+    -I$(top_srcdir)/src \
+    -I$(top_builddir)/src \
+    -include $(CONFIG_HEADER) \
+    $(NULL)
 
 AM_CFLAGS = \
-	@GLIB2_CFLAGS@ \
-	@GIO2_CFLAGS@ \
-	@GTHREAD2_CFLAGS@ \
-	@GTK3_CFLAGS@ \
-	@X11_CFLAGS@ \
-	-DG_LOG_DOMAIN=\"IBUS\" \
-	-DBINDIR=\"$(bindir)\" \
-	-DPKGDATADIR=\"$(pkgdatadir)\" \
-	-DIBUS_DISABLE_DEPRECATED \
-	-Wno-unused-variable \
-	-Wno-unused-but-set-variable \
-	-Wno-unused-function \
-	$(NULL)
+    @GLIB2_CFLAGS@ \
+    @GIO2_CFLAGS@ \
+    @GTHREAD2_CFLAGS@ \
+    @GTK3_CFLAGS@ \
+    @X11_CFLAGS@ \
+    -DG_LOG_DOMAIN=\"IBUS\" \
+    -DBINDIR=\"$(bindir)\" \
+    -DPKGDATADIR=\"$(pkgdatadir)\" \
+    -DIBUS_DISABLE_DEPRECATED \
+    -Wno-unused-variable \
+    -Wno-unused-but-set-variable \
+    -Wno-unused-function \
+    $(NULL)
 
 AM_LDADD = \
-	@GOBJECT2_LIBS@ \
-	@GLIB2_LIBS@ \
-	@GIO2_LIBS@ \
-	@GTHREAD2_LIBS@ \
-	@GTK3_LIBS@ \
-	@X11_LIBS@ \
-	-lXi \
-	$(libibus) \
-	$(NULL)
+    @GOBJECT2_LIBS@ \
+    @GLIB2_LIBS@ \
+    @GIO2_LIBS@ \
+    @GTHREAD2_LIBS@ \
+    @GTK3_LIBS@ \
+    @X11_LIBS@ \
+    -lXi \
+    $(libibus) \
+    $(NULL)
 
 AM_VALAFLAGS = \
-	--vapidir=$(top_builddir)/bindings/vala \
-	--vapidir=$(top_srcdir)/bindings/vala \
-	--pkg=posix \
-	--pkg=gtk+-3.0 \
-	--pkg=gdk-x11-3.0 \
-	--pkg=ibus-1.0 \
-	--pkg=config \
-	--pkg=xi \
-	--pkg=glibmacro \
-	--target-glib="$(VALA_TARGET_GLIB_VERSION)" \
-	$(NULL)
+    --vapidir=$(top_builddir)/bindings/vala \
+    --vapidir=$(top_srcdir)/bindings/vala \
+    --pkg=posix \
+    --pkg=gtk+-3.0 \
+    --pkg=gdk-x11-3.0 \
+    --pkg=ibus-1.0 \
+    --pkg=config \
+    --pkg=xi \
+    --pkg=glibmacro \
+    --pkg-config="\"$(PKG_CONFIG) --with-path=$(PKG_CONFIG_PATH)\"" \
+    --target-glib="$(VALA_TARGET_GLIB_VERSION)" \
+    $(NULL)
 
 libexec_PROGRAMS = ibus-ui-gtk3
 
@@ -113,8 +114,8 @@ ibus_ui_gtk3_SOURCES = \
     $(NULL)
 
 ibus_ui_gtk3_LDADD = \
-	$(AM_LDADD) \
-	$(NULL)
+    $(AM_LDADD) \
+    $(NULL)
 
 if ENABLE_LIBNOTIFY
 AM_CFLAGS += \

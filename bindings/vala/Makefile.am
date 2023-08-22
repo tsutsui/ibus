@@ -52,6 +52,7 @@ AM_VALAFLAGS = \
     --pkg=ibus-1.0 \
     --pkg=config \
     --pkg=xi \
+    --pkg-config="\"$(PKG_CONFIG) --with-path=$(PKG_CONFIG_PATH)\"" \
     --target-glib="$(VALA_TARGET_GLIB_VERSION)" \
     $(NULL)
 

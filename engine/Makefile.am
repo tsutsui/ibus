@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2010-2016, Google Inc. All rights reserved.
 # Copyright (c) 2007-2016 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2013-2021 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2013-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -53,6 +53,7 @@ AM_LDADD = \
 AM_VALAFLAGS = \
 	--vapidir=$(top_builddir)/bindings/vala \
 	--pkg=ibus-1.0 \
+    --pkg-config="\"$(PKG_CONFIG) --with-path=$(PKG_CONFIG_PATH)\"" \
 	--target-glib="$(VALA_TARGET_GLIB_VERSION)" \
 	$(NULL)
 

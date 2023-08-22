@@ -3,7 +3,7 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2013 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
 # Copyright (c) 2007-2017 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
@@ -76,6 +76,7 @@ AM_VALAFLAGS = \
     --pkg=ibus-immodule-1.0 \
     --pkg=posix \
     --pkg=config \
+    --pkg-config="\"$(PKG_CONFIG) --with-path=$(PKG_CONFIG_PATH)\"" \
     --target-glib="$(VALA_TARGET_GLIB_VERSION)" \
     $(NULL)
 
