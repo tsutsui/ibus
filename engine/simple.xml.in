@@ -3,7 +3,7 @@
     <name>org.freedesktop.IBus.Simple</name>
     <description>A table based simple engine</description>
     <exec>@libexecdir@/ibus-engine-simple</exec>
-    <version>1.5.27.20230220</version>
+    <version>1.5.29-beta3.20230822</version>
     <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
     <license>GPL</license>
     <homepage>https://github.com/ibus/ibus/wiki</homepage>
@@ -105,14 +105,14 @@
             <rank>1</rank>
         </engine>
         <engine>
-            <name>xkb:us:colemak_dh_iso:eng</name>
+            <name>xkb:us:colemak_dh_wide:eng</name>
             <language>en</language>
             <license>GPL</license>
             <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
             <layout>us</layout>
-            <layout_variant>colemak_dh_iso</layout_variant>
-            <longname>English (Colemak-DH ISO)</longname>
-            <description>English (Colemak-DH ISO)</description>
+            <layout_variant>colemak_dh_wide</layout_variant>
+            <longname>English (Colemak-DH Wide)</longname>
+            <description>English (Colemak-DH Wide)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -125,6 +125,30 @@
             <layout_variant>colemak_dh_ortho</layout_variant>
             <longname>English (Colemak-DH Ortholinear)</longname>
             <description>English (Colemak-DH Ortholinear)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:us:colemak_dh_iso:eng</name>
+            <language>en</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>us</layout>
+            <layout_variant>colemak_dh_iso</layout_variant>
+            <longname>English (Colemak-DH ISO)</longname>
+            <description>English (Colemak-DH ISO)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:us:colemak_dh_wide_iso:eng</name>
+            <language>en</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>us</layout>
+            <layout_variant>colemak_dh_wide_iso</layout_variant>
+            <longname>English (Colemak-DH Wide ISO)</longname>
+            <description>English (Colemak-DH Wide ISO)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -729,8 +753,8 @@
             <license>GPL</license>
             <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
             <layout>au</layout>
-            <longname>English (Australian)</longname>
-            <description>English (Australian)</description>
+            <longname>English (Australia)</longname>
+            <description>English (Australia)</description>
             <icon>ibus-keyboard</icon>
             <rank>50</rank>
         </engine>
@@ -1935,6 +1959,18 @@
             <rank>1</rank>
         </engine>
         <engine>
+            <name>xkb:in:mal_poorna:mal</name>
+            <language>ml</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>in</layout>
+            <layout_variant>mal_poorna</layout_variant>
+            <longname>Malayalam (Poorna, extended InScript)</longname>
+            <description>Malayalam (Poorna, extended InScript)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
             <name>xkb:in:ori:ori</name>
             <language>or</language>
             <license>GPL</license>
@@ -2361,6 +2397,18 @@
             <layout_variant>nativo</layout_variant>
             <longname>Portuguese (Brazil, Nativo)</longname>
             <description>Portuguese (Brazil, Nativo)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:br:rus:rus</name>
+            <language>ru</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>br</layout>
+            <layout_variant>rus</layout_variant>
+            <longname>Russian (Brazil, phonetic)</longname>
+            <description>Russian (Brazil, phonetic)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -3657,8 +3705,8 @@
             <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
             <layout>cz</layout>
             <layout_variant>bksl</layout_variant>
-            <longname> key)</longname>
-            <description> key)</description>
+            <longname>Czech (extra backslash)</longname>
+            <description>Czech (extra backslash)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -3681,8 +3729,8 @@
             <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
             <layout>cz</layout>
             <layout_variant>qwerty_bksl</layout_variant>
-            <longname>Czech (QWERTY, extended backslash)</longname>
-            <description>Czech (QWERTY, extended backslash)</description>
+            <longname>Czech (QWERTY, extra backslash)</longname>
+            <description>Czech (QWERTY, extra backslash)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -3729,8 +3777,32 @@
             <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
             <layout>cz</layout>
             <layout_variant>rus</layout_variant>
-            <longname>Russian (Czech, phonetic)</longname>
-            <description>Russian (Czech, phonetic)</description>
+            <longname>Russian (Czechia, phonetic)</longname>
+            <description>Russian (Czechia, phonetic)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:cz:winkeys:ces</name>
+            <language>cs</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>cz</layout>
+            <layout_variant>winkeys</layout_variant>
+            <longname>Czech (QWERTZ, Windows flavour)</longname>
+            <description>Czech (QWERTZ, Windows flavour)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:cz:winkeys-qwerty:ces</name>
+            <language>cs</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>cz</layout>
+            <layout_variant>winkeys-qwerty</layout_variant>
+            <longname>Czech (QWERTY, Windows flavour)</longname>
+            <description>Czech (QWERTY, Windows flavour)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -3930,6 +4002,18 @@
             <layout_variant>pes_keypad</layout_variant>
             <longname>Persian (with Persian keypad)</longname>
             <description>Persian (with Persian keypad)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:ir:winkeys:fas</name>
+            <language>fa</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>ir</layout>
+            <layout_variant>winkeys</layout_variant>
+            <longname>Persian (Windows)</longname>
+            <description>Persian (Windows)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -6316,6 +6400,78 @@
             <rank>1</rank>
         </engine>
         <engine>
+            <name>xkb:no:colemak_dh:nor</name>
+            <language>no</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>no</layout>
+            <layout_variant>colemak_dh</layout_variant>
+            <longname>Norwegian (Colemak-DH)</longname>
+            <description>Norwegian (Colemak-DH)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:no:colemak_dh:nob</name>
+            <language>nb</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>no</layout>
+            <layout_variant>colemak_dh</layout_variant>
+            <longname>Norwegian (Colemak-DH)</longname>
+            <description>Norwegian (Colemak-DH)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:no:colemak_dh:nno</name>
+            <language>nn</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>no</layout>
+            <layout_variant>colemak_dh</layout_variant>
+            <longname>Norwegian (Colemak-DH)</longname>
+            <description>Norwegian (Colemak-DH)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:no:colemak_dh_wide:nor</name>
+            <language>no</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>no</layout>
+            <layout_variant>colemak_dh_wide</layout_variant>
+            <longname>Norwegian (Colemak-DH Wide)</longname>
+            <description>Norwegian (Colemak-DH Wide)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:no:colemak_dh_wide:nob</name>
+            <language>nb</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>no</layout>
+            <layout_variant>colemak_dh_wide</layout_variant>
+            <longname>Norwegian (Colemak-DH Wide)</longname>
+            <description>Norwegian (Colemak-DH Wide)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:no:colemak_dh_wide:nno</name>
+            <language>nn</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>no</layout>
+            <layout_variant>colemak_dh_wide</layout_variant>
+            <longname>Norwegian (Colemak-DH Wide)</longname>
+            <description>Norwegian (Colemak-DH Wide)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
             <name>xkb:pl::pol</name>
             <language>pl</language>
             <license>GPL</license>
@@ -7047,8 +7203,8 @@
             <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
             <layout>sk</layout>
             <layout_variant>bksl</layout_variant>
-            <longname>Slovak (extended backslash)</longname>
-            <description>Slovak (extended backslash)</description>
+            <longname>Slovak (extra backslash)</longname>
+            <description>Slovak (extra backslash)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -7071,8 +7227,8 @@
             <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
             <layout>sk</layout>
             <layout_variant>qwerty_bksl</layout_variant>
-            <longname>Slovak (QWERTY, extended backslash)</longname>
-            <description>Slovak (QWERTY, extended backslash)</description>
+            <longname>Slovak (QWERTY, extra backslash)</longname>
+            <description>Slovak (QWERTY, extra backslash)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -7156,18 +7312,6 @@
             <layout_variant>cat</layout_variant>
             <longname>Catalan (Spain, with middle-dot L)</longname>
             <description>Catalan (Spain, with middle-dot L)</description>
-            <icon>ibus-keyboard</icon>
-            <rank>1</rank>
-        </engine>
-        <engine>
-            <name>xkb:es:mac:spa</name>
-            <language>es</language>
-            <license>GPL</license>
-            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
-            <layout>es</layout>
-            <layout_variant>mac</layout_variant>
-            <longname>Spanish (Macintosh)</longname>
-            <description>Spanish (Macintosh)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -8034,30 +8178,6 @@
             <layout_variant>legacy</layout_variant>
             <longname>Ukrainian (legacy)</longname>
             <description>Ukrainian (legacy)</description>
-            <icon>ibus-keyboard</icon>
-            <rank>1</rank>
-        </engine>
-        <engine>
-            <name>xkb:ua:rstu:ukr</name>
-            <language>uk</language>
-            <license>GPL</license>
-            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
-            <layout>ua</layout>
-            <layout_variant>rstu</layout_variant>
-            <longname>Ukrainian (standard RSTU)</longname>
-            <description>Ukrainian (standard RSTU)</description>
-            <icon>ibus-keyboard</icon>
-            <rank>1</rank>
-        </engine>
-        <engine>
-            <name>xkb:ua:rstu_ru:rus</name>
-            <language>ru</language>
-            <license>GPL</license>
-            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
-            <layout>ua</layout>
-            <layout_variant>rstu_ru</layout_variant>
-            <longname>Russian (Ukraine, standard RSTU)</longname>
-            <description>Russian (Ukraine, standard RSTU)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -10167,8 +10287,8 @@
             <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
             <layout>md</layout>
             <layout_variant>gag</layout_variant>
-            <longname>Moldavian (Gagauz)</longname>
-            <description>Moldavian (Gagauz)</description>
+            <longname>Gagauz (Moldova)</longname>
+            <description>Gagauz (Moldova)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
@@ -11394,6 +11514,17 @@
             <description>Malay (Jawi, phonetic)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:custom::und</name>
+            <language>und</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>custom</layout>
+            <longname>A user-defined custom Layout</longname>
+            <description>A user-defined custom Layout</description>
+            <icon>ibus-keyboard</icon>
+            <rank>50</rank>
         </engine>
     </engines>
 </component>
