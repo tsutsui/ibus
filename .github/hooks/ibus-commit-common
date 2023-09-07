@@ -52,7 +52,11 @@ echo -e "\033[37;1mIBus commit-msg\033[0m"
 check_if_hook_is_latest()
 {
     eval ORIG_FILE=\"$(basename "$0")\"
-    eval GITHUB_DIR=\"$(dirname "$GIT_DIR")/.github/hooks\"
+    CONFIG_FILE="$GIT_DIR/hooks/ibus-commit-config"
+    test -f  "$CONFIG_FILE" && . "$CONFIG_FILE" || \
+        echo >&2 "WARNING: No $CONFIG_FILE for GITHUB_DIR parameter"
+    test "x$GITHUB_DIR" = "x" && \
+        eval GITHUB_DIR=\"$(dirname "$GIT_DIR")/.github/hooks\" || :
     diff "$GITHUB_DIR/$ORIG_FILE" "$GIT_DIR/hooks/$ORIG_FILE" || {
         echo >&2 ""
         echo >&2 "ERROR: $0 is older than $GITHUB_DIR/$ORIG_FILE"
