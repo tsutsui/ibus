@@ -572,8 +572,8 @@ ibus_wayland_im_post_key (IBusWaylandIM *wlim,
     if (!filtered && (state != WL_KEYBOARD_KEY_STATE_RELEASED)) {
         ch = xkb_state_key_get_utf32 (priv->state, code);
         if (!(modifiers & IBUS_MODIFIER_MASK & ~IBUS_SHIFT_MASK) &&
-            ch && ch != '\n' && ch != '\b' && ch != '\r' && ch != '\033' &&
-            ch != '\x7f') {
+            ch && ch != '\n' && ch != '\b' && ch != '\r' && ch != '\t' &&
+            ch != '\033' && ch != '\x7f') {
             gchar buff[8] = { 0, };
             buff[g_unichar_to_utf8 (ch, buff)] = '\0';
             zwp_input_method_context_v1_commit_string (priv->context,
