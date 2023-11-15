@@ -2417,7 +2417,7 @@ _create_input_context_done (IBusBus       *bus,
 static void
 _create_input_context (IBusIMContext *ibusimcontext)
 {
-    gchar *prgname = g_strdup (g_get_prgname());
+    gchar *prgname;
     gchar *client_name;
     IDEBUG ("%s", __FUNCTION__);
 
@@ -2425,6 +2425,7 @@ _create_input_context (IBusIMContext *ibusimcontext)
 
     g_return_if_fail (ibusimcontext->cancellable == NULL);
 
+    prgname = g_strdup (g_get_prgname());
     ibusimcontext->cancellable = g_cancellable_new ();
 
     if (!prgname)
