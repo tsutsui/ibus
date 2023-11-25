@@ -263,10 +263,14 @@ class BindingCommon {
         return m_default_is_xdisplay;
     }
 
-    public static Gdk.X11.Display get_xdisplay() {
+    public static Gdk.X11.Display? get_xdisplay() {
         if (m_xdisplay != null)
             return m_xdisplay;
         var display = Gdk.Display.get_default();
+        if (display == null) {
+            error("You should open a display for IBus panel.");
+            return null;
+        }
         Type instance_type = display.get_type();
         Type x11_type = typeof(Gdk.X11.Display);
         if (instance_type.is_a(x11_type)) {

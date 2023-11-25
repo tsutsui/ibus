@@ -1422,9 +1422,12 @@ class Panel : IBus.PanelService {
 
         Gdk.Display display_backup = null;
         if (use_x11 && !BindingCommon.default_is_xdisplay()) {
+            var display = BindingCommon.get_xdisplay();
             display_backup = Gdk.Display.get_default();
-            Gdk.DisplayManager.get().set_default_display(
-                    (Gdk.Display)BindingCommon.get_xdisplay());
+            if (display != null) {
+                Gdk.DisplayManager.get().set_default_display(
+                        (Gdk.Display)display);
+            }
         }
 
         // Show system menu
@@ -1476,9 +1479,12 @@ class Panel : IBus.PanelService {
     private Gtk.Menu create_activate_menu(bool use_x11 = false) {
         Gdk.Display display_backup = null;
         if (use_x11 && !BindingCommon.default_is_xdisplay()) {
+            var display = BindingCommon.get_xdisplay();
             display_backup = Gdk.Display.get_default();
-            Gdk.DisplayManager.get().set_default_display(
-                    (Gdk.Display)BindingCommon.get_xdisplay());
+            if (display != null) {
+                Gdk.DisplayManager.get().set_default_display(
+                        (Gdk.Display)display);
+            }
         }
         m_ime_menu = new Gtk.Menu();
 
