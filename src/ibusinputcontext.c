@@ -1464,6 +1464,22 @@ ibus_input_context_fwd_text_to_delete_surrounding (IBusInputContext *context,
 
 
 static void
+ibus_input_context_fwd_text_to_hide_preedit (IBusInputContext *context,
+                                             IBusText         *text)
+{
+    g_signal_emit (context, context_signals[HIDE_PREEDIT_TEXT], 0, text);
+}
+
+
+static void
+ibus_input_context_fwd_text_to_show_preedit (IBusInputContext *context,
+                                             IBusText         *text)
+{
+    g_signal_emit (context, context_signals[SHOW_PREEDIT_TEXT], 0, text);
+}
+
+
+static void
 ibus_input_context_fwd_text_to_update_preedit (IBusInputContext *context,
                                                IBusText         *text,
                                                IBusText         *position,
@@ -1558,18 +1574,21 @@ ibus_input_context_post_process_key_event (IBusInputContext *context)
         case 'c':
             ibus_input_context_fwd_text_to_commit (context, text);
             break;
-        case 'f': {
-            ibus_input_context_fwd_text_to_forward_key_event (context, text);
-            break;
-        }
-        case 'r': {
-            ibus_input_context_fwd_text_to_require_surrounding (context, text);
-            break;
-        }
-        case 'd': {
+        case 'd':
             ibus_input_context_fwd_text_to_delete_surrounding (context, text);
             break;
-        }
+        case 'f':
+            ibus_input_context_fwd_text_to_forward_key_event (context, text);
+            break;
+        case 'h':
+            ibus_input_context_fwd_text_to_hide_preedit (context, text);
+            break;
+        case 'r':
+            ibus_input_context_fwd_text_to_require_surrounding (context, text);
+            break;
+        case 's':
+            ibus_input_context_fwd_text_to_show_preedit (context, text);
+            break;
         case 'u':
         case 'm': {
             IBusText *position;
