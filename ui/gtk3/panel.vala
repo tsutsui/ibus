@@ -111,10 +111,7 @@ class Panel : IBus.PanelService {
         m_is_wayland_im = is_wayland_im;
 
 #if USE_GDK_WAYLAND
-        var display = Gdk.Display.get_default();
-        Type instance_type = display.get_type();
-        Type wayland_type = typeof(GdkWayland.Display);
-        m_is_wayland = instance_type.is_a(wayland_type);
+        m_is_wayland = !BindingCommon.default_is_xdisplay();
 #else
         m_is_wayland = false;
         warning("Checking Wayland is disabled");

@@ -115,6 +115,10 @@ struct wl_registry *_registry = NULL;
 
 static gboolean _use_sync_mode = 1;
 
+static void         input_method_deactivate
+                              (void                               *data,
+                               struct zwp_input_method_v1         *input_method,
+                               struct zwp_input_method_context_v1 *context);
 static GObject     *ibus_wayland_im_constructor        (GType          type,
                                                         guint          n_params,
                                                         GObjectConstructParam
@@ -1207,10 +1211,8 @@ input_method_activate (void                               *data,
 
     g_return_if_fail (IBUS_IS_WAYLAND_IM (wlim));
     priv = ibus_wayland_im_get_instance_private (wlim);
-    if (priv->context) {
-        zwp_input_method_context_v1_destroy (priv->context);
-        priv->context = NULL;
-    }
+    if (priv->context)
+        input_method_deactivate (data, input_method, context);
 
     priv->serial = 0;
     priv->context = context;
