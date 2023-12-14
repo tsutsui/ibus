@@ -1433,7 +1433,8 @@ class Panel : IBus.PanelService {
 
         item = new Gtk.MenuItem.with_label(_("Preferences"));
         item.activate.connect((i) => show_setup_dialog());
-        m_sys_menu.append(item);
+        // https://gitlab.gnome.org/GNOME/gtk/-/issues/5870
+        m_sys_menu.insert(item, -1);
 
 #if EMOJI_DICT
         item = new Gtk.MenuItem.with_label(_("Emoji Choice"));
@@ -1448,22 +1449,23 @@ class Panel : IBus.PanelService {
                  */
                 panel_extension(event);
         });
-        m_sys_menu.append(item);
+        // https://gitlab.gnome.org/GNOME/gtk/-/issues/5870
+        m_sys_menu.insert(item, -1);
 #endif
 
         item = new Gtk.MenuItem.with_label(_("About"));
         item.activate.connect((i) => show_about_dialog());
-        m_sys_menu.append(item);
+        m_sys_menu.insert(item, -1);
 
-        m_sys_menu.append(new Gtk.SeparatorMenuItem());
+        m_sys_menu.insert(new Gtk.SeparatorMenuItem(), -1);
 
         item = new Gtk.MenuItem.with_label(_("Restart"));
         item.activate.connect((i) => m_bus.exit(true));
-        m_sys_menu.append(item);
+        m_sys_menu.insert(item, -1);
 
         item = new Gtk.MenuItem.with_label(_("Quit"));
         item.activate.connect((i) => m_bus.exit(false));
-        m_sys_menu.append(item);
+        m_sys_menu.insert(item, -1);
 
         m_sys_menu.show_all();
 
@@ -1488,7 +1490,8 @@ class Panel : IBus.PanelService {
         // Show properties and IME switching menu
         m_property_manager.create_menu_items(m_ime_menu);
 
-        m_ime_menu.append(new Gtk.SeparatorMenuItem());
+        // https://gitlab.gnome.org/GNOME/gtk/-/issues/5870
+        m_ime_menu.insert(new Gtk.SeparatorMenuItem(), -1);
 
         // Append IMEs
         foreach (var engine in m_engines) {
