@@ -647,12 +647,17 @@ no_sequence_matches (IBusEngineSimple *simple,
 
         ibus_engine_simple_update_preedit_text (simple);
         ch = ibus_keyval_to_unicode (keyval);
-        /* IBUS_CHANGE: RH#769133
-         * Since we use ibus xkb engines as the disable state,
-         * Super-space and space key can launch IBus Emojier.
+        /* IBUS_CHANGE: RH#769133, #2588
+         * Since we use ibus xkb engines as the disable IM mode,
+         * do not commit the characters locally without in_hex_sequence.
+         * If IBus tries to commit a character, it should be forwarded to
+         * the application at once with IBUS_IGNORED_MASK before the actual
+         * commit because any characters can be control characters even if
+         * they are not ASCII characters, e.g. game cursor keys with a
+         * language keyboard layout likes VIM cursor mode  "hjkl" keys.
          */
-        if (ch != 0 && !g_unichar_iscntrl (ch) && ch > 0x7F) {
-            ibus_engine_simple_commit_char (simple, ch);
+        if (ch != 0 && !g_unichar_iscntrl (ch) &&
+            priv->in_hex_sequence) {
             return TRUE;
         } else {
             return FALSE;

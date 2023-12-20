@@ -361,6 +361,12 @@ ibus_im_context_commit_event (IBusIMContext *ibusimcontext,
         keyval == GDK_KEY_KP_Enter) {
         return FALSE;
     }
+    /* #2588 If IBus tries to commit a character, it should be forwarded to
+     * the application at once with IBUS_IGNORED_MASK before the actual
+     * commit because any characters can be control characters even if
+     * they are not ASCII characters, e.g. game cursor keys with a
+     * language keyboard layout likes VIM cursor mode  "hjkl" keys.
+     */
     ch = ibus_keyval_to_unicode (keyval);
     if (ch != 0 && !g_unichar_iscntrl (ch)) {
         IBusText *text = ibus_text_new_from_unichar (ch);
