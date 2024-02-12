@@ -3,8 +3,8 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2016 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
-# Copyright (c) 2007-2023 Red Hat, Inc.
+# Copyright (c) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2007-2024 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -302,6 +302,11 @@ if test x"$enable_gdk3_wayland" != x"yes"; then
     enable_gdk3_wayland="no (disabled, need to install gdk-wayland-3.0.pc)"
 fi
 AM_CONDITIONAL([ENABLE_GDK3_WAYLAND], [test x"$enable_gdk3_wayland" = x"yes"])
+IBUS_UI_WAYLAND_DESKTOP="org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop"
+AC_SUBST(IBUS_UI_WAYLAND_DESKTOP)
+AC_DEFINE_UNQUOTED(UI_WAYLAND_DESKTOP, "$IBUS_UI_WAYLAND_DESKTOP",
+                   [Desktop filename of IBus Wayland UI.])
+AC_DEFINE_UNQUOTED(DATADIR, "$ibus_datadir", [Datadir.])
 
 if test x"$enable_gtk4" = x"yes"; then
     # check for gtk4

@@ -3,7 +3,7 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2013 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
 # Copyright (c) 2007-2017 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ AM_CPPFLAGS = \
     $(NULL)
 
 AM_CFLAGS = \
+    @DBUS_CFLAGS@ \
     @GLIB2_CFLAGS@ \
     @GIO2_CFLAGS@ \
     @GTHREAD2_CFLAGS@ \
@@ -57,6 +58,7 @@ AM_CFLAGS = \
     $(NULL)
 
 AM_LDADD = \
+    @DBUS_LIBS@ \
     @GOBJECT2_LIBS@ \
     @GLIB2_LIBS@ \
     @GIO2_LIBS@ \
@@ -71,6 +73,7 @@ AM_VALAFLAGS = \
     --vapidir=$(top_srcdir)/bindings/vala \
     --vapidir=$(builddir) \
     --vapidir=$(srcdir) \
+    --pkg=dbus-1 \
     --pkg=gio-2.0 \
     --pkg=ibus-1.0 \
     --pkg=ibus-immodule-1.0 \
@@ -83,6 +86,7 @@ AM_VALAFLAGS = \
 bin_PROGRAMS = ibus
 
 ibus_SOURCES = \
+	krcfile.vala \
 	main.vala \
 	$(NULL)
 

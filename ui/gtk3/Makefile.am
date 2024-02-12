@@ -3,7 +3,7 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2015 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2023 Takao Fujwiara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2015-2024 Takao Fujwiara <takao.fujiwara1@gmail.com>
 # Copyright (c) 2007-2020 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
@@ -210,9 +210,9 @@ AM_LDADD += \
     $(libibuswaylandim) \
     $(NULL)
 desktop_DATA += \
-    org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop \
+    $(IBUS_UI_WAYLAND_DESKTOP) \
     $(NULL)
-org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop: ibus-ui-wayland.desktop
+$(IBUS_UI_WAYLAND_DESKTOP): ibus-ui-wayland.desktop
 	$(AM_V_GEN) $(MSGFMT) --desktop --template $< -d $(top_srcdir)/po -o $@
 	$(NULL)
 endif
