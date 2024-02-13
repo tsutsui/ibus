@@ -3,7 +3,7 @@
  * ibus - The Input Bus
  *
  * Copyright(c) 2011-2014 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2015-2023 Takao Fujwiara <takao.fujiwara1@gmail.com>
+ * Copyright(c) 2015-2024 Takao Fujwiara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1413,6 +1413,60 @@ class Panel : IBus.PanelService {
         }
     }
 
+    private void run_ibus_command(string args) {
+        string binary = GLib.Path.build_filename(Config.BINDIR, "ibus");
+        try {
+            string[] _args = {};
+            _args += binary;
+            _args += args;
+            if (args == "exit" || args == "restart")
+                _args += "--type=kde-wayland";
+            string? standard_out = null;
+            string? standard_error = null;
+            GLib.Process.spawn_sync(null,
+                                    _args,
+                                    GLib.Environ.get(),
+                                    0,
+                                    null,
+                                    out standard_out,
+                                    out standard_error,
+                                    null);
+            if (standard_out != null)
+                print(standard_out);
+            if (standard_error != null)
+                warning("Execute %s failed! %s", binary, standard_error);
+        } catch (GLib.SpawnError e) {
+            warning("Execute %s failed! %s", binary, e.message);
+        }
+    }
+
+    private void append_preferences_menu(Gtk.Menu menu) {
+        Gtk.MenuItem item = new Gtk.MenuItem.with_label(_("Preferences"));
+        item.activate.connect((i) => show_setup_dialog());
+        // https://gitlab.gnome.org/GNOME/gtk/-/issues/5870
+        menu.insert(item, -1);
+    }
+
+    private void append_emoji_menu(Gtk.Menu menu) {
+#if EMOJI_DICT
+        Gtk.MenuItem item = new Gtk.MenuItem.with_label(_("Emoji Choice"));
+        item.activate.connect((i) => {
+                IBus.ExtensionEvent event = new IBus.ExtensionEvent(
+                        "name", "emoji", "is-enabled", true,
+                        "params", "category-list");
+                /* new GLib.Variant("(sv)", "emoji", event.serialize_object())
+                 * will call g_variant_unref() for the child variant by vala.
+                 * I have no idea not to unref the object so integrated
+                 * the purpose to IBus.ExtensionEvent above.
+                 */
+                panel_extension(event);
+        });
+        // https://gitlab.gnome.org/GNOME/gtk/-/issues/5870
+        menu.insert(item, -1);
+#endif
+
+    }
+
     private Gtk.Menu create_context_menu(bool use_x11 = false) {
         if (m_sys_menu != null)
             return m_sys_menu;
@@ -1431,27 +1485,8 @@ class Panel : IBus.PanelService {
         Gtk.MenuItem item;
         m_sys_menu = new Gtk.Menu();
 
-        item = new Gtk.MenuItem.with_label(_("Preferences"));
-        item.activate.connect((i) => show_setup_dialog());
-        // https://gitlab.gnome.org/GNOME/gtk/-/issues/5870
-        m_sys_menu.insert(item, -1);
-
-#if EMOJI_DICT
-        item = new Gtk.MenuItem.with_label(_("Emoji Choice"));
-        item.activate.connect((i) => {
-                IBus.ExtensionEvent event = new IBus.ExtensionEvent(
-                        "name", "emoji", "is-enabled", true,
-                        "params", "category-list");
-                /* new GLib.Variant("(sv)", "emoji", event.serialize_object())
-                 * will call g_variant_unref() for the child variant by vala.
-                 * I have no idea not to unref the object so integrated
-                 * the purpose to IBus.ExtensionEvent above.
-                 */
-                panel_extension(event);
-        });
-        // https://gitlab.gnome.org/GNOME/gtk/-/issues/5870
-        m_sys_menu.insert(item, -1);
-#endif
+        append_preferences_menu(m_sys_menu);
+        append_emoji_menu(m_sys_menu);
 
         item = new Gtk.MenuItem.with_label(_("About"));
         item.activate.connect((i) => show_about_dialog());
@@ -1460,11 +1495,21 @@ class Panel : IBus.PanelService {
         m_sys_menu.insert(new Gtk.SeparatorMenuItem(), -1);
 
         item = new Gtk.MenuItem.with_label(_("Restart"));
-        item.activate.connect((i) => m_bus.exit(true));
+        item.activate.connect((i) => {
+            if (m_is_kde && !BindingCommon.default_is_xdisplay())
+                run_ibus_command("restart");
+            else
+                m_bus.exit(true);
+        });
         m_sys_menu.insert(item, -1);
 
         item = new Gtk.MenuItem.with_label(_("Quit"));
-        item.activate.connect((i) => m_bus.exit(false));
+        item.activate.connect((i) => {
+            if (m_is_kde && !BindingCommon.default_is_xdisplay())
+                run_ibus_command("exit");
+            else
+                m_bus.exit(false);
+        });
         m_sys_menu.insert(item, -1);
 
         m_sys_menu.show_all();
@@ -1513,6 +1558,12 @@ class Panel : IBus.PanelService {
                 }
             });
             m_ime_menu.add(item);
+        }
+
+        if (m_is_kde && !BindingCommon.default_is_xdisplay()) {
+            m_ime_menu.insert(new Gtk.SeparatorMenuItem(), -1);
+            append_preferences_menu(m_ime_menu);
+            append_emoji_menu(m_ime_menu);
         }
 
         m_ime_menu.show_all();

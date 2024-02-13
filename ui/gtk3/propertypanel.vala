@@ -4,7 +4,7 @@
  *
  * Copyright(c) 2013-2016 Red Hat, Inc.
  * Copyright(c) 2013-2015 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2013-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright(c) 2013-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -93,7 +93,7 @@ public class PropertyPanel : Gtk.Box {
             Type type = item.get_type();
             if (type == typeof(PropMenuToolButton) ||
                 type == typeof(PropToggleToolButton)) {
-                if ((item as Gtk.ToggleToolButton).get_active()) {
+                if (((Gtk.ToggleToolButton)item).get_active()) {
                     has_active = true;
                     break;
                 }
