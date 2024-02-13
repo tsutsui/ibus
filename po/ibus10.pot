@@ -3191,7 +3191,7 @@ msgstr ""
 
 #: tools/main.vala:527
 msgid ""
-"Start or restart daemon with \"direct\" or \"systemd\" or \"kde-wayland\", "
+"Start or restart daemon with \"direct\", \"systemd\" or \"kde-wayland\" "
 "TYPE."
 msgstr ""
 

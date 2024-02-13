@@ -405,7 +405,9 @@ int message_watch(string[] argv) {
 }
 
 
-bool start_daemon_in_kde_wayland(bool start, bool stop, bool verbose) {
+bool operate_daemon_in_kde_wayland(GLib.DBusConnection connection,
+                                   bool                start,
+                                   bool                verbose) {
     if (!is_kde(verbose))
         return false;
     if (Environment.get_variable("WAYLAND_DISPLAY") == null) {
@@ -413,9 +415,6 @@ bool start_daemon_in_kde_wayland(bool start, bool stop, bool verbose) {
             stderr.printf("Your KDE session is not Wayland\n.");
         return false;
     }
-    GLib.DBusConnection? connection = get_session_bus(verbose);
-    if (connection == null)
-        return false;
     var kwinrc = GLib.Path.build_filename(
         GLib.Environment.get_user_config_dir(), "kwinrc");
     var key_file = new KRcFile();
@@ -428,36 +427,9 @@ bool start_daemon_in_kde_wayland(bool start, bool stop, bool verbose) {
         stderr.printf("Error in %s: %s\n", kwinrc, e.message);
         return false;
     }
-    if (stop) {
-        if (start)
-            Posix.sleep(3);
-        try {
-            if (key_file.has_group("Wayland")) {
-                var keys = key_file.get_keys("Wayland");
-                if (key_file.has_key("Wayland", "InputMethod[$e]")) {
-                    if (keys.length == 1)
-                        key_file.remove_group("Wayland");
-                    else
-                        key_file.remove_key("Wayland", "InputMethod[$e]");
-                    key_file.save_to_file(kwinrc);
-                }
-            }
-        } catch (GLib.KeyFileError e) {
-            stderr.printf("%s\n", e.message);
-            return false;
-        } catch (GLib.FileError e) {
-            stderr.printf("%s\n", e.message);
-            return false;
-        }
-        if (!start_daemon_with_dbus_kde(connection, verbose))
-            return false;
-        if (verbose) {
-            stderr.printf("Succeed to stop ibus-daemon with a " +
-                          "KDE Wayland method.\n");
-        }
-    }
-    if (start) {
-        try {
+    try {
+        bool is_updated = false;
+        if (start) {
             string ibus_value =
                     GLib.Path.build_filename(Config.DATADIR,
                                              "applications",
@@ -470,20 +442,49 @@ bool start_daemon_in_kde_wayland(bool start, bool stop, bool verbose) {
             if (value != ibus_value) {
                 key_file.set_value("Wayland", "InputMethod[$e]", ibus_value);
                 key_file.save_to_file(kwinrc);
+                is_updated = true;
             }
-        } catch (GLib.KeyFileError e) {
-            stderr.printf("%s\n", e.message);
-            return false;
-        } catch (GLib.FileError e) {
-            stderr.printf("%s\n", e.message);
-            return false;
+        } else {
+            if (key_file.has_group("Wayland")) {
+                var keys = key_file.get_keys("Wayland");
+                if (key_file.has_key("Wayland", "InputMethod[$e]")) {
+                    if (keys.length == 1)
+                        key_file.remove_group("Wayland");
+                    else
+                        key_file.remove_key("Wayland", "InputMethod[$e]");
+                    key_file.save_to_file(kwinrc);
+                    is_updated = true;
+                }
+            }
         }
-        if (!start_daemon_with_dbus_kde(connection, verbose))
-            return false;
         if (verbose) {
-            stderr.printf("Succeed to start ibus-daemon with a " +
-                          "KDE Wayland method.\n");
+            if (is_updated) {
+                stderr.printf("\"InputMethod\" was %s in kwinrc for %s.\n",
+                              start ? "added" : "deleted",
+                              start ? "start" : "exit");
+            } else {
+                if (start) {
+                    stderr.printf(
+                            "kwinrc is not updated for start. \"ibus exit\" " +
+                            "command may be needed in case kwin_wayland " +
+                            "restarted.\n");
+                } else {
+                    stderr.printf("kwinrc is not updated for exit.\n");
+                }
+            }
         }
+    } catch (GLib.KeyFileError e) {
+        stderr.printf("%s\n", e.message);
+        return false;
+    } catch (GLib.FileError e) {
+        stderr.printf("%s\n", e.message);
+        return false;
+    }
+    if (!start_daemon_with_dbus_kde(connection, verbose))
+        return false;
+    if (verbose) {
+        stderr.printf("Succeed to %s ibus-daemon with a " +
+                      "KDE Wayland method.\n", start ? "start" : "exit");
     }
     return true;
 }
@@ -524,8 +525,8 @@ int start_daemon_real(string[] argv,
                       bool     restart) {
     const OptionEntry[] options = {
         { "type", 0, 0, OptionArg.STRING, out daemon_type,
-          N_("Start or restart daemon with \"direct\" or \"systemd\" or " +
-             "\"kde-wayland\", TYPE."),
+          N_("Start or restart daemon with \"direct\", \"systemd\" or " +
+             "\"kde-wayland\" TYPE."),
           "TYPE" },
         { "service-file", 0, 0, OptionArg.STRING, out systemd_service_file,
           N_("Start or restart daemon with SYSTEMD_SERVICE file."),
@@ -555,8 +556,19 @@ int start_daemon_real(string[] argv,
         systemd_service_file = SYSTEMD_SESSION_GNOME_FILE;
 
     if (daemon_type == null || daemon_type == "kde-wayland") {
-        if (start_daemon_in_kde_wayland(true, restart, verbose))
-            return Posix.EXIT_SUCCESS;
+        do {
+            GLib.DBusConnection? connection = get_session_bus(verbose);
+            if (connection == null)
+                break;
+            if (restart) {
+                if (operate_daemon_in_kde_wayland(connection, false, verbose))
+                    Posix.sleep(3);
+                else
+                    break;
+            }
+            if (operate_daemon_in_kde_wayland(connection, true, verbose))
+                return Posix.EXIT_SUCCESS;
+        } while (false);
     }
     if (daemon_type == null || daemon_type == "systemd") {
         if (start_daemon_with_systemd(restart, verbose))
@@ -634,8 +646,11 @@ int exit_daemon(string[] argv) {
         return Posix.EXIT_FAILURE;
     }
     if (daemon_type == null || daemon_type == "kde-wayland") {
-        if (start_daemon_in_kde_wayland(false, true, verbose))
+        GLib.DBusConnection? connection = get_session_bus(verbose);
+        if (connection != null &&
+            operate_daemon_in_kde_wayland(connection, false, verbose)) {
             return Posix.EXIT_SUCCESS;
+        }
     }
 
     if (daemon_type == "kde-wayland")

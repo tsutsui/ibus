@@ -399,7 +399,7 @@ class KRcFile {
              }
         }
         length = data_string.len;
-        return data_string.free_and_steal();
+        return data_string.str;
     }
 
     public bool save_to_file(string filename) throws GLib.FileError {
