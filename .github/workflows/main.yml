@@ -207,10 +207,10 @@ jobs:
 
   build-netbsd:
     name: "build (NetBSD/amd64 9.3 with pkgsrc)"
-    runs-on: macos-12
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           #repository: ibus/ibus
           fetch-depth: 200
@@ -226,12 +226,13 @@ jobs:
           echo $PATH
 
       - name: Install packages and run autogen and make (on the NetBSD VM)
-        uses: vmactions/netbsd-vm@v0.1.0
+        uses: vmactions/netbsd-vm@v1
         with:
           usesh: true
           copyback: false
           # Check https://github.com/NetBSD/pkgsrc/blob/trunk/inputmethod/ibus/Makefile to check dependencies
           prepare: |
+            export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R7/bin:/usr/pkg/bin:/usr/pkg/sbin:/usr/games:/usr/local/bin:/usr/local/sbin
             ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xbase.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
             ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xcomp.tar.xz | tar -C / -zxpf - ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
             pkg_add pkgconf autoconf automake libtool-base intltool gmake
@@ -241,6 +242,7 @@ jobs:
             git config --global --add safe.directory $GITHUB_WORKSPACE
 
           run: >
+            PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R7/bin:/usr/pkg/bin:/usr/pkg/sbin:/usr/games:/usr/local/bin:/usr/local/sbin
             MAKE=gmake
             MSGFMT=/usr/pkg/bin/msgfmt
             LDFLAGS='-L/usr/pkg/lib -Wl,-R/usr/pkg/lib -L/usr/lib -Wl,-R/usr/lib -L/usr/X11R7/lib -Wl,-R/usr/X11R7/lib'
