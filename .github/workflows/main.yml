@@ -237,7 +237,7 @@ jobs:
             ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xcomp.tar.xz | tar -C / -zxpf - ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
             pkg_add pkgconf autoconf automake libtool-base intltool gmake
             pkg_add cldr-emoji-annotation unicode-character-database unicode-emoji
-            pkg_add py310-gobject3 glib2 dconf gettext-tools gobject-introspection gettext-lib hicolor-icon-theme vala dbus libnotify iso-codes gtk2+ gtk3+
+            pkg_add py311-gobject3 glib2 dconf gettext-tools gobject-introspection gettext-lib hicolor-icon-theme vala dbus libnotify iso-codes gtk2+ gtk3+
             pkg_add glib2-tools gtk-doc gdbus-codegen git-base
             git config --global --add safe.directory $GITHUB_WORKSPACE
 
@@ -252,11 +252,12 @@ jobs:
             --enable-dconf
             --enable-gtk2
             --enable-gtk3
+            --disable-gtk4
             --enable-surrounding-text
             --enable-introspection=yes
             --disable-systemd-services
             --disable-appindicator
-            --with-python=/usr/pkg/bin/python3.10
+            --with-python=/usr/pkg/bin/python3.11
             --with-unicode-emoji-dir=/usr/pkg/share/unicode/emoji
             --with-emoji-annotation-dir=/usr/pkg/share/unicode/cldr/common/annotations
             --with-ucd-dir=/usr/pkg/share/unicode/ucd
@@ -285,11 +286,12 @@ jobs:
             --enable-dconf
             --enable-gtk2
             --enable-gtk3
+            --disable-gtk4
             --enable-surrounding-text
             --enable-introspection=yes
             --disable-systemd-services
             --disable-appindicator
-            --with-python=/usr/pkg/bin/python3.10
+            --with-python=/usr/pkg/bin/python3.11
             --with-unicode-emoji-dir=/usr/pkg/share/unicode/emoji
             --with-emoji-annotation-dir=/usr/pkg/share/unicode/cldr/common/annotations
             --with-ucd-dir=/usr/pkg/share/unicode/ucd
