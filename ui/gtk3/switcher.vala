@@ -592,7 +592,9 @@ class Switcher : Gtk.Window {
         int index = 0;
 
         foreach (var saved_language in m_xkb_languages.get_values()) {
-            if (language == saved_language[0:length])
+            // Duplicated langauge is EN, EN_2 for E.G.
+            if (length <= saved_language.length &&
+                language == saved_language[0:length])
                 index++;
         }
 

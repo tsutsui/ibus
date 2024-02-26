@@ -158,6 +158,7 @@ class Indicator : IBus.Service
     private void name_appeared_handler(GLib.DBusConnection connection,
                                        string name,
                                        string name_owner) {
+        // FIXME: https://discourse.gnome.org/t/how-to-write-vala-glib-dbusproxy-async/2059
         GLib.DBusProxy.new.begin(
                 connection,
                 GLib.DBusProxyFlags.DO_NOT_LOAD_PROPERTIES |

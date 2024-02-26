@@ -3,8 +3,8 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2016 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
-# Copyright (c) 2007-2023 Red Hat, Inc.
+# Copyright (c) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2007-2024 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -27,8 +27,8 @@ m4_define([ibus_released], [0])
 
 m4_define([ibus_major_version], [1])
 m4_define([ibus_minor_version], [5])
-m4_define([ibus_micro_version], [29])
-m4_define([ibus_beta_version], [rc1])
+m4_define([ibus_micro_version], [30])
+m4_define([ibus_beta_version], [beta1])
 m4_define([ibus_abi_current], [5])
 m4_define([ibus_abi_revision],
           [m4_eval(100 * ibus_minor_version + ibus_micro_version)])
@@ -233,7 +233,7 @@ AC_ARG_ENABLE(gtk4,
     AS_HELP_STRING([--enable-gtk4],
                    [Build gtk4 im module]),
     [enable_gtk4=$enableval],
-    [enable_gtk4=no]
+    [enable_gtk4=yes]
 )
 AM_CONDITIONAL([ENABLE_GTK4], [test x"$enable_gtk4" = x"yes"])
 
@@ -276,8 +276,7 @@ if test x"$enable_gtk2" = x"yes"; then
 
     gtk2_binary_version=`$PKG_CONFIG --variable=gtk_binary_version gtk+-2.0`
     GTK2_IM_MODULEDIR="$libdir"/gtk-2.0/$gtk2_binary_version/immodules
-else
-    enable_gtk2="no (disabled, use --enable-gtk2 to enable)"
+    enable_gtk2="yes (enabled, use --disable-gtk2 to disable)"
 fi
 
 if test x"$enable_gtk3" = x"yes"; then
@@ -297,13 +296,17 @@ if test x"$enable_gtk3" = x"yes"; then
     gtk3_binary_version=`$PKG_CONFIG --variable=gtk_binary_version gtk+-3.0`
     GTK3_IM_MODULEDIR="$libdir"/gtk-3.0/$gtk3_binary_version/immodules
 else
-    enable_gtk3="no (disabled, use --enable-gtk3 to enable)"
     enable_gdk3_wayland=no
 fi
 if test x"$enable_gdk3_wayland" != x"yes"; then
     enable_gdk3_wayland="no (disabled, need to install gdk-wayland-3.0.pc)"
 fi
 AM_CONDITIONAL([ENABLE_GDK3_WAYLAND], [test x"$enable_gdk3_wayland" = x"yes"])
+IBUS_UI_WAYLAND_DESKTOP="org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop"
+AC_SUBST(IBUS_UI_WAYLAND_DESKTOP)
+AC_DEFINE_UNQUOTED(UI_WAYLAND_DESKTOP, "$IBUS_UI_WAYLAND_DESKTOP",
+                   [Desktop filename of IBus Wayland UI.])
+AC_DEFINE_UNQUOTED(DATADIR, "$ibus_datadir", [Datadir.])
 
 if test x"$enable_gtk4" = x"yes"; then
     # check for gtk4
@@ -313,8 +316,7 @@ if test x"$enable_gtk4" = x"yes"; then
 
     gtk4_binary_version=`$PKG_CONFIG --variable=gtk_binary_version gtk4`
     GTK4_IM_MODULEDIR="$libdir"/gtk-4.0/$gtk4_binary_version/immodules
-else
-    enable_gtk4="no (disabled, use --enable-gtk4 to enable)"
+    enable_gtk4="yes (enabled, use --disable-gtk4 to disable)"
 fi
 
 if test x"$enable_xim" = x"yes"; then
@@ -331,8 +333,10 @@ if test x"$enable_xim" = x"yes"; then
             gtk+-2.0
         ])
     fi
-else
-    enable_xim="no (disabled, use --enable-xim to enable)"
+    enable_xim="yes (enabled, use --disable-xim to disable)"
+fi
+if test x"$enable_gtk3" = x"yes"; then
+    enable_gtk3="yes (enabled, use --disable-gtk3 to disable)"
 fi
 
 if $PKG_CONFIG --exists x11; then
@@ -345,11 +349,18 @@ fi
 AC_SUBST(X11_PREFIX)
 
 # Check locale dir for Compose files.
-AC_CHECK_FILE($X11_PREFIX/share/X11/locale/locale.dir,
-              X11_LOCALEDATADIR="$X11_PREFIX/share/X11/locale",
-              [AC_CHECK_FILE($X11_PREFIX/lib/X11/locale/locale.dir,
-                             X11_LOCALEDATADIR="$X11_PREFIX/lib/X11/locale",
-                             X11_LOCALEDATADIR="$(datadir)/X11/locale")])
+if test x"$cross_compiling" != xyes; then
+    AC_CHECK_FILE($X11_PREFIX/share/X11/locale/locale.dir,
+                  X11_LOCALEDATADIR="$X11_PREFIX/share/X11/locale",
+                  [AC_CHECK_FILE($X11_PREFIX/lib/X11/locale/locale.dir,
+                                 X11_LOCALEDATADIR="$X11_PREFIX/lib/X11/locale",
+                                 X11_LOCALEDATADIR="$(datadir)/X11/locale")])
+else
+    if test x"$X11_LOCALEDATADIR" == x; then
+        X11_LOCALEDATADIR="$X11_PREFIX/share/X11/locale"
+    fi
+    AC_MSG_RESULT([Skipping X11 locale directory check when cross compiling. Using: $X11_LOCALEDATADIR])
+fi
 AC_SUBST(X11_LOCALEDATADIR)
 
 if test x"$enable_wayland" = x"yes"; then
@@ -363,8 +374,9 @@ if test x"$enable_wayland" = x"yes"; then
               AC_SUBST(WAYLAND_PRTCLS_SUBDIR)
               WAYLAND_SCANNER_RULES(['$(datadir)/$(WAYLAND_PRTCLS_SUBDIR)'])],
              [AC_SUBST(wayland_scanner_rules)])
+    enable_wayland="yes (enabled, use --disable-wayland to disable)"
 else
-    enable_wayland="no (disabled, use --enable-wayland to enable)"
+    wayland_scanner_rules="./wayland-scanner.mk"
     AC_SUBST(wayland_scanner_rules)
 fi
 

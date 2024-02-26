@@ -3,7 +3,7 @@
  * ibus - The Input Bus
  *
  * Copyright(c) 2011-2014 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2015-2023 Takao Fujwiara <takao.fujiwara1@gmail.com>
+ * Copyright(c) 2015-2024 Takao Fujwiara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -111,10 +111,7 @@ class Panel : IBus.PanelService {
         m_is_wayland_im = is_wayland_im;
 
 #if USE_GDK_WAYLAND
-        var display = Gdk.Display.get_default();
-        Type instance_type = display.get_type();
-        Type wayland_type = typeof(GdkWayland.Display);
-        m_is_wayland = instance_type.is_a(wayland_type);
+        m_is_wayland = !BindingCommon.default_is_xdisplay();
 #else
         m_is_wayland = false;
         warning("Checking Wayland is disabled");
@@ -1416,27 +1413,43 @@ class Panel : IBus.PanelService {
         }
     }
 
-    private Gtk.Menu create_context_menu(bool use_x11 = false) {
-        if (m_sys_menu != null)
-            return m_sys_menu;
-
-        Gdk.Display display_backup = null;
-        if (use_x11 && !BindingCommon.default_is_xdisplay()) {
-            display_backup = Gdk.Display.get_default();
-            Gdk.DisplayManager.get().set_default_display(
-                    (Gdk.Display)BindingCommon.get_xdisplay());
+    private void run_ibus_command(string args) {
+        string binary = GLib.Path.build_filename(Config.BINDIR, "ibus");
+        try {
+            string[] _args = {};
+            _args += binary;
+            _args += args;
+            if (args == "exit" || args == "restart")
+                _args += "--type=kde-wayland";
+            string? standard_out = null;
+            string? standard_error = null;
+            GLib.Process.spawn_sync(null,
+                                    _args,
+                                    GLib.Environ.get(),
+                                    0,
+                                    null,
+                                    out standard_out,
+                                    out standard_error,
+                                    null);
+            if (standard_out != null)
+                print(standard_out);
+            if (standard_error != null)
+                warning("Execute %s failed! %s", binary, standard_error);
+        } catch (GLib.SpawnError e) {
+            warning("Execute %s failed! %s", binary, e.message);
         }
+    }
 
-        // Show system menu
-        Gtk.MenuItem item;
-        m_sys_menu = new Gtk.Menu();
-
-        item = new Gtk.MenuItem.with_label(_("Preferences"));
+    private void append_preferences_menu(Gtk.Menu menu) {
+        Gtk.MenuItem item = new Gtk.MenuItem.with_label(_("Preferences"));
         item.activate.connect((i) => show_setup_dialog());
-        m_sys_menu.append(item);
+        // https://gitlab.gnome.org/GNOME/gtk/-/issues/5870
+        menu.insert(item, -1);
+    }
 
+    private void append_emoji_menu(Gtk.Menu menu) {
 #if EMOJI_DICT
-        item = new Gtk.MenuItem.with_label(_("Emoji Choice"));
+        Gtk.MenuItem item = new Gtk.MenuItem.with_label(_("Emoji Choice"));
         item.activate.connect((i) => {
                 IBus.ExtensionEvent event = new IBus.ExtensionEvent(
                         "name", "emoji", "is-enabled", true,
@@ -1448,22 +1461,56 @@ class Panel : IBus.PanelService {
                  */
                 panel_extension(event);
         });
-        m_sys_menu.append(item);
+        // https://gitlab.gnome.org/GNOME/gtk/-/issues/5870
+        menu.insert(item, -1);
 #endif
+
+    }
+
+    private Gtk.Menu create_context_menu(bool use_x11 = false) {
+        if (m_sys_menu != null)
+            return m_sys_menu;
+
+        Gdk.Display display_backup = null;
+        if (use_x11 && !BindingCommon.default_is_xdisplay()) {
+            var display = BindingCommon.get_xdisplay();
+            display_backup = Gdk.Display.get_default();
+            if (display != null) {
+                Gdk.DisplayManager.get().set_default_display(
+                        (Gdk.Display)display);
+            }
+        }
+
+        // Show system menu
+        Gtk.MenuItem item;
+        m_sys_menu = new Gtk.Menu();
+
+        append_preferences_menu(m_sys_menu);
+        append_emoji_menu(m_sys_menu);
 
         item = new Gtk.MenuItem.with_label(_("About"));
         item.activate.connect((i) => show_about_dialog());
-        m_sys_menu.append(item);
+        m_sys_menu.insert(item, -1);
 
-        m_sys_menu.append(new Gtk.SeparatorMenuItem());
+        m_sys_menu.insert(new Gtk.SeparatorMenuItem(), -1);
 
         item = new Gtk.MenuItem.with_label(_("Restart"));
-        item.activate.connect((i) => m_bus.exit(true));
-        m_sys_menu.append(item);
+        item.activate.connect((i) => {
+            if (m_is_kde && !BindingCommon.default_is_xdisplay())
+                run_ibus_command("restart");
+            else
+                m_bus.exit(true);
+        });
+        m_sys_menu.insert(item, -1);
 
         item = new Gtk.MenuItem.with_label(_("Quit"));
-        item.activate.connect((i) => m_bus.exit(false));
-        m_sys_menu.append(item);
+        item.activate.connect((i) => {
+            if (m_is_kde && !BindingCommon.default_is_xdisplay())
+                run_ibus_command("exit");
+            else
+                m_bus.exit(false);
+        });
+        m_sys_menu.insert(item, -1);
 
         m_sys_menu.show_all();
 
@@ -1476,16 +1523,20 @@ class Panel : IBus.PanelService {
     private Gtk.Menu create_activate_menu(bool use_x11 = false) {
         Gdk.Display display_backup = null;
         if (use_x11 && !BindingCommon.default_is_xdisplay()) {
+            var display = BindingCommon.get_xdisplay();
             display_backup = Gdk.Display.get_default();
-            Gdk.DisplayManager.get().set_default_display(
-                    (Gdk.Display)BindingCommon.get_xdisplay());
+            if (display != null) {
+                Gdk.DisplayManager.get().set_default_display(
+                        (Gdk.Display)display);
+            }
         }
         m_ime_menu = new Gtk.Menu();
 
         // Show properties and IME switching menu
         m_property_manager.create_menu_items(m_ime_menu);
 
-        m_ime_menu.append(new Gtk.SeparatorMenuItem());
+        // https://gitlab.gnome.org/GNOME/gtk/-/issues/5870
+        m_ime_menu.insert(new Gtk.SeparatorMenuItem(), -1);
 
         // Append IMEs
         foreach (var engine in m_engines) {
@@ -1507,6 +1558,12 @@ class Panel : IBus.PanelService {
                 }
             });
             m_ime_menu.add(item);
+        }
+
+        if (m_is_kde && !BindingCommon.default_is_xdisplay()) {
+            m_ime_menu.insert(new Gtk.SeparatorMenuItem(), -1);
+            append_preferences_menu(m_ime_menu);
+            append_emoji_menu(m_ime_menu);
         }
 
         m_ime_menu.show_all();
