@@ -3,7 +3,7 @@
  * ibus - The Input Bus
  *
  * Copyright(c) 2011 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2017-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright(c) 2017-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -279,14 +279,10 @@ class Application {
     }
 #endif
 
-    public static bool show_version(string         option_name,
-                                    string?        data,
-                                    void          *user_data,
-                                    out GLib.Error error) {
+    public static void show_version() {
         print("%s %s Wayland %s\n", prgname,
                                     Config.PACKAGE_VERSION,
                                     IBUS_WAYLAND_VERSION);
-        return true;
     }
 
     public static void main(string[] argv) {

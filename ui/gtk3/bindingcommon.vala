@@ -3,7 +3,7 @@
  * ibus - The Input Bus
  *
  * Copyright(c) 2018 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2018-2023 Takao Fujwiara <takao.fujiwara1@gmail.com>
+ * Copyright(c) 2018-2024 Takao Fujwiara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -269,7 +269,6 @@ class BindingCommon {
         var display = Gdk.Display.get_default();
         if (display == null) {
             error("You should open a display for IBus panel.");
-            return null;
         }
         Type instance_type = display.get_type();
         Type x11_type = typeof(Gdk.X11.Display);
