@@ -13,13 +13,14 @@
 # Zdenek <chmelarz@gmail.com>, 2018. #zanata
 # fujiwara <takao.fujiwara1@gmail.com>, 2018. #zanata
 # Krystof Cerny <cleverline1mc@gmail.com>, 2023.
+# Daniel Rusek <mail@asciiwolf.com>, 2023.
 msgid ""
 msgstr ""
 "Project-Id-Version: IBus\n"
 "Report-Msgid-Bugs-To: https://github.com/ibus/ibus/issues\n"
 "POT-Creation-Date: 2023-08-02 17:20+0900\n"
-"PO-Revision-Date: 2023-11-01 06:48+0000\n"
-"Last-Translator: Krystof Cerny <cleverline1mc@gmail.com>\n"
+"PO-Revision-Date: 2023-11-22 16:01+0000\n"
+"Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <https://translate.fedoraproject.org/projects/ibus/ibus/"
 "cs/>\n"
 "Language: cs\n"
@@ -27,7 +28,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Weblate 5.1.1\n"
+"X-Generator: Weblate 5.2.1\n"
 
 #. Translators: Here “Preload” is a verb
 #: data/dconf/org.freedesktop.ibus.gschema.xml:11
@@ -931,13 +932,11 @@ msgstr "Aktivity"
 
 #: src/ibusemojigen.h:31
 msgid "Animals & Nature"
-msgstr "Zvířata & příroda"
+msgstr "Zvířata a příroda"
 
 #: src/ibusemojigen.h:32
-#, fuzzy
-#| msgid "Tangut Components"
 msgid "Component"
-msgstr "Komponenty tangutštiny"
+msgstr "Komponent"
 
 #: src/ibusemojigen.h:33
 msgid "Flags"
@@ -945,7 +944,7 @@ msgstr "Vlajky"
 
 #: src/ibusemojigen.h:34
 msgid "Food & Drink"
-msgstr "Jídlo & nápoje"
+msgstr "Jídlo a pití"
 
 #: src/ibusemojigen.h:35
 msgid "Objects"
@@ -953,13 +952,11 @@ msgstr "Objekty"
 
 #: src/ibusemojigen.h:36
 msgid "People & Body"
-msgstr ""
+msgstr "Lidé a tělo"
 
 #: src/ibusemojigen.h:37
-#, fuzzy
-#| msgid "Smileys & People"
 msgid "Smileys & Emotion"
-msgstr "Smajlíci & lidé"
+msgstr "Smajlíci a emoce"
 
 #: src/ibusemojigen.h:38
 msgid "Symbols"
@@ -967,7 +964,7 @@ msgstr "Symboly"
 
 #: src/ibusemojigen.h:39
 msgid "Travel & Places"
-msgstr "Cestování & místa"
+msgstr "Cestování a místa"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -3518,10 +3515,8 @@ msgid "Show emoji variants"
 msgstr "Zobrazit varianty emoji"
 
 #: ui/gtk3/emojier.vala:1118
-#, fuzzy
-#| msgid "_Close"
 msgid "Close"
-msgstr "_Zavřít"
+msgstr "Zavřít"
 
 #: ui/gtk3/emojier.vala:1124
 msgid "Menu"
