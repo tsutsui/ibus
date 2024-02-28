@@ -1,6 +1,6 @@
 # Korean translation of ibus.
 # Copyright (C) 2008-2015 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (C) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (C) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
 # This file is distributed under the same license as the ibus package.
 #
 # Translators:
@@ -19,13 +19,13 @@
 # DaeHyun Sung <sungdh86@gmail.com>, 2016-2019. (gucharmap)
 # Changwoo Ryu <cwryu@debian.org>, 2019-2020.
 # simmon <simmon@nplob.com>, 2021.
-# 김인수 <simmon@nplob.com>, 2022, 2023.
+# 김인수 <simmon@nplob.com>, 2022, 2023, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: ibus 1.5.21\n"
 "Report-Msgid-Bugs-To: https://github.com/ibus/ibus/issues\n"
-"POT-Creation-Date: 2023-08-02 00:14+0900\n"
-"PO-Revision-Date: 2023-08-06 02:41+0000\n"
+"POT-Creation-Date: 2023-08-02 17:20+0900\n"
+"PO-Revision-Date: 2024-01-25 14:36+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/ibus/"
 "ibus/ko/>\n"
@@ -34,7 +34,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.18.2\n"
+"X-Generator: Weblate 5.3.1\n"
 
 #. Translators: Here “Preload” is a verb
 #: data/dconf/org.freedesktop.ibus.gschema.xml:11
@@ -346,9 +346,9 @@ msgid ""
 "if the value is true and chooses them from the desktop locale if the value "
 "is false."
 msgstr ""
-"일부 코드 포인트는 다른 글리프가 있고 Pango는 언어 속성에 따라 글리프를 "
-"결정합니다. Pango는 만약 값이 참이면 IBus 엔진의 언어에서 글리프를 선택하고 "
-"만약 값이 거짓이면 데스크톱 로케일에서 글리프를 선택합니다."
+"일부 코드 포인트는 다른 글리프가 있고 Pango는 언어 속성에 따라 글리프를 결정"
+"합니다. Pango는 만약 값이 참이면 IBus 엔진의 언어에서 글리프를 선택하고 만약 "
+"값이 거짓이면 데스크톱 로케일에서 글리프를 선택합니다."
 
 #: data/dconf/org.freedesktop.ibus.gschema.xml:250
 msgid "Unicode shortcut keys for gtk_accelerator_parse"
@@ -540,11 +540,11 @@ msgstr "입력기"
 
 #: setup/ibus-setup.desktop:3 setup/setup.ui:81
 msgid "IBus Preferences"
-msgstr "IBus 기본 설정"
+msgstr "IBus 환경설정"
 
 #: setup/ibus-setup.desktop:4
 msgid "Set IBus Preferences"
-msgstr "IBus 기본 설정 변경"
+msgstr "IBus 환경설정을 지정합니다"
 
 #: setup/keyboardshortcut.py:55
 msgid "Keyboard shortcuts"
@@ -786,11 +786,11 @@ msgstr "선택한 입력기의 정보를 표시합니다"
 
 #: setup/setup.ui:766
 msgid "_Preferences"
-msgstr "_기본 설정"
+msgstr "환경설정(_P)"
 
 #: setup/setup.ui:773
 msgid "Show setup of the selected input method"
-msgstr "선택한 입력기의 설정을 표시합니다"
+msgstr "선택한 입력 방법의 설정을 표시합니다"
 
 #: setup/setup.ui:824
 msgid ""
@@ -872,7 +872,7 @@ msgstr "<b>키보드 배치</b>"
 
 #: setup/setup.ui:1290
 msgid "<b>Global input method settings</b>"
-msgstr "<b>전체 공통 입력기 설정</b>"
+msgstr "<b>전역 입력 방식 설정</b>"
 
 #: setup/setup.ui:1322
 msgid ""
@@ -2799,7 +2799,7 @@ msgstr "므로 문자"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1069
 msgid "Tangsa"
-msgstr "탕사"
+msgstr "탕사문자"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -3283,7 +3283,8 @@ msgstr "사용자 추가영역-B"
 #: tools/ibusimmodule.c:10
 msgid ""
 "Set im-module TYPE to \"gtk2\",  \"gtk3\" or \"gtk4\". Default is \"gtk3\"."
-msgstr "im-모듈 유형을 \"gtk2\",  \"gtk3\" 또는 \"gtk4\"로 설정합니다. 기본값은 "
+msgstr ""
+"im-모듈 유형을 \"gtk2\",  \"gtk3\" 또는 \"gtk4\"로 설정합니다. 기본값은 "
 "\"gtk3\"입니다."
 
 #: tools/main.vala:182
@@ -3301,11 +3302,11 @@ msgstr "언어: %s\n"
 
 #: tools/main.vala:294
 msgid "No engine is set.\n"
-msgstr "엔진이 설정되어 있지 않습니다.\n"
+msgstr "설정된 엔진이 없습니다.\n"
 
 #: tools/main.vala:302
 msgid "Set global engine failed.\n"
-msgstr "전체 공통 엔진의 설정에 실패했습니다.\n"
+msgstr "전역 엔진 설정이 실패했습니다.\n"
 
 #: tools/main.vala:307
 msgid "Get global engine failed.\n"
@@ -3360,7 +3361,7 @@ msgstr "완료"
 
 #: tools/main.vala:699
 msgid "Set or get engine"
-msgstr "엔진을 설정하거나 얻기"
+msgstr "엔진을 설정하거나 가져오기"
 
 #: tools/main.vala:700
 msgid "Exit ibus-daemon"
@@ -3400,11 +3401,11 @@ msgstr "ibus-daemon의 D-Bus 주소 출력"
 
 #: tools/main.vala:709
 msgid "Show the configuration values"
-msgstr "설정 값 표시"
+msgstr "설정 값을 표시합니다"
 
 #: tools/main.vala:710
 msgid "Reset the configuration values"
-msgstr "설정 값 재설정"
+msgstr "설정 값을 재설정합니다"
 
 #: tools/main.vala:712
 msgid "Save emoji on dialog to clipboard"
@@ -3598,8 +3599,9 @@ msgstr "IBus 패널"
 msgid ""
 "You can toggle the activate menu and context one with clicking the mouse "
 "middle button on the panel icon."
-msgstr "당신은 패널 아이콘에서 마우스 가운데 누름단추를 눌러서 활성화 메뉴와 "
-"컨텍스를 전환 할 수 있습니다."
+msgstr ""
+"당신은 패널 아이콘에서 마우스 가운데 누름단추를 눌러서 활성화 메뉴와 컨텍스"
+"를 전환 할 수 있습니다."
 
 #: ui/gtk3/panel.vala:836
 #, c-format
@@ -3614,12 +3616,12 @@ msgid ""
 "environment variables are unset in the desktop session."
 msgstr ""
 "IBus는 %s의 데스크탑 세션에서 호출되어야 합니다. KDE에서는, '%s' 유틸리티를 "
-"실행 할 수 있고 \"입력 장치\" -> \"가상 키보드\" 부분으로 이동하며 \"%s\" "
-"아이콘을 선택하여 \"적용\" 누름단추를 눌러서 %s에서 IBus를 구성합니다. 다른 "
-"데스크탑 세션에서는, %s 파일의 'Exec=' 행에서 세션의 구성 파일로 복사 할 수 "
-"있습니다. \"웨이랜드 입력 방식\" 구성에 대해서 개별 문서를 참조하세요. "
-"당신이 \"웨이랜드 입력 방식\"을 구성하기 전에, QT_IM_MODULE 및 GTK_IM_MODULE "
-"환경 변수가 데스크탑 세션에서 설정 해제되었는지 확인해야 합니다."
+"실행 할 수 있고 \"입력 장치\" -> \"가상 키보드\" 부분으로 이동하며 \"%s\" 아"
+"이콘을 선택하여 \"적용\" 누름단추를 눌러서 %s에서 IBus를 구성합니다. 다른 데"
+"스크탑 세션에서는, %s 파일의 'Exec=' 행에서 세션의 구성 파일로 복사 할 수 있"
+"습니다. \"웨이랜드 입력 방식\" 구성에 대해서 개별 문서를 참조하세요. 당신이 "
+"\"웨이랜드 입력 방식\"을 구성하기 전에, QT_IM_MODULE 및 GTK_IM_MODULE 환경 변"
+"수가 데스크탑 세션에서 설정 해제되었는지 확인해야 합니다."
 
 #: ui/gtk3/panel.vala:858
 #, c-format
@@ -3628,8 +3630,8 @@ msgid ""
 "daemon --panel disable' should be executed as a child process of %s "
 "component."
 msgstr ""
-"QT_IM_MODULE과 GTK_IM_Module 환경 변수 및 'ibus-데몬' 설정을 해제해 주세요 --"
-" 판넬 비활성화는 %s 구성 요소의 하위 프로세스로 실행되어야 합니다."
+"QT_IM_MODULE과 GTK_IM_Module 환경 변수 및 'ibus-데몬' 설정을 해제해 주세요 "
+"-- 판넬 비활성화는 %s 구성 요소의 하위 프로세스로 실행되어야 합니다."
 
 #: ui/gtk3/panel.vala:873
 msgid "IBus Notification"
@@ -3641,14 +3643,14 @@ msgid ""
 "Your configured input method %s does not exist in IBus input methods so "
 "\"US\" layout was configured instead of your input method."
 msgstr ""
-"당신이 사용하도록 설정한 %s 입력기가 IBUS 입력기에 없으므로, 당신의 입력기 대"
-"신 \"US\" 키보드 배치가 설정되었습니다."
+"당신이 구성한 입력 방식 %s가 IBUS 입력 방식에 없으므로 당신의 입력 방식 "
+"대신에 \"US\" 키보드 배열로 구성되었습니다."
 
 #: ui/gtk3/panel.vala:1233
 msgid ""
 "At least one of your configured input methods does not exist in IBus input "
 "methods."
-msgstr "IBus 입력기에는 당신이 사용하도록 설정한 입력기가 존재하지 않습니다."
+msgstr "당신이 구성한 입력 방식 중에 하나 이상이 IBus 입력 방식에 존재하지 않습니다."
 
 #: ui/gtk3/panel.vala:1236
 msgid ""
@@ -3664,11 +3666,11 @@ msgstr "IBus는 리눅스/유닉스를 위한 지능형 입력 버스입니다."
 
 #: ui/gtk3/panel.vala:1398
 msgid "translator-credits"
-msgstr "simmon <simmon@nplob.com>"
+msgstr "김인수 <simmon@nplob.com>"
 
 #: ui/gtk3/panel.vala:1426
 msgid "Preferences"
-msgstr "기본 설정"
+msgstr "환경설정"
 
 #: ui/gtk3/panel.vala:1452
 msgid "Restart"
