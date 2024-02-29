@@ -3,7 +3,7 @@
  * ibus - The Input Bus
  *
  * Copyright(c) 2011-2015 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2015-2019 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright(c) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -69,6 +69,7 @@ class CandidateArea : Gtk.Box {
         case Gdk.ScrollDirection.DOWN:
             cursor_down();
             break;
+        default: break;
         }
         return true;
     }

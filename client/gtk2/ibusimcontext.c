@@ -2,8 +2,8 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2013 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
- * Copyright (C) 2008-2023 Red Hat, Inc.
+ * Copyright (C) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2008-2024 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1211,6 +1211,7 @@ static void
 ibus_im_context_clear_preedit_text (IBusIMContext *ibusimcontext)
 {
     gchar *preedit_string = NULL;
+    IBusText *text;
     g_assert (ibusimcontext->ibuscontext);
     if (ibusimcontext->preedit_visible &&
         ibusimcontext->preedit_mode == IBUS_ENGINE_PREEDIT_COMMIT) {
@@ -1224,12 +1225,18 @@ ibus_im_context_clear_preedit_text (IBusIMContext *ibusimcontext)
      * would be located on the URL bar and click on anywhere of firefox
      * out of the URL bar.
      */
+    if (!(text = ibus_text_new_from_string (""))) {
+        g_warning ("Cannot allocate IBusText.");
+        g_free (preedit_string);
+        return;
+    }
     _ibus_context_update_preedit_text_cb (ibusimcontext->ibuscontext,
-                                          ibus_text_new_from_string (""),
+                                          text,
                                           ibusimcontext->preedit_cursor_pos,
                                           ibusimcontext->preedit_visible,
                                           IBUS_ENGINE_PREEDIT_CLEAR,
                                           ibusimcontext);
+    g_object_unref (text);
     if (preedit_string) {
         g_signal_emit (ibusimcontext, _signal_commit_id, 0, preedit_string);
         g_free (preedit_string);
