@@ -2,7 +2,7 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2013 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2018-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2018-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2008-2021 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -317,10 +317,7 @@ static const guint IBUS_MODIFIER_FILTER =
         IBUS_BUTTON2_MASK |
         IBUS_BUTTON3_MASK |
         IBUS_BUTTON4_MASK |
-        IBUS_BUTTON5_MASK |
-        IBUS_SUPER_MASK |
-        IBUS_HYPER_MASK |
-        IBUS_META_MASK);
+        IBUS_BUTTON5_MASK);
 
 static void
 ibus_engine_class_init (IBusEngineClass *class)
@@ -1133,6 +1130,10 @@ ibus_engine_filter_key_event (IBusEngine *engine,
         for (; keys; keys++) {
             if (keys->keyval == 0 && keys->keycode == 0 && keys->state == 0)
                 break;
+            if ((keys->state != modifiers) && (keys->state & IBUS_MOD4_MASK)) {
+                keys->state &= ~IBUS_MOD4_MASK;
+                keys->state |= IBUS_SUPER_MASK;
+            }
             if (keys->keyval == keyval &&
                 keys->state == modifiers &&
                 (keys->keycode == 0 || keys->keycode == keycode)) {
