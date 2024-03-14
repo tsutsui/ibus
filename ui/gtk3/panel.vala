@@ -1115,7 +1115,7 @@ class Panel : IBus.PanelService {
 
     private void handle_engine_switch_focused(bool pressed,
                                               bool reverse) {
-        if (m_engines.length == 0)
+        if (m_engines.length < 2)
             return;
         if (pressed) {
             int i = reverse ? m_engines.length - 1 : 1;
