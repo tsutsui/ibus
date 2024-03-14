@@ -1138,6 +1138,7 @@ ibus_engine_filter_key_event (IBusEngine *engine,
                 keys->state == modifiers &&
                 (keys->keycode == 0 || keys->keycode == keycode)) {
                 ibus_engine_panel_extension (engine, name);
+                g_list_free (names);
                 return TRUE;
             }
         }
