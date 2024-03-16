@@ -45,20 +45,19 @@ AM_CPPFLAGS = \
     $(NULL)
 
 AM_CFLAGS = \
-    @DBUS_CFLAGS@ \
     @GLIB2_CFLAGS@ \
     @GIO2_CFLAGS@ \
     @GTHREAD2_CFLAGS@ \
     -DG_LOG_DOMAIN=\"IBUS\" \
     -DLIBEXECDIR=\"$(libexecdir)\" \
     -DIBUS_DISABLE_DEPRECATED \
+    -DIBUS_COMPILATION \
     -Wno-unused-variable \
     -Wno-unused-but-set-variable \
     -Wno-unused-function \
     $(NULL)
 
 AM_LDADD = \
-    @DBUS_LIBS@ \
     @GOBJECT2_LIBS@ \
     @GLIB2_LIBS@ \
     @GIO2_LIBS@ \

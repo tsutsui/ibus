@@ -84,6 +84,22 @@ name_appeared_handler(GLib.DBusConnection connection,
     loop = null;
 }
 
+private void
+kde_virtual_keyboard_avail_cb(GLib.DBusConnection connection,
+                              string?             sender_name,
+                              string              object_path,
+                              string              interface_name,
+                              string              signal_name,
+                              GLib.Variant        parameters)
+{
+    if (verbose) {
+        stderr.printf("%s.%s %s returned.\n",
+                      interface_name, signal_name, object_path);
+    }
+    loop.quit();
+    loop = null;
+}
+
 
 GLib.DBusConnection? get_session_bus(bool verbose) {
     loop = new GLib.MainLoop();
@@ -103,8 +119,10 @@ GLib.DBusConnection? get_session_bus(bool verbose) {
         } catch(GLib.IOError e) {
             if (verbose)
                 stderr.printf("The session bus error: %s\n", e.message);
-            if (loop != null)
+            if (loop != null) {
                 loop.quit();
+                loop = null;
+            }
         }
     });
     loop.run();
@@ -234,6 +252,17 @@ start_daemon_with_dbus_systemd(GLib.DBusConnection connection,
 bool
 start_daemon_with_dbus_kde(GLib.DBusConnection connection,
                            bool                verbose) {
+    loop = new GLib.MainLoop();
+    assert(loop != null);
+    uint subscripion_id = connection.signal_subscribe(
+            null,
+            "org.kde.kwin.VirtualKeyboard",
+            "availableChanged",
+            "/VirtualKeyboard",
+            null,
+            DBusSignalFlags.NONE,
+            kde_virtual_keyboard_avail_cb);
+
     string wayland_values = "InputMethod";
     var bytes = new GLib.VariantBuilder(new GLib.VariantType("ay"));
     for (int i = 0; i < wayland_values.length; i++) {
@@ -251,14 +280,30 @@ start_daemon_with_dbus_kde(GLib.DBusConnection connection,
                                     new GLib.Variant("(a{saay})", array))) {
             if (verbose)
                 stderr.printf("Failed to emit a KDE D-Bus signal.\n");
+            connection.signal_unsubscribe(subscripion_id);
+            if (loop != null) {
+                loop.quit();
+                loop = null;
+            }
             return false;
         }
     } catch (GLib.Error e) {
         stderr.printf("%s\n", e.message);
+        connection.signal_unsubscribe(subscripion_id);
+        if (loop != null) {
+            loop.quit();
+            loop = null;
+        }
         return false;
     }
+    // Wait for "/VirtualKeyboard" on "org.kde.kwin.VirtualKeyboard" signal
+    // so that "/kwinrc" on "org.kde.kconfig.notify" signal is reached to
+    // kwin.
+    loop.run();
+    connection.signal_unsubscribe(subscripion_id);
     return true;
 }
+
 
 int list_engine(string[] argv) {
     const OptionEntry[] options = {
