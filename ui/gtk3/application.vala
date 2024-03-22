@@ -208,7 +208,7 @@ class Application {
         m_log.flush();
     }
 
-    private static void run_ibus_daemon() {
+    private static bool run_ibus_daemon() {
         string[] args = { "ibus-daemon" };
         foreach (var arg in m_daemon_args.split(" "))
             args += arg;
@@ -222,8 +222,9 @@ class Application {
         } catch (GLib.SpawnError e) {
             m_log.printf("ibus-daemon error: %s\n", e.message);
             warning("%s\n", e.message);
+            return false;
         }
-        GLib.Thread.usleep(5 * G_USEC_PER_SEC);
+        return true;
     }
 
     private static void make_wayland_im() {
@@ -255,13 +256,19 @@ class Application {
             assert_not_reached();
         }
         bus = new IBus.Bus();
+        GLib.MainLoop? loop = null;
         if (!bus.is_connected() && m_exec_daemon) {
-            // The second new IBus.Bus() does not call ibus_bus_connect()
-            // but increase the ref_count so call IBus.Object.destroy()
-            // is called here to enable syned IBus.Bus.is_connected().
-            bus.destroy();
-            run_ibus_daemon();
-            bus = new IBus.Bus();
+            ulong handler_id = bus.connected.connect((bus) => {
+                if (loop != null)
+                    loop.quit();
+            });
+            if (run_ibus_daemon()) {
+                if (!bus.is_connected()) {
+                    loop = new GLib.MainLoop();
+                    loop.run();
+                }
+            }
+            bus.disconnect(handler_id);
         }
         if (!bus.is_connected()) {
             m_log.printf("Failed to connect to ibus-daemon\n");
