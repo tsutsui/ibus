@@ -35,6 +35,7 @@ class Panel : IBus.PanelService {
     private IconType m_icon_type = IconType.STATUS_ICON;
 #if INDICATOR
     private Indicator m_indicator;
+    private Indicator.Status m_indicator_show_status = Indicator.Status.ACTIVE;
 #endif
     private Gtk.StatusIcon m_status_icon;
     private Gtk.Menu m_ime_menu;
@@ -257,7 +258,7 @@ class Panel : IBus.PanelService {
         });
 
         m_settings_panel.changed["show-icon-on-systray"].connect((key) => {
-                set_show_icon_on_systray();
+                set_show_icon_on_systray(true);
         });
 
         m_settings_panel.changed["lookup-table-orientation"].connect((key) => {
@@ -364,7 +365,7 @@ class Panel : IBus.PanelService {
                    "clicking the mouse middle button on the panel icon."));
         m_registered_status_notifier_item_id =
                 m_indicator.registered_status_notifier_item.connect(() => {
-                    m_indicator.set_status(Indicator.Status.ACTIVE);
+                    m_indicator.set_status(m_indicator_show_status);
                     state_changed();
                 });
         m_popup_menu_id =
@@ -677,11 +678,12 @@ class Panel : IBus.PanelService {
                 m_settings_general.get_boolean("use-xmodmap"));
     }
 
-    private void set_show_icon_on_systray() {
+    private void set_show_icon_on_systray(bool update_now) {
         if (m_icon_type == IconType.STATUS_ICON) {
             if (m_status_icon == null)
                 return;
 
+            // Always update the icon status immediately.
             m_status_icon.set_visible(
                     m_settings_panel.get_boolean("show-icon-on-systray"));
         }
@@ -691,9 +693,14 @@ class Panel : IBus.PanelService {
                 return;
 
             if (m_settings_panel.get_boolean("show-icon-on-systray"))
-                m_indicator.set_status(Indicator.Status.ACTIVE);
+                m_indicator_show_status = Indicator.Status.ACTIVE;
             else
-                m_indicator.set_status(Indicator.Status.PASSIVE);
+                m_indicator_show_status = Indicator.Status.PASSIVE;
+
+            // Update the icon status after "registered_status_notifier_item"
+            // signal in Indicator is emitted.
+            if (update_now)
+                m_indicator.set_status(m_indicator_show_status);
         }
 #endif
     }
@@ -927,7 +934,7 @@ class Panel : IBus.PanelService {
                                       ref m_css_provider);
         BindingCommon.set_custom_theme(m_settings_panel);
         BindingCommon.set_custom_icon(m_settings_panel);
-        set_show_icon_on_systray();
+        set_show_icon_on_systray(false);
         set_lookup_table_orientation();
         set_show_property_panel();
         set_timeout_property_panel();
@@ -1560,11 +1567,13 @@ class Panel : IBus.PanelService {
             m_ime_menu.add(item);
         }
 
-        if (m_is_kde && !BindingCommon.default_is_xdisplay()) {
+#if INDICATOR
+        if (m_icon_type == IconType.INDICATOR) {
             m_ime_menu.insert(new Gtk.SeparatorMenuItem(), -1);
             append_preferences_menu(m_ime_menu);
             append_emoji_menu(m_ime_menu);
         }
+#endif
 
         m_ime_menu.show_all();
 
