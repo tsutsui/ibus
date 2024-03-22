@@ -9,9 +9,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ibus 1.5.26\n"
 "Report-Msgid-Bugs-To: https://github.com/ibus/ibus/issues\n"
-"POT-Creation-Date: 2023-08-02 17:20+0900\n"
-"PO-Revision-Date: 2024-02-03 20:36+0000\n"
-"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"POT-Creation-Date: 2024-02-28 19:10+0900\n"
+"PO-Revision-Date: 2024-03-03 14:35+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/ibus/"
 "ibus/ka/>\n"
 "Language: ka\n"
@@ -19,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.3.1\n"
+"X-Generator: Weblate 5.4\n"
 
 #. Translators: Here “Preload” is a verb
 #: data/dconf/org.freedesktop.ibus.gschema.xml:11
@@ -439,7 +440,7 @@ msgstr "_დიახ"
 msgid "More…"
 msgstr "მეტი…"
 
-#: setup/engineabout.py:37 setup/setup.ui:1465 ui/gtk3/panel.vala:1446
+#: setup/engineabout.py:37 setup/setup.ui:1465 ui/gtk3/panel.vala:1456
 msgid "About"
 msgstr "შესახებ"
 
@@ -1296,14 +1297,14 @@ msgstr "ბატაკი"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:277
 msgid "Lepcha"
-msgstr ""
+msgstr "ლეპჩა"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:281
 msgid "Ol Chiki"
-msgstr ""
+msgstr "ოლ ჩიკი"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1331,7 +1332,7 @@ msgstr ""
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:297
 msgid "Vedic Extensions"
-msgstr ""
+msgstr "ვედიიური გაფართოებები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1352,7 +1353,7 @@ msgstr "ფონეტიკური გაფართოებების �
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:309
 msgid "Combining Diacritical Marks Supplement"
-msgstr ""
+msgstr "შემკრები დიაკრიტიკული სანიშნების დანამატები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1394,14 +1395,14 @@ msgstr "ფულის სიმბოლოები"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:333
 msgid "Combining Diacritical Marks for Symbols"
-msgstr ""
+msgstr "შემკრები დიაკრიტიკული სანიშნები სიმბოლოებისთვის"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:337
 msgid "Letterlike Symbols"
-msgstr ""
+msgstr "ასოს-მსგავსი სიმბოლოები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1450,7 +1451,7 @@ msgstr "სიმბოლოების ოპტიკური გამო�
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:365
 msgid "Enclosed Alphanumerics"
-msgstr ""
+msgstr "ჩასმული ასოები და რიცხვები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1527,14 +1528,14 @@ msgstr "სხვადასხვა მათემატიკური ს�
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:409
 msgid "Supplemental Mathematical Operators"
-msgstr ""
+msgstr "დამატებითი მათემატიკური ოპერატორები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:413
 msgid "Miscellaneous Symbols and Arrows"
-msgstr ""
+msgstr "სხვადასხვა სიმბოლოები და ისრები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1681,7 +1682,7 @@ msgstr "კატაკანის ფონეტიკური გაფა�
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:497
 msgid "Enclosed CJK Letters and Months"
-msgstr ""
+msgstr "დახურული CJK ასოები და თვეებ"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1702,7 +1703,7 @@ msgstr "CJK გაერთიანებული იდეოგრაფე�
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:509
 msgid "Yijing Hexagram Symbols"
-msgstr ""
+msgstr "იჩინგის ჰექსაგრამული სიბოლოები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1716,14 +1717,14 @@ msgstr "CJK გაფართოებული იდეოგრაფებ�
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:517
 msgid "Yi Syllables"
-msgstr ""
+msgstr "იჩიგის მარცვლები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:521
 msgid "Yi Radicals"
-msgstr ""
+msgstr "იჩინგის რადიკალები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1758,7 +1759,7 @@ msgstr "ბამუმი"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:541
 msgid "Modifier Tone Letters"
-msgstr ""
+msgstr "ტონის მოდიფიკატორი სიმბოლოები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1772,28 +1773,28 @@ msgstr "ლათინური გაფართოებული-D"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:549
 msgid "Syloti Nagri"
-msgstr ""
+msgstr "Syloti Nagri"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:553
 msgid "Common Indic Number Forms"
-msgstr ""
+msgstr "ზოგადი ინდური რიცხვითი ფორმები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:557
 msgid "Phags-pa"
-msgstr ""
+msgstr "Phags-pa"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:561
 msgid "Saurashtra"
-msgstr ""
+msgstr "საურაშტრა"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1807,21 +1808,21 @@ msgstr "დევანაგარი გაფართოებული"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:569
 msgid "Kayah Li"
-msgstr ""
+msgstr "კაია-ლი"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:573
 msgid "Rejang"
-msgstr ""
+msgstr "რეჯანგი"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:577
 msgid "Hangul Jamo Extended-A"
-msgstr ""
+msgstr "ჰანგული ჯამო გაფართოებული-A"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1842,21 +1843,21 @@ msgstr ""
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:589
 msgid "Cham"
-msgstr ""
+msgstr "ჩამური"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:593
 msgid "Myanmar Extended-A"
-msgstr ""
+msgstr "მიანმარი გაფართოებული-A"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:597
 msgid "Tai Viet"
-msgstr ""
+msgstr "ტაი ვიეტური"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1891,77 +1892,77 @@ msgstr ""
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:617
 msgid "Meetei Mayek"
-msgstr ""
+msgstr "მანიპურული"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:621
 msgid "Hangul Syllables"
-msgstr ""
+msgstr "ჰანგულის მარცვლები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:625
 msgid "Hangul Jamo Extended-B"
-msgstr ""
+msgstr "ჰანგული ჯამო გაფართოებული-B"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:629
 msgid "High Surrogates"
-msgstr ""
+msgstr "მაღალი სუროგატები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:633
 msgid "High Private Use Surrogates"
-msgstr ""
+msgstr "მაღალი პირადი გამოყენების სუროგატები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:637
 msgid "Low Surrogates"
-msgstr ""
+msgstr "დაბალი სუროგატები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:641
 msgid "Private Use Area"
-msgstr ""
+msgstr "პირადი გამოყენების ადგილი"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:645
 msgid "CJK Compatibility Ideographs"
-msgstr ""
+msgstr "CJK თავსებადი იდეოგრაფები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:649
 msgid "Alphabetic Presentation Forms"
-msgstr ""
+msgstr "ანბანური წარმოდგენის ფორმები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:653
 msgid "Arabic Presentation Forms-A"
-msgstr ""
+msgstr "ფორმების არაბული პრეზენტაცია-A"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:657
 msgid "Variation Selectors"
-msgstr ""
+msgstr "ვარიაციული სელექტორები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -1975,35 +1976,35 @@ msgstr "ვერტიკალური ფორმები"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:665
 msgid "Combining Half Marks"
-msgstr ""
+msgstr "ნახევრადსანიშნების კომბინირება"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:669
 msgid "CJK Compatibility Forms"
-msgstr ""
+msgstr "CJK თავსებადობის ფორმები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:673
 msgid "Small Form Variants"
-msgstr ""
+msgstr "პატარა ფორმის ვარიანტები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:677
 msgid "Arabic Presentation Forms-B"
-msgstr ""
+msgstr "ფორმების არაბული პრეზენტაცია-"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:681
 msgid "Halfwidth and Fullwidth Forms"
-msgstr ""
+msgstr "ნახევარსიგანიანი და სრულსიგანიანი ფორმები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2045,28 +2046,28 @@ msgstr "ძველბერძნული ციფრები"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:705
 msgid "Ancient Symbols"
-msgstr ""
+msgstr "ძველი სიმბოლოები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:709
 msgid "Phaistos Disc"
-msgstr ""
+msgstr "ფესტოსის დისკო"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:713
 msgid "Lycian"
-msgstr ""
+msgstr "ლიდიის"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:717
 msgid "Carian"
-msgstr ""
+msgstr "კარიული"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2220,7 +2221,7 @@ msgstr "ფონეტიკური"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:805
 msgid "Lydian"
-msgstr ""
+msgstr "ლიდიური"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2248,7 +2249,7 @@ msgstr "ხაროშტი"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:821
 msgid "Old South Arabian"
-msgstr ""
+msgstr "ძველი სამხრეთ არაბული"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2276,14 +2277,14 @@ msgstr "ავესტანი"
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:837
 msgid "Inscriptional Parthian"
-msgstr ""
+msgstr "პართიული დამწერლობა"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:841
 msgid "Inscriptional Pahlavi"
-msgstr ""
+msgstr "ფეჰლევის დამწერლობა"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2297,7 +2298,7 @@ msgstr ""
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:849
 msgid "Old Turkic"
-msgstr ""
+msgstr "ძველი თურქული"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2381,7 +2382,7 @@ msgstr ""
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:897
 msgid "Kaithi"
-msgstr ""
+msgstr "კაიტხი"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2647,7 +2648,7 @@ msgstr ""
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1049
 msgid "Egyptian Hieroglyphs"
-msgstr ""
+msgstr "ეგვიპტური იეროგლიფები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2962,14 +2963,14 @@ msgstr ""
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1229
 msgid "Mahjong Tiles"
-msgstr ""
+msgstr "მაჰჯონგის ფილები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1233
 msgid "Domino Tiles"
-msgstr ""
+msgstr "დომინოს ფილები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2983,14 +2984,14 @@ msgstr ""
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1241
 msgid "Enclosed Alphanumeric Supplement"
-msgstr ""
+msgstr "დამატებით შემოსაზღვრული ციფრები და სიმბოლოები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1245
 msgid "Enclosed Ideographic Supplement"
-msgstr ""
+msgstr "დამატებით შემოსაზღვრული იეროგლიფები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -3108,199 +3109,219 @@ msgstr "CJK გაერთიანებული იდეოგრაფე�
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1313
+#, fuzzy
+#| msgid "CJK Unified Ideographs Extension A"
+msgid "CJK Unified Ideographs Extension I"
+msgstr "CJK გაერთიანებული იდეოგრაფების გაფართოება A"
+
+#. TRANSLATORS: You might refer the translations from gucharmap with
+#. the following command:
+#. msgmerge -C gucharmap.po ibus.po ibus.pot
+#: src/ibusunicodegen.h:1317
 msgid "CJK Compatibility Ideographs Supplement"
 msgstr "CJK თავსებადი იდეოგრაფების დამატებები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
-#: src/ibusunicodegen.h:1317
+#: src/ibusunicodegen.h:1321
 msgid "CJK Unified Ideographs Extension G"
 msgstr "CJK გაერთიანებული იდეოგრაფების გაფართოება G"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
-#: src/ibusunicodegen.h:1321
+#: src/ibusunicodegen.h:1325
 msgid "CJK Unified Ideographs Extension H"
 msgstr "CJK გაერთიანებული იდეოგრაფების გაფართოება H"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
-#: src/ibusunicodegen.h:1325
+#: src/ibusunicodegen.h:1329
 msgid "Tags"
 msgstr "ჭდეები"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
-#: src/ibusunicodegen.h:1329
-msgid "Variation Selectors Supplement"
-msgstr ""
-
-#. TRANSLATORS: You might refer the translations from gucharmap with
-#. the following command:
-#. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1333
-msgid "Supplementary Private Use Area-A"
-msgstr ""
+msgid "Variation Selectors Supplement"
+msgstr "ვარიაციული სელექტორების დამატება"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1337
+msgid "Supplementary Private Use Area-A"
+msgstr "პირადი გამოყენების ადგილი-A"
+
+#. TRANSLATORS: You might refer the translations from gucharmap with
+#. the following command:
+#. msgmerge -C gucharmap.po ibus.po ibus.pot
+#: src/ibusunicodegen.h:1341
 msgid "Supplementary Private Use Area-B"
-msgstr ""
+msgstr "პირადი გამოყენების ადგილი-B"
 
 #: tools/ibusimmodule.c:10
 msgid ""
 "Set im-module TYPE to \"gtk2\",  \"gtk3\" or \"gtk4\". Default is \"gtk3\"."
 msgstr ""
 
-#: tools/main.vala:182
+#: tools/main.vala:266
 msgid "List engine name only"
 msgstr ""
 
-#: tools/main.vala:198 tools/main.vala:394 tools/main.vala:436
+#: tools/main.vala:282 tools/main.vala:571 tools/main.vala:645
+#, c-format
 msgid "Can't connect to IBus.\n"
 msgstr ""
 
-#: tools/main.vala:224
+#: tools/main.vala:308
 #, c-format
 msgid "language: %s\n"
 msgstr "ენა: %s\n"
 
-#: tools/main.vala:294
+#: tools/main.vala:378
+#, c-format
 msgid "No engine is set.\n"
 msgstr ""
 
-#: tools/main.vala:302
+#: tools/main.vala:386
+#, c-format
 msgid "Set global engine failed.\n"
 msgstr ""
 
-#: tools/main.vala:307
+#: tools/main.vala:391
+#, c-format
 msgid "Get global engine failed.\n"
 msgstr ""
 
-#: tools/main.vala:328
-msgid "Start or restart daemon with \"direct\" or \"systemd\" TYPE."
+#: tools/main.vala:527
+msgid ""
+"Start or restart daemon with \"direct\", \"systemd\" or \"kde-wayland\" TYPE."
 msgstr ""
 
-#: tools/main.vala:331
+#: tools/main.vala:531
 msgid "Start or restart daemon with SYSTEMD_SERVICE file."
 msgstr ""
 
-#: tools/main.vala:334
+#: tools/main.vala:534 tools/main.vala:617
 msgid "Show debug messages."
 msgstr ""
 
-#: tools/main.vala:453
+#: tools/main.vala:613
+msgid "Exit daemon with \"direct\" or \"kde-wayland\" TYPE."
+msgstr ""
+
+#: tools/main.vala:662
 msgid "Read the system registry cache."
 msgstr ""
 
-#: tools/main.vala:455
+#: tools/main.vala:664
 msgid "Read the registry cache FILE."
 msgstr ""
 
-#: tools/main.vala:473 tools/main.vala:478
+#: tools/main.vala:682 tools/main.vala:687
+#, c-format
 msgid "The registry cache is invalid.\n"
 msgstr ""
 
-#: tools/main.vala:494
+#: tools/main.vala:703
 msgid "Write the system registry cache."
 msgstr ""
 
-#: tools/main.vala:496
+#: tools/main.vala:705
 msgid "Write the registry cache FILE."
 msgstr ""
 
-#: tools/main.vala:534
+#: tools/main.vala:743
 msgid ""
 "Use engine schema paths instead of ibus core, which can be comma-separated "
 "values."
 msgstr ""
 
-#: tools/main.vala:623
+#: tools/main.vala:832
 msgid "Resetting…"
 msgstr ""
 
-#: tools/main.vala:641
+#: tools/main.vala:850
 msgid "Done"
 msgstr "დასრულდა"
 
-#: tools/main.vala:699
+#: tools/main.vala:908
 msgid "Set or get engine"
 msgstr ""
 
-#: tools/main.vala:700
+#: tools/main.vala:909
 msgid "Exit ibus-daemon"
 msgstr ""
 
-#: tools/main.vala:701
+#: tools/main.vala:910
 msgid "Show available engines"
 msgstr ""
 
-#: tools/main.vala:702
+#: tools/main.vala:911
 msgid "(Not implemented)"
 msgstr ""
 
-#: tools/main.vala:703
+#: tools/main.vala:912
 msgid "Restart ibus-daemon"
 msgstr ""
 
-#: tools/main.vala:704
+#: tools/main.vala:913
 msgid "Start ibus-daemon"
 msgstr ""
 
-#: tools/main.vala:705 ui/gtk3/application.vala:306
+#: tools/main.vala:914 ui/gtk3/application.vala:306
 msgid "Show version"
 msgstr "ვერსიის ჩვენება"
 
-#: tools/main.vala:706
+#: tools/main.vala:915
 msgid "Show the content of registry cache"
 msgstr ""
 
-#: tools/main.vala:707
+#: tools/main.vala:916
 msgid "Create registry cache"
 msgstr ""
 
-#: tools/main.vala:708
+#: tools/main.vala:917
 msgid "Print the D-Bus address of ibus-daemon"
 msgstr ""
 
-#: tools/main.vala:709
+#: tools/main.vala:918
 msgid "Show the configuration values"
 msgstr ""
 
-#: tools/main.vala:710
+#: tools/main.vala:919
 msgid "Reset the configuration values"
 msgstr ""
 
-#: tools/main.vala:712
+#: tools/main.vala:921
 msgid "Save emoji on dialog to clipboard"
 msgstr ""
 
-#: tools/main.vala:714
+#: tools/main.vala:923
 msgid "Retrieve im-module value from GTK instance"
 msgstr ""
 
-#: tools/main.vala:716
+#: tools/main.vala:925
 msgid "Show this information"
 msgstr ""
 
-#: tools/main.vala:723
+#: tools/main.vala:932
 #, c-format
 msgid ""
 "Usage: %s COMMAND [OPTION...]\n"
 "\n"
 msgstr ""
 
-#: tools/main.vala:724
+#: tools/main.vala:933
+#, c-format
 msgid "Commands:\n"
 msgstr "ბრძანებები:\n"
 
-#: tools/main.vala:754
+#: tools/main.vala:963
 #, c-format
 msgid "%s is unknown command!\n"
 msgstr ""
@@ -3380,6 +3401,7 @@ msgid "Description: %s"
 msgstr "აღწერა: %s"
 
 #: ui/gtk3/emojier.vala:1599
+#, c-format
 msgid "None"
 msgstr "არაფერი"
 
@@ -3399,7 +3421,7 @@ msgid "Alias: %s"
 msgstr ""
 
 #: ui/gtk3/emojier.vala:2180 ui/gtk3/ibus-extension-gtk3.desktop.in:3
-#: ui/gtk3/ibus-ui-emojier.desktop.in:3 ui/gtk3/panel.vala:1431
+#: ui/gtk3/ibus-ui-emojier.desktop.in:3 ui/gtk3/panel.vala:1440
 msgid "Emoji Choice"
 msgstr ""
 
@@ -3456,17 +3478,18 @@ msgstr ""
 msgid "Match with the condition of the specified integer"
 msgstr ""
 
-#: ui/gtk3/panel.vala:363 ui/gtk3/panel.vala:386
+#: ui/gtk3/panel.vala:362 ui/gtk3/panel.vala:385
+#, c-format
 msgid "IBus Panel"
 msgstr ""
 
-#: ui/gtk3/panel.vala:364
+#: ui/gtk3/panel.vala:363
 msgid ""
 "You can toggle the activate menu and context one with clicking the mouse "
 "middle button on the panel icon."
 msgstr ""
 
-#: ui/gtk3/panel.vala:836
+#: ui/gtk3/panel.vala:841
 #, c-format
 msgid ""
 "IBus should be called from the desktop session in %s. For KDE, you can "
@@ -3479,7 +3502,7 @@ msgid ""
 "environment variables are unset in the desktop session."
 msgstr ""
 
-#: ui/gtk3/panel.vala:858
+#: ui/gtk3/panel.vala:863
 #, c-format
 msgid ""
 "Please unset QT_IM_MODULE and GTK_IM_MODULE environment variables and 'ibus-"
@@ -3487,46 +3510,46 @@ msgid ""
 "component."
 msgstr ""
 
-#: ui/gtk3/panel.vala:873
+#: ui/gtk3/panel.vala:878
 msgid "IBus Notification"
 msgstr ""
 
-#: ui/gtk3/panel.vala:1228
+#: ui/gtk3/panel.vala:1233
 #, c-format
 msgid ""
 "Your configured input method %s does not exist in IBus input methods so "
 "\"US\" layout was configured instead of your input method."
 msgstr ""
 
-#: ui/gtk3/panel.vala:1233
+#: ui/gtk3/panel.vala:1238
 msgid ""
 "At least one of your configured input methods does not exist in IBus input "
 "methods."
 msgstr ""
 
-#: ui/gtk3/panel.vala:1236
+#: ui/gtk3/panel.vala:1241
 msgid ""
 "Please run `ibus-setup` command, open \"Input Method\" tab, and configure "
 "your input methods again."
 msgstr ""
 
-#: ui/gtk3/panel.vala:1394
+#: ui/gtk3/panel.vala:1399
 msgid "IBus is an intelligent input bus for Linux/Unix."
 msgstr ""
 
-#: ui/gtk3/panel.vala:1398
+#: ui/gtk3/panel.vala:1403
 msgid "translator-credits"
 msgstr "თემური დოღონაძე"
 
-#: ui/gtk3/panel.vala:1426
+#: ui/gtk3/panel.vala:1434
 msgid "Preferences"
 msgstr "მორგება"
 
-#: ui/gtk3/panel.vala:1452
+#: ui/gtk3/panel.vala:1462
 msgid "Restart"
 msgstr "რესტარტ"
 
-#: ui/gtk3/panel.vala:1456
+#: ui/gtk3/panel.vala:1466
 msgid "Quit"
 msgstr "დატოვება"
 
