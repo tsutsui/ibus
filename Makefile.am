@@ -138,6 +138,14 @@ srpm: dist @PACKAGE_NAME@.spec
 			--define "_specdir `pwd`/rpm" \
 			@PACKAGE_NAME@.spec
 
+@PACKAGE_NAME@-@PACKAGE_VERSION@.%.sum: @PACKAGE_NAME@-@PACKAGE_VERSION@.%
+	f=`basename $@ .sum`; \
+	printf "cksum %s %s %s\n"      `cksum $$f`     >  $@; \
+	printf "sha1sum %s %s\n"       `sha1sum $$f`   >> $@; \
+	printf "sha256sum %s %s\n"     `sha256sum $$f` >> $@; \
+	printf "sha512sum %s %s\n"     `sha512sum $$f` >> $@; \
+	$(NULL)
+
 clean-rpm:
 	-$(RM) -r "`uname -i`"
 
