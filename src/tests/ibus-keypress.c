@@ -5,6 +5,14 @@
 #include <X11/Xlib.h>
 #include <X11/extensions/XTest.h>
 
+#ifdef GDK_WINDOWING_WAYLAND
+#if GTK_CHECK_VERSION (3, 98, 4)
+#include <gdk/wayland/gdkwayland.h>
+#else
+#include <gdk/gdkwayland.h>
+#endif
+#endif
+
 #define GREEN "\033[0;32m"
 #define RED   "\033[0;31m"
 #define NC    "\033[0m"
@@ -186,15 +194,8 @@ set_engine_cb (GObject      *object,
     }
 
     display = gtk_widget_get_display (entry);
-    if (GDK_IS_X11_DISPLAY (display)) {
-        xdisplay = gdk_x11_display_get_xdisplay (display);
-    } else {
-#if 0
-        xdisplay = XOpenDisplay (NULL);
-#else
-        g_critical ("No idea to simulate key events in Wayland\n");
-#endif
-    }
+    g_assert (GDK_IS_X11_DISPLAY (display));
+    xdisplay = gdk_x11_display_get_xdisplay (display);
     g_return_if_fail (xdisplay);
 
     for (i = 0; test_cases[i][0].keyval; i++) {
@@ -272,12 +273,18 @@ create_window ()
 static void
 test_keypress (void)
 {
+    gchar *path;
     int status = 0;
     GError *error = NULL;
 
-    g_spawn_command_line_sync ("setxkbmap -layout us",
-                               NULL, NULL,
-                               &status, &error);
+    /* localectl does not change the session keymap. */
+    path = g_find_program_in_path ("setxkbmap");
+    if (path) {
+        g_spawn_command_line_sync ("setxkbmap -layout us",
+                                   NULL, NULL,
+                                   &status, &error);
+    }
+    g_free (path);
     g_assert (register_ibus_engine ());
 
     create_window ();
@@ -295,6 +302,15 @@ main (int argc, char *argv[])
         g_message ("Failed setenv NO_AT_BRIDGE\n");
     g_test_init (&argc, &argv, NULL);
     gtk_init (&argc, &argv);
+#ifdef GDK_WINDOWING_WAYLAND
+    {
+        GdkDisplay *display = gdk_display_get_default ();
+        if (GDK_IS_WAYLAND_DISPLAY (display)) {
+            g_print ("setxkbmap and XTEST do not work in Wayland.\n");
+            return 0;
+        }
+    }
+#endif
 
     g_test_add_func ("/ibus/keyrepss", test_keypress);
 
