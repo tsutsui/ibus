@@ -62,6 +62,8 @@ class Handle : Gtk.EventBox {
     }
 
     public override bool button_press_event(Gdk.EventButton event) {
+        if (!BindingCommon.default_is_xdisplay())
+            return false;
         if (event.button != 1)
             return false;
         m_workarea = Gdk.Rectangle(){

@@ -228,6 +228,8 @@ class Application {
     }
 
     private static void make_wayland_im() {
+        if (BindingCommon.default_is_xdisplay())
+            return;
         assert (open_log());
         void *wl_display = null;
         ulong i = 0;

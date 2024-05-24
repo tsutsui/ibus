@@ -166,6 +166,9 @@ class Panel : IBus.PanelService {
             property_activate(k, s);
         });
 
+        set_version();
+        check_wayland();
+
         state_changed();
     }
 
@@ -443,6 +446,8 @@ class Panel : IBus.PanelService {
     }
 
     private void bind_switch_shortcut() {
+        if (m_is_wayland_im)
+            return;
         string[] accelerators = m_settings_hotkey.get_strv("triggers");
 
         var keybinding_manager = KeybindingManager.get_instance();
@@ -874,6 +879,16 @@ class Panel : IBus.PanelService {
                 message = format.printf(Environment.get_prgname());
             }
         }
+        if (!m_is_wayland && m_is_wayland_im) {
+            var format =
+                    _("Seems you run %s with '--enable-wayland-im' " +
+                      "option but your display server is Xorg so the Wayland " +
+                      "feature is disabled. You would be better off running " +
+                      "ibus-daemon directly instead or %s without that " +
+                      "option.");
+            unowned string prgname = Environment.get_prgname();
+            message = format.printf(prgname, prgname);
+        }
         if (message == null)
             return;
 #if ENABLE_LIBNOTIFY
@@ -908,9 +923,6 @@ class Panel : IBus.PanelService {
 
 
     public void load_settings() {
-        set_version();
-        check_wayland();
-
         init_engines_order();
 
         // Update m_use_system_keyboard_layout before update_engines()

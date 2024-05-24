@@ -3306,6 +3306,7 @@ bus_input_context_update_preedit_text (BusInputContext *context,
             pre_data.key = 'm';
         if (bus_input_context_make_post_process_key_event (context,
                                                            &pre_data)) {
+            g_variant_unref (variant);
             return;
         } else if (context->client_commit_preedit) {
             bus_input_context_emit_signal (

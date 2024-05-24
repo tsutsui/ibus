@@ -259,11 +259,11 @@ class BindingCommon {
 
     public static bool default_is_xdisplay() {
         if (m_xdisplay == null)
-            get_xdisplay();
+            get_xdisplay(true);
         return m_default_is_xdisplay;
     }
 
-    public static Gdk.X11.Display? get_xdisplay() {
+    public static Gdk.X11.Display? get_xdisplay(bool check_only=false) {
         if (m_xdisplay != null)
             return m_xdisplay;
         var display = Gdk.Display.get_default();
@@ -277,6 +277,8 @@ class BindingCommon {
             m_xdisplay = (Gdk.X11.Display)display;
             return m_xdisplay;
         }
+        if (check_only)
+            return null;
         Gdk.set_allowed_backends("x11");
         // Call _gdk_display_manager_add_display() internally.
         m_xdisplay =
