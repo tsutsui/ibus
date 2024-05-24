@@ -14,7 +14,7 @@ GCC_VERSION=$(gcc --version | head -1 | awk '{print $3}')
 GCC_MAJOR_VERSION=$(echo "$GCC_VERSION" | awk -F. '{print $1}')
 FEDORA_PKG1='autoconf automake libtool gettext-devel'
 FEDORA_PKG2='glib2-devel gtk2-devel gtk3-devel
- wayland-devel'
+ wayland-devel vala'
 FEDORA_PKG3='cldr-emoji-annotation iso-codes-devel unicode-emoji unicode-ucd
  xkeyboard-config-devel'
 

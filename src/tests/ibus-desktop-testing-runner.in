@@ -45,6 +45,7 @@ TEST_LOG_STDOUT=0
 RESULT_LOG=""
 SCREEN_LOG=""
 HAVE_GRAPHICS=1
+VERBOSE=0
 DESKTOP_COMMAND="dbus-launch --exit-with-session gnome-session"
 PID_XORG=0
 PID_GNOME_SESSION=0
@@ -83,6 +84,7 @@ usage()
 "-b, --builddir=BUILDDIR          Set the BUILDDIR\n"                          \
 "-s, --srcdir=SOURCEDIR           Set the SOURCEDIR\n"                         \
 "-c, --no-graphics                Use Xvfb instead of Xorg\n"                  \
+"-V, --verbose                    Verbose log for ibus-daemon\n"               \
 "-d, --desktop=DESKTOP            Run DESTKTOP. The default is gnome-session.\n" \
 "                                 Suffix '-with-dbus' can run DESKTOP with dbus session." \
 "                                 E.g. --desktop=mutter-with-dbus"             \
@@ -101,8 +103,8 @@ usage()
 parse_args()
 {
     # This is GNU getopt. "sudo port getopt" in BSD?
-    ARGS=`getopt -o hvb:s:cd:t:r:T:o:O:S: --long \
-          help,version,builddir:,srcdir:,no-graphics,desktop:,tests:,runner:,timeout:,output:,result:,screendump:\
+    ARGS=`getopt -o hvb:s:cVd:t:r:T:o:O:S: --long \
+          help,version,builddir:,srcdir:,no-graphics,verbose,desktop:,tests:,runner:,timeout:,output:,result:,screendump:\
         -- "$@"`;
     eval set -- "$ARGS"
     while [ 1 ] ; do
@@ -112,6 +114,7 @@ parse_args()
         -b | --builddir )    BUILDDIR="$2"; shift 2;;
         -s | --srcdir )      SRCDIR="$2"; shift 2;;
         -c | --no-graphics ) HAVE_GRAPHICS=0; shift;;
+        -V | --verbose )     VERBOSE=1; shift;;
         -d | --desktop )     DESKTOP_COMMAND="$2"; shift 2;;
         -t | --tests )       TESTS="$2"; shift 2;;
         -r | --runner )      TESTING_RUNNER="$2"; shift 2;;
@@ -286,6 +289,7 @@ run_desktop()
     PID_GNOME_SESSION=$!
     sleep 30
 
+    IBUS_ARGS="--verbose --panel disable"
     # gnome-shell 42 checks if org.freedesktop.IBus.session.GNOME.service
     # systemd file is available with org.freedesktop.systemd1.Manager.GetUnit
     # D-Bus method, which is provided by IBus 1.5.26, and if the file
@@ -302,8 +306,15 @@ run_desktop()
     # with gnome-session.target systemd file.
     # But `systemctl start gdm` terminates the parent script forcibly
     # and the script cannot get the CI result.
-    ibus-daemon --daemonize --verbose
+    if test $VERBOSE -eq 1 ; then
+        ibus-daemon $IBUS_ARGS &
+    else
+        ibus-daemon $IBUS_ARGS --daemonize
+    fi
     sleep 3
+    if test $VERBOSE -eq 1 ; then
+        ps -ef | grep ibus
+    fi
 }
 
 
