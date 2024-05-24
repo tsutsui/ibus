@@ -2,7 +2,7 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2014 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2014-2017 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -1017,7 +1017,9 @@ ibus_engine_simple_process_key_event (IBusEngine *engine,
          !is_hex_start && !is_hex_end && !is_escape && !is_backspace) ||
         (priv->in_emoji_sequence && !printable_keyval &&
          !is_emoji_start && !is_hex_end && !is_escape && !is_backspace)) {
-        if (modifiers & (IBUS_MOD1_MASK | IBUS_CONTROL_MASK) ||
+        guint no_text_input_mask = IBUS_MOD1_MASK | IBUS_MOD4_MASK \
+                                   | IBUS_CONTROL_MASK | IBUS_SUPER_MASK;
+        if (modifiers & no_text_input_mask ||
             ((priv->in_hex_sequence || priv->in_emoji_sequence) &&
              priv->modifiers_dropped &&
              (keyval == IBUS_KEY_Return ||
