@@ -2,8 +2,8 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2013 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2015-2020 Takao Fujiwara <takao.fujiwara1@gmail.com>
- * Copyright (C) 2008-2020 Red Hat, Inc.
+ * Copyright (C) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2008-2024 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -725,7 +725,8 @@ bus_dbus_impl_list_names (BusDBusImpl           *dbus,
 
     /* FIXME should add them? */
     g_variant_builder_add (&builder, "s", "org.freedesktop.DBus");
-    g_variant_builder_add (&builder, "s", "org.freedesktop.IBus");
+    g_variant_builder_add (&builder, "s", IBUS_SERVICE_IBUS);
+    g_variant_builder_add (&builder, "s", IBUS_NAME_OWNER_NAME);
 
     /* append well-known names */
     GList *names, *name;
@@ -804,9 +805,10 @@ bus_dbus_impl_get_name_owner (BusDBusImpl           *dbus,
     const gchar *name = NULL;
     g_variant_get (parameters, "(&s)", &name);
 
-    if (!g_strcmp0 (name, "org.freedesktop.DBus") ||
-        !g_strcmp0 (name, "org.freedesktop.IBus")) {
+    if (!g_strcmp0 (name, "org.freedesktop.DBus")) {
         name_owner = name;
+    } else if (!g_strcmp0 (name, IBUS_SERVICE_IBUS)) {
+        name_owner = IBUS_NAME_OWNER_NAME;
     } else {
         BusConnection *owner = bus_dbus_impl_get_connection_by_name (dbus,
                                                                      name);
@@ -955,6 +957,9 @@ bus_dbus_impl_add_match (BusDBusImpl           *dbus,
                         "Parse match rule [%s] failed", rule_text);
         return;
     }
+    /* ibus_bus_watch_ibus_signal() supports IBUS_SERVICE_IBUS sender. */
+    if (!g_strcmp0 (bus_match_rule_get_sender (rule), IBUS_SERVICE_IBUS))
+        bus_match_rule_set_sender (rule, IBUS_NAME_OWNER_NAME);
 
     g_dbus_method_invocation_return_value (invocation, NULL);
     GList *p;
@@ -1565,7 +1570,8 @@ bus_dbus_impl_connection_filter_cb (GDBusConnection *dbus_connection,
         g_dbus_message_set_sender (message,
                                    bus_connection_get_unique_name (connection));
 
-        if (!g_strcmp0 (destination, "org.freedesktop.IBus")) {
+        if (!g_strcmp0 (destination, IBUS_SERVICE_IBUS) ||
+            !g_strcmp0 (destination, IBUS_NAME_OWNER_NAME)) {
             /* the message is sent to IBus service. messages from ibusbus and
              * ibuscontext may fall into this category. */
             switch (message_type) {

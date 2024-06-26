@@ -2,8 +2,8 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2014 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2015-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
- * Copyright (C) 2008-2016 Red Hat, Inc.
+ * Copyright (C) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2008-2024 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -755,7 +755,7 @@ bus_input_context_send_signal (BusInputContext *context,
             ibus_service_get_object_path ((IBusService *)context),
             interface_name,
             signal_name);
-    g_dbus_message_set_sender (message, "org.freedesktop.IBus");
+    g_dbus_message_set_sender (message, IBUS_NAME_OWNER_NAME);
     g_dbus_message_set_destination (
             message,
             bus_connection_get_unique_name (context->connection));

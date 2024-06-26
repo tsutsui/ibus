@@ -2,8 +2,8 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2013 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2011-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
- * Copyright (C) 2008-2021 Red Hat, Inc.
+ * Copyright (C) 2011-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2008-2024 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -2388,19 +2388,20 @@ bus_ibus_impl_property_changed (BusIBusImpl *service,
                                 GVariant    *value)
 {
     GDBusMessage *message =
-        g_dbus_message_new_signal ("/org/freedesktop/IBus",
+        g_dbus_message_new_signal (IBUS_PATH_IBUS,
                                    "org.freedesktop.DBus.Properties",
                                    "PropertiesChanged");
 
     /* set a non-zero serial to make libdbus happy */
     g_dbus_message_set_serial (message, 1);
-    g_dbus_message_set_sender (message, "org.freedesktop.IBus");
+    g_dbus_message_set_sender (message, IBUS_NAME_OWNER_NAME);
+
 
     GVariantBuilder *builder = g_variant_builder_new (G_VARIANT_TYPE_ARRAY);
     g_variant_builder_add (builder, "{sv}", property_name, value);
     g_dbus_message_set_body (message,
                              g_variant_new ("(sa{sv}as)",
-                                            "org.freedesktop.IBus",
+                                            IBUS_SERVICE_IBUS,
                                             builder,
                                             NULL));
     g_variant_builder_unref (builder);
@@ -2419,12 +2420,12 @@ bus_ibus_impl_emit_signal (BusIBusImpl *ibus,
                            const gchar *signal_name,
                            GVariant    *parameters)
 {
-    GDBusMessage *message = g_dbus_message_new_signal ("/org/freedesktop/IBus",
-                                                       "org.freedesktop.IBus",
+    GDBusMessage *message = g_dbus_message_new_signal (IBUS_PATH_IBUS,
+                                                       IBUS_INTERFACE_IBUS,
                                                        signal_name);
     /* set a non-zero serial to make libdbus happy */
     g_dbus_message_set_serial (message, 1);
-    g_dbus_message_set_sender (message, "org.freedesktop.IBus");
+    g_dbus_message_set_sender (message, IBUS_NAME_OWNER_NAME);
     if (parameters)
         g_dbus_message_set_body (message, parameters);
     bus_dbus_impl_dispatch_message_by_rule (BUS_DEFAULT_DBUS, message, NULL);
