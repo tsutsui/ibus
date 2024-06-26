@@ -1,7 +1,7 @@
 /* -*- mode: C; c-basic-offset: 4; indent-tabs-mode: nil; -*- */
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
- * Copyright (C) 2016-2023 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2016-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2016 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@ struct _IBusComposeTablePrivate
 };
 
 
+guint    ibus_compose_key_flag      (guint                       key);
 gboolean ibus_check_algorithmically (const guint                *compose_buffer,
                                      int                         n_compose,
                                      gunichar                   *output);
