@@ -477,7 +477,7 @@ ibus_compose_list_parse_file (const char *compose_file,
             }
             g_free (en_compose);
             if (buf_include.st_ino == buf_parent.st_ino) {
-                g_message ("System en_US Compose is already loaded %s\n",
+                g_message ("System en_US Compose is already loaded %s",
                            include);
                 g_clear_pointer (&include, g_free);
                 continue;
@@ -500,9 +500,9 @@ ibus_compose_list_parse_file (const char *compose_file,
 
 
 static GList *
-ibus_compose_list_check_duplicated (GList  *compose_list,
-                                    int     max_compose_len,
-                                    GSList *compose_tables)
+ibus_compose_list_check_duplicated_with_en (GList  *compose_list,
+                                            int     max_compose_len,
+                                            GSList *compose_tables)
 {
     GList *list;
     static guint *keysyms;
@@ -618,6 +618,9 @@ ibus_compose_key_flag (guint key)
     const char *name;
     if (key <= 0xff)
         return 0;
+    /* en-US has MUSICAL SYMBOL compose table */
+    if (key >= 0xd143 && key <= 0xd1e8)
+        return 0x10000;
     switch (key) {
     /* <Aogonek> is not used in UTF-8 compose sequences but <ohorn> in EN
      * compose file and vn keymap is assumed instead.
@@ -679,6 +682,56 @@ ibus_compose_data_compare (gpointer a,
             return 0;
     }
     return 0;
+}
+
+
+static GList *
+ibus_compose_list_check_duplicated_with_own (GList  *compose_list,
+                                             int     max_compose_len)
+{
+    GList *list;
+    IBusComposeData *compose_data_a, *compose_data_b;
+    int i;
+    GList *removed_list = NULL;
+
+    for (list = compose_list; list != NULL; list = list->next) {
+        gboolean is_different_value = FALSE;
+        if (!list->next)
+            break;
+        if (!ibus_compose_data_compare (list->data,
+                                        list->next->data,
+                                        GINT_TO_POINTER (max_compose_len))) {
+            compose_data_a = list->data;
+            compose_data_b = list->next->data;
+            for (i = 0; compose_data_a->values[i]; i++) {
+                if (compose_data_a->values[i] != compose_data_b->values[i]) {
+                    is_different_value = TRUE;
+                    break;
+                }
+            }
+            if (is_different_value)
+                g_warning ("Deleting different outputs for same sequence.");
+            else
+                g_debug ("Deleting same compose output for same sequence.");
+            g_print ("{");
+            for (i = 0; compose_data_a->values[i]; i++)
+                g_print ("U+%X, ", compose_data_a->values[i]);
+            g_print ("}");
+            g_print (" {");
+            for (i = 0; compose_data_b->values[i]; i++)
+                g_print ("U+%X, ", compose_data_b->values[i]);
+            g_print ("}\n");
+            removed_list = g_list_append (removed_list, compose_data_a);
+        }
+    }
+    for (list = removed_list; list != NULL; list = list->next) {
+        compose_data_a = list->data;
+        compose_list = g_list_remove (compose_list, compose_data_a);
+        ibus_compose_data_free (compose_data_a);
+    }
+
+    g_list_free (removed_list);
+    return compose_list;
 }
 
 
@@ -1470,13 +1523,17 @@ ibus_compose_table_new_with_file (const gchar *compose_file,
     if (compose_list == NULL)
         return NULL;
     n_index_stride = max_compose_len + 2;
-    compose_list = ibus_compose_list_check_duplicated (compose_list,
-                                                       max_compose_len,
-                                                       compose_tables);
+    compose_list = ibus_compose_list_check_duplicated_with_en (compose_list,
+                                                               max_compose_len,
+                                                               compose_tables);
     compose_list = g_list_sort_with_data (
             compose_list,
             (GCompareDataFunc) ibus_compose_data_compare,
             GINT_TO_POINTER (max_compose_len));
+
+    compose_list = ibus_compose_list_check_duplicated_with_own (
+            compose_list,
+            max_compose_len);
 
     if (compose_list == NULL) {
         g_warning ("compose file %s does not include any keys besides keys "

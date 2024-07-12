@@ -371,8 +371,15 @@ ibus_engine_simple_update_preedit_text (IBusEngineSimple *simple)
                     }
                 } else {
                     ch = ibus_keyval_to_unicode (keysym);
-                    if (ch)
+                    if (ch) {
                         g_string_append_unichar(s, ch);
+                    /* Can send Unicode char as keysym with <Uxxxx> format
+                     * in comopse sequences and should not warn this case.
+                     */
+                    } else if (g_unichar_validate (keysym)) {
+                        ch = keysym;
+                        g_string_append_unichar(s, ch);
+                    }
                 }
                 if (!ch) {
                     g_warning (

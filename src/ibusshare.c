@@ -301,6 +301,10 @@ ibus_free_strv (gchar **strv)
 void
 ibus_init (void)
 {
+    static gboolean inited = FALSE;
+    if (inited)
+        return;
+
 #if !GLIB_CHECK_VERSION(2,35,0)
     g_type_init ();
 #endif
@@ -311,6 +315,7 @@ ibus_init (void)
     IBUS_TYPE_COMPONENT;
     IBUS_TYPE_EMOJI_DATA;
     IBUS_TYPE_ENGINE_DESC;
+    IBUS_TYPE_EXTENSION_EVENT;
     IBUS_TYPE_LOOKUP_TABLE;
     IBUS_TYPE_OBSERVED_PATH;
     IBUS_TYPE_REGISTRY;
@@ -318,6 +323,7 @@ ibus_init (void)
     IBUS_TYPE_UNICODE_BLOCK;
     IBUS_TYPE_UNICODE_DATA;
     _ibus_register_resource ();
+    inited = TRUE;
 }
 
 static GMainLoop *main_loop = NULL;
