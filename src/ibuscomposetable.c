@@ -849,7 +849,7 @@ compose_data_to_variant (gconstpointer compose_data,
     g_assert (compose_data);
     if (error)
         *error = NULL;
-    if ((index_stride * n_seqs) > G_MAXUINT64) {
+    if (n_seqs == 0 || index_stride > (G_MAXSIZE / n_seqs)) {
         if (error) {
             g_set_error (error, IBUS_ERROR, IBUS_ERROR_FAILED,
                          "Length %u x %lu is too long",
@@ -1404,6 +1404,7 @@ ibus_compose_table_new_with_list (GList   *compose_list,
                         (G_MAXSIZE / sizeof (guint16)))) {
             g_warning ("Too long allocation %lu x %u",
                        s_size_total - s_size_16bit, n_index_stride);
+            g_free (ibus_compose_seqs);
             return NULL;
         }
         rawdata = (gpointer)g_new (
@@ -1416,6 +1417,8 @@ ibus_compose_table_new_with_list (GList   *compose_list,
                        s_size_total - s_size_16bit,
                        n_index_stride,
                        v_size_32bit);
+            g_free (ibus_compose_seqs);
+            g_free (rawdata);
             return NULL;
         }
         if (G_LIKELY (rawdata)) {
@@ -1432,6 +1435,7 @@ ibus_compose_table_new_with_list (GList   *compose_list,
         }
         if (!ibus_compose_seqs_32bit_first || !ibus_compose_seqs_32bit_second) {
             g_warning ("Failed g_new");
+            g_free (ibus_compose_seqs);
             g_free (rawdata);
             return NULL;
         }

@@ -1986,7 +1986,8 @@ _ibus_set_global_shortcut_keys (BusIBusImpl     *ibus,
         }
         ibus->ime_switcher_keys = keys;
         break;
-    default:;
+    default:
+        g_slice_free1 (sizeof (IBusProcessKeyEventData) * (size + 1), keys);
     }
     return TRUE;
 }
