@@ -2,7 +2,7 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2015 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2015-2019 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2008-2017 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -111,7 +111,10 @@ static const guint16 IBUS_COMPOSE_IGNORE_KEYLIST[] = {
     IBUS_KEY_Hyper_L,
     IBUS_KEY_Hyper_R,
     IBUS_KEY_Mode_switch,
-    IBUS_KEY_ISO_Level3_Shift
+    IBUS_KEY_ISO_Level3_Shift,
+    IBUS_KEY_ISO_Level3_Lock,
+    IBUS_KEY_ISO_Level5_Shift,
+    IBUS_KEY_ISO_Level5_Lock
 };
 
 GType   ibus_engine_simple_get_type       (void);
