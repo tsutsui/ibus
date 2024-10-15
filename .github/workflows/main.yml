@@ -263,15 +263,18 @@ jobs:
           prepare: |
             ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xbase.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
             ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xcomp.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
+            # default python version since pkgsrc-2024Q3
+            export PYPKGPREFIX=py312
             # netbsd-vm has installed pkgsrc glib2 so explicitly update it
             pkg_add -u glib2
             pkg_add -u pkgconf autoconf automake libtool-base intltool gmake
             pkg_add -u cldr-emoji-annotation unicode-character-database unicode-emoji
-            pkg_add -u py311-gobject3 dconf gettext-tools gobject-introspection gettext-lib hicolor-icon-theme vala dbus libnotify iso-codes gtk2+ gtk3+
+            pkg_add -u ${PYPKGPREFIX}-gobject3 dconf gettext-tools gobject-introspection gettext-lib hicolor-icon-theme vala dbus libnotify iso-codes gtk2+ gtk3+
             pkg_add -u glib2-tools gtk-doc gdbus-codegen git-base
             git config --global --add safe.directory $GITHUB_WORKSPACE
 
           run: >
+            export PYVERSSUFFIX=3.12;
             MAKE=gmake
             MSGFMT=/usr/pkg/bin/msgfmt
             LDFLAGS='-L/usr/pkg/lib -Wl,-R/usr/pkg/lib -L/usr/lib -Wl,-R/usr/lib -L/usr/X11R7/lib -Wl,-R/usr/X11R7/lib'
@@ -286,7 +289,7 @@ jobs:
             --enable-introspection=yes
             --disable-systemd-services
             --disable-appindicator
-            --with-python=/usr/pkg/bin/python3.11
+            --with-python=/usr/pkg/bin/python${PYVERSSUFFIX}
             --with-unicode-emoji-dir=/usr/pkg/share/unicode/emoji
             --with-emoji-annotation-dir=/usr/pkg/share/unicode/cldr/common/annotations
             --with-ucd-dir=/usr/pkg/share/unicode/ucd
@@ -320,7 +323,7 @@ jobs:
             --enable-introspection=yes
             --disable-systemd-services
             --disable-appindicator
-            --with-python=/usr/pkg/bin/python3.11
+            --with-python=/usr/pkg/bin/python${PYVERSSUFFIX}
             --with-unicode-emoji-dir=/usr/pkg/share/unicode/emoji
             --with-emoji-annotation-dir=/usr/pkg/share/unicode/cldr/common/annotations
             --with-ucd-dir=/usr/pkg/share/unicode/ucd
