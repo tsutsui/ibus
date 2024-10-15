@@ -512,24 +512,27 @@ AM_CONDITIONAL([ENABLE_DAEMON], [true])
 
 PYGOBJECT_REQUIRED=3.0.0
 
+# Define Python overrides dir.
 # When IBus is built with the Json files in test directory, the build
-# tries to install IBus.py file into pyoverridesdir
-# but the directory is readonly with `flatpak-builder`
-AC_ARG_ENABLE(pygobject,
-    AS_HELP_STRING([--disable-pygobject],
-                   [Disable pygobject.]),
-    [enable_pygobject=$enableval],
-    [enable_pygobject=yes]
+# tries to install IBus.py file into pyoverridesdir.
+# The default GI directory is /usr in Flatpak but the directory is readonly
+# with `flatpak-builder` and the Flatpak specific GI files are installed in
+# /app GI directory.
+AC_ARG_WITH(python-overrides-dir,
+    AS_HELP_STRING([--with-python-overrides-dir[=DIR]],
+        [Select Python overrides dir]),
+    pyoverridesdir=$with_python_overrides_dir
 )
 
-if test "x$enable_pygobject" = "xyes"; then
-    PKG_CHECK_EXISTS([pygobject-3.0 >= $PYGOBJECT_REQUIRED],
-                     [enable_pygobject=yes], [enable_pygobject=no])
-fi
+PKG_CHECK_EXISTS([pygobject-3.0 >= $PYGOBJECT_REQUIRED],
+                 [enable_pygobject=yes], [enable_pygobject=no])
+
 if test "x$enable_pygobject" = "xyes"; then
     PKG_CHECK_MODULES(PYTHON, [pygobject-3.0 >= $PYGOBJECT_REQUIRED])
 
-    pyoverridesdir=`$PYTHON -c "import gi; print(gi._overridesdir)"`
+    if test x"$pyoverridesdir" = x""; then
+        pyoverridesdir=`$PYTHON -c "import gi; print(gi._overridesdir)"`
+    fi
     AC_SUBST(pyoverridesdir)
 
     if test x"$enable_python2" = x"yes"; then
@@ -935,6 +938,7 @@ Build options:
   CFLAGS                        $CFLAGS
   PYTHON                        $PYTHON
   PYTHON2                       $PYTHON2
+  Python overrides dir          $pyoverridesdir
   Enable python2                $enable_python2
   Gtk2 immodule dir             $GTK2_IM_MODULEDIR
   Gtk3 immodule dir             $GTK3_IM_MODULEDIR
