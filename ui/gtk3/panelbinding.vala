@@ -3,7 +3,7 @@
  * ibus - The Input Bus
  *
  * Copyright(c) 2018 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2018-2021 Takao Fujwiara <takao.fujiwara1@gmail.com>
+ * Copyright(c) 2018-2024 Takao Fujwiara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -217,6 +217,7 @@ class PanelBinding : IBus.PanelService {
     private IBusEmojier? m_emojier;
     private uint m_emojier_set_emoji_lang_id;
     private uint m_emojier_focus_commit_text_id;
+    private uint m_emojier_focus_emoji_category_id;
     private string[] m_emojier_favorites = {};
     private Gtk.CssProvider m_css_provider;
     private const uint PRELOAD_ENGINES_DELAY_TIME = 30000;
@@ -912,8 +913,14 @@ class PanelBinding : IBus.PanelService {
                 true);
         string params = event.get_params();
         if (params == "category-list") {
-            key_press_space();
-            show_preedit_and_candidate(true);
+            if (m_emojier_focus_emoji_category_id > 0)
+                return;
+            m_emojier_focus_emoji_category_id =
+                    GLib.Timeout.add_seconds(1, () => {
+                        info("Timeout to show Emoji category list.");
+                        show_category_list_real();
+                        return false;
+                    });
         }
     }
 
@@ -962,6 +969,15 @@ class PanelBinding : IBus.PanelService {
         if (m_is_wayland && m_preedit.get_text() == "")
             return;
         show_preedit_and_candidate(false);
+
+        /* Clicking on "Emoji Choice" will call ibus_engine_simple_focus_out()
+         * -> PanelBinding.hide_preedit_text() with IBusEngineSimple but not
+         * other engines.
+         */
+        if (m_emojier_focus_emoji_category_id > 0) {
+            GLib.Source.remove(m_emojier_focus_emoji_category_id);
+            show_category_list_real();
+        }
     }
 
 
@@ -1126,6 +1142,12 @@ class PanelBinding : IBus.PanelService {
     public override void cursor_down_lookup_table() {
         bool show_candidate = key_press_cursor_horizontal(Gdk.Key.Right, 0);
         show_preedit_and_candidate(show_candidate);
+    }
+
+    private void show_category_list_real() {
+                key_press_space();
+                show_preedit_and_candidate(true);
+                m_emojier_focus_emoji_category_id = 0;
     }
 
     private void candidate_clicked_lookup_table_real(uint index,
