@@ -3,7 +3,7 @@
     <name>org.freedesktop.IBus.Simple</name>
     <description>A table based simple engine</description>
     <exec>@libexecdir@/ibus-engine-simple</exec>
-    <version>1.5.30-beta1.20240228</version>
+    <version>1.5.31-rc1.20241022</version>
     <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
     <license>GPL</license>
     <homepage>https://github.com/ibus/ibus/wiki</homepage>
@@ -894,6 +894,17 @@
         <engine>
             <name>xkb:dz::fra</name>
             <language>fr</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>dz</layout>
+            <longname>Berber (Algeria, Latin)</longname>
+            <description>Berber (Algeria, Latin)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>50</rank>
+        </engine>
+        <engine>
+            <name>xkb:dz::kab</name>
+            <language>kab</language>
             <license>GPL</license>
             <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
             <layout>dz</layout>
@@ -4621,6 +4632,30 @@
             <layout_variant>dvorak</layout_variant>
             <longname>French (Dvorak)</longname>
             <description>French (Dvorak)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:fr:ergol:fra</name>
+            <language>fr</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>fr</layout>
+            <layout_variant>ergol</layout_variant>
+            <longname>French (Ergo‑L)</longname>
+            <description>French (Ergo‑L)</description>
+            <icon>ibus-keyboard</icon>
+            <rank>1</rank>
+        </engine>
+        <engine>
+            <name>xkb:fr:ergol_iso:fra</name>
+            <language>fr</language>
+            <license>GPL</license>
+            <author>Peng Huang &lt;shawn.p.huang@gmail.com&gt;</author>
+            <layout>fr</layout>
+            <layout_variant>ergol_iso</layout_variant>
+            <longname>French (Ergo‑L, ISO variant)</longname>
+            <description>French (Ergo‑L, ISO variant)</description>
             <icon>ibus-keyboard</icon>
             <rank>1</rank>
         </engine>
