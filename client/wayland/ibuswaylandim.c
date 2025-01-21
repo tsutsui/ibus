@@ -161,6 +161,7 @@ struct _IBusWaylandKeyEvent
     int count;
     guint count_cb_id;
     guint repeat_rate_id;
+    char *ibus_object_path;
     gboolean retval;
 };
 typedef struct _IBusWaylandKeyEvent IBusWaylandKeyEvent;
@@ -1312,6 +1313,12 @@ _process_key_event_repeat_rate_cb (gpointer user_data)
         event->repeat_rate_id = 0;
         return G_SOURCE_REMOVE;
     }
+    if (g_strcmp0 (event->ibus_object_path,
+                   g_dbus_proxy_get_object_path (
+                           G_DBUS_PROXY (priv->ibuscontext)))) {
+        event->repeat_rate_id = 0;
+        return G_SOURCE_REMOVE;
+    }
     switch (_use_sync_mode) {
     case 1:
         _process_key_event_sync (wlim, event);
@@ -1347,6 +1354,14 @@ _process_key_event_repeat_delay_cb (gpointer user_data)
     /* The key release event was sent to non-Wayland apps likes xterm. */
     if (!priv->ibuscontext) {
         event->count_cb_id = 0;
+        return G_SOURCE_REMOVE;
+    }
+    /* The focus is changed. */
+    if (g_strcmp0 (event->ibus_object_path,
+                   g_dbus_proxy_get_object_path (
+                           G_DBUS_PROXY (priv->ibuscontext)))) {
+        event->count_cb_id = 0;
+        g_clear_pointer (&event->ibus_object_path, g_free);
         return G_SOURCE_REMOVE;
     }
 
@@ -1400,6 +1415,9 @@ key_event_check_repeat (IBusWaylandIM       *wlim,
             g_source_remove (repeating_event.count_cb_id);
             repeating_event.count_cb_id = 0;
         }
+        g_clear_pointer (&repeating_event.ibus_object_path, g_free);
+        if (!priv->ibuscontext)
+            return FALSE;
         source = g_timeout_source_new (priv->repeat_delay);
         g_source_attach (source, NULL);
         g_source_unref (source);
@@ -1407,6 +1425,9 @@ key_event_check_repeat (IBusWaylandIM       *wlim,
         memcpy (&repeating_event, event, sizeof (IBusWaylandKeyEvent));
         repeating_event.count_cb_id = g_source_get_id (source);
         repeating_event.count = 0;
+        repeating_event.ibus_object_path =
+                       g_strdup (g_dbus_proxy_get_object_path (
+                               G_DBUS_PROXY (priv->ibuscontext)));
         g_source_set_callback (source, _process_key_event_repeat_delay_cb,
                                &repeating_event, NULL);
     } else {
@@ -1418,6 +1439,7 @@ key_event_check_repeat (IBusWaylandIM       *wlim,
             g_source_remove (repeating_event.count_cb_id);
             repeating_event.count_cb_id = 0;
         }
+        g_clear_pointer (&repeating_event.ibus_object_path, g_free);
     }
     return TRUE;
 }

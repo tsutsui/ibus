@@ -87,6 +87,7 @@ name_appeared_handler(GLib.DBusConnection connection,
     loop = null;
 }
 
+
 private void
 kde_virtual_keyboard_avail_cb(GLib.DBusConnection connection,
                               string?             sender_name,
@@ -258,7 +259,7 @@ bool start_daemon_in_wayland(bool     restart,
                              string[] _argv) {
 
     check_wayland_protocols();
-    if (!is_wayland_session) {
+    if (!is_wayland_session && verbose) {
         stderr.printf("Cannot find the Wayland input-method protocol.\n");
         return false;
     }
@@ -317,6 +318,7 @@ bool start_daemon_in_wayland(bool     restart,
     return true;
 }
 #endif
+
 
 bool
 start_daemon_with_dbus_systemd(GLib.DBusConnection connection,
