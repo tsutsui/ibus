@@ -2,6 +2,7 @@
  
          Copyright 1994, 1995 by Sun Microsystems, Inc.
          Copyright 1993, 1994 by Hewlett-Packard Company
+         Copyright (C) 2014-2025 Red Hat, Inc.
  
 Permission to use, copy, modify, distribute, and sell this software
 and its documentation for any purpose is hereby granted without fee,
@@ -89,7 +90,7 @@ TransportSW _TransR[] =
 #ifdef DNETCONN
     {"decnet",          6, _Xi18nCheckTransAddress},
 #endif
-    {(char *) NULL,     0, (Bool (*) ()) NULL}
+    {(char *) NULL,     0, (Bool (*) (Xi18n, TransportSW *, char *))NULL}
 };
 
 static Bool GetInputStyles (Xi18n i18n_core, XIMStyles **p_style)
