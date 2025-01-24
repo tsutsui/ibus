@@ -501,7 +501,7 @@ check_hex (IBusEngineSimple *simple,
 }
 
 static IBusEngineDict *
-load_emoji_dict ()
+load_emoji_dict (void)
 {
     IBusEngineDict *emoji_dict;
     GList *keys;
@@ -544,7 +544,7 @@ check_emoji_table (IBusEngineSimple       *simple,
         g_object_ref_sink (priv->lookup_table);
     }
     if (emoji_dict == NULL)
-        emoji_dict = priv->emoji_dict = load_emoji_dict (simple);
+        emoji_dict = priv->emoji_dict = load_emoji_dict ();
 
     if (emoji_dict == NULL || emoji_dict->dict == NULL)
         return FALSE;

@@ -1362,7 +1362,7 @@ ibus_compose_table_new_with_list (GList   *compose_list,
     gsize s_size_total, s_size_16bit, v_size_32bit, v_index_32bit;
     guint n = 0, m = 0;
     int i, j;
-    gpointer rawdata;
+    gpointer rawdata = NULL;
     guint16 *ibus_compose_seqs = NULL;
     guint16 *ibus_compose_seqs_32bit_first = NULL;
     guint32 *ibus_compose_seqs_32bit_second = NULL;
