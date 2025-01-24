@@ -2,8 +2,8 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2013 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2013-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
- * Copyright (C) 2008-2024 Red Hat, Inc.
+ * Copyright (C) 2013-2025 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2008-2025 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -916,7 +916,7 @@
 #define IBUS_KEY_Macedonia_gje 0x6a2
 #define IBUS_KEY_Cyrillic_io 0x6a3
 #define IBUS_KEY_Ukrainian_ie 0x6a4
-#define IBUS_KEY_Ukranian_ie 0x6a4 /* deprecated */
+#define IBUS_KEY_Ukranian_je 0x6a4 /* deprecated */
 #define IBUS_KEY_Macedonia_dse 0x6a5
 #define IBUS_KEY_Ukrainian_i 0x6a6
 #define IBUS_KEY_Ukranian_i 0x6a6 /* deprecated */
