@@ -95,6 +95,7 @@ struct _IBusEngineSimpleClass {
     gpointer pdummy[8];
 };
 
+/* common with invalid_accelerator_vals[]. */
 static const guint16 IBUS_COMPOSE_IGNORE_KEYLIST[] = {
     IBUS_KEY_Shift_L, IBUS_KEY_Shift_R,
     IBUS_KEY_Control_L, IBUS_KEY_Control_R,
@@ -103,7 +104,6 @@ static const guint16 IBUS_COMPOSE_IGNORE_KEYLIST[] = {
     IBUS_KEY_Alt_L, IBUS_KEY_Alt_R,
     IBUS_KEY_Super_L, IBUS_KEY_Super_R,
     IBUS_KEY_Hyper_L, IBUS_KEY_Hyper_R,
-    IBUS_KEY_Mode_switch,
     IBUS_KEY_ISO_Level2_Latch,
     IBUS_KEY_ISO_Level3_Latch, IBUS_KEY_ISO_Level3_Lock,
     IBUS_KEY_ISO_Level3_Shift,
@@ -114,8 +114,8 @@ static const guint16 IBUS_COMPOSE_IGNORE_KEYLIST[] = {
     IBUS_KEY_ISO_Next_Group, IBUS_KEY_ISO_Next_Group_Lock,
     IBUS_KEY_ISO_Prev_Group, IBUS_KEY_ISO_Prev_Group_Lock,
     IBUS_KEY_ISO_First_Group, IBUS_KEY_ISO_First_Group_Lock,
-    IBUS_KEY_ISO_Last_Group,
-    IBUS_KEY_ISO_Last_Group_Lock
+    IBUS_KEY_ISO_Last_Group, IBUS_KEY_ISO_Last_Group_Lock,
+    IBUS_KEY_Overlay1_Enable, IBUS_KEY_Overlay2_Enable
 };
 
 GType   ibus_engine_simple_get_type       (void);

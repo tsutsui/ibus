@@ -184,31 +184,6 @@ static char _use_sync_mode = 1;
 
 static guint wayland_im_signals[LAST_SIGNAL] = { 0 };
 
-static const guint repeat_ignore[] = {
-  0,
-  IBUS_KEY_Overlay1_Enable,
-  IBUS_KEY_Overlay2_Enable,
-  IBUS_KEY_Shift_L,
-  IBUS_KEY_Shift_R,
-  IBUS_KEY_Control_L,
-  IBUS_KEY_Control_R,
-  IBUS_KEY_Caps_Lock,
-  IBUS_KEY_Shift_Lock,
-  IBUS_KEY_Meta_L,
-  IBUS_KEY_Meta_R,
-  IBUS_KEY_Alt_L,
-  IBUS_KEY_Alt_R,
-  IBUS_KEY_Super_L,
-  IBUS_KEY_Super_R,
-  IBUS_KEY_Hyper_L,
-  IBUS_KEY_Hyper_R,
-  IBUS_KEY_Mode_switch,
-  IBUS_KEY_ISO_Level3_Shift,
-  IBUS_KEY_ISO_Level3_Latch,
-  IBUS_KEY_ISO_Level5_Shift,
-  IBUS_KEY_ISO_Level5_Latch
-};
-
 static void         input_method_deactivate
                               (void                               *data,
                                struct zwp_input_method_union      *input_method,
@@ -1395,13 +1370,18 @@ key_event_check_repeat (IBusWaylandIM       *wlim,
 {
     IBusWaylandIMPrivate *priv;
     int i;
+    const guint16 *repeat_ignore = IBUS_COMPOSE_IGNORE_KEYLIST;
+    int repeat_ignore_length = G_N_ELEMENTS (IBUS_COMPOSE_IGNORE_KEYLIST);
     GSource *source;
     static IBusWaylandKeyEvent repeating_event = { 0, };
 
     g_return_val_if_fail (IBUS_IS_WAYLAND_IM (wlim), FALSE);
     priv = ibus_wayland_im_get_instance_private (wlim);
-    for (i = 0; i < G_N_ELEMENTS (repeat_ignore); i++) {
-        if (event->sym == repeat_ignore[i])
+    if G_UNLIKELY (!event->sym)
+        return FALSE;
+    /* FIXME: Should consider if xkb_keymap_key_repeats() is better. */
+    for (i = 0; i < repeat_ignore_length; i++) {
+        if (event->sym == (uint32_t)repeat_ignore[i])
             return FALSE;
     }
 
