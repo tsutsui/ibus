@@ -4,7 +4,7 @@
  *
  * Copyright(c) 2014 Red Hat, Inc.
  * Copyright(c) 2014 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright(c) 2014-2024 Takao Fujiwara <tfujiwar@redhat.com>
+ * Copyright(c) 2014-2025 Takao Fujiwara <tfujiwar@redhat.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -62,7 +62,8 @@ class XKBLayout
 
         layout = "";
         variant = "";
-        option = "";
+        var o = Environment.get_variable("XKB_DEFAULT_OPTIONS");
+        option = o != null ? o : "";
 
         try {
             GLib.Process.spawn_sync(null,
@@ -115,9 +116,6 @@ class XKBLayout
                                             out string layout,
                                             out string variant,
                                             out string option) {
-        layout = "";
-        variant = "";
-        option = "";
         foreach (string line in standard_output.split("\n")) {
             const string[] elements = { "X11 Layout:", "X11 Variant:" };
             foreach (unowned string element in elements) {
@@ -141,9 +139,6 @@ class XKBLayout
                                         out string layout,
                                         out string variant,
                                         out string option) {
-        layout = "";
-        variant = "";
-        option = "";
         foreach (string line in standard_output.split("\n")) {
             const string[] elements = { "layout:", "variant:", "options:" };
             foreach (unowned string element in elements) {

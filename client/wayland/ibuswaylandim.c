@@ -128,6 +128,7 @@ struct _IBusWaylandIMPrivate
 
     struct xkb_keymap *keymap;
     struct xkb_state *state;
+    struct xkb_state *state_system;
 
     xkb_mod_mask_t shift_mask;
     xkb_mod_mask_t lock_mask;
@@ -816,7 +817,7 @@ create_user_xkb_keymap (struct xkb_context *xkb_context,
         return NULL;
     names.layout = layout;
     names.variant = ibus_engine_desc_get_layout_variant (desc);
-    names.options = "";
+    names.options = g_getenv ("XKB_DEFAULT_OPTIONS");
     return xkb_keymap_new_from_names (xkb_context, &names, 0);
 }
 
@@ -946,6 +947,8 @@ input_method_keyboard_keymap (void                      *data,
     keymap = create_system_xkb_keymap (priv->xkb_context, format, fd, size);
     if (keymap && !ibus_wayland_im_update_xkb_state (wlim, keymap))
         xkb_keymap_unref (keymap);
+    if (priv->state)
+        priv->state_system = xkb_state_ref (priv->state);
 }
 
 
@@ -1459,8 +1462,12 @@ input_method_keyboard_key (void                      *data,
     event.key = key;
     event.state = state;
     code = key + 8;
+    event.sym = 0;
     /* xkb_key_get_syms() does not return the capital syms with Shift key. */
-    event.sym = xkb_state_key_get_one_sym (priv->state, code);
+    if (priv->state_system)
+        event.sym = xkb_state_key_get_one_sym (priv->state_system, code);
+    if (event.sym != IBUS_KEY_Multi_key)
+        event.sym = xkb_state_key_get_one_sym (priv->state, code);
     event.modifiers = priv->modifiers;
     if (state == WL_KEYBOARD_KEY_STATE_RELEASED)
         event.modifiers |= IBUS_RELEASE_MASK;
@@ -1839,8 +1846,7 @@ input_method_deactivate (void                               *data,
     if (priv->cancellable) {
         /* Cancel any ongoing create input context request.  */
         g_cancellable_cancel (priv->cancellable);
-        g_object_unref (priv->cancellable);
-        priv->cancellable = NULL;
+        g_clear_object (&priv->cancellable);
     }
 
 
@@ -1876,16 +1882,14 @@ input_method_deactivate (void                               *data,
                        object_path);
     }
 
-    if (priv->preedit_text) {
-        g_object_unref (priv->preedit_text);
-        priv->preedit_text = NULL;
-    }
+    if (priv->preedit_text)
+        g_clear_object (&priv->preedit_text);
 
     switch (priv->version) {
     case INPUT_METHOD_V1:
         if (priv->context) {
-            zwp_input_method_context_v1_destroy (priv->context);
-            priv->context = NULL;
+            g_clear_pointer (&priv->context,
+                             zwp_input_method_context_v1_destroy);
         }
         break;
     case INPUT_METHOD_V2:
