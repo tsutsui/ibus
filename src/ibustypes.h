@@ -344,7 +344,7 @@ typedef enum
  * IBUS_MODIFIER_FILTER:
  *
  * This is a filter for shortcut keys.
- * Since: 1.5.00
+ * Since: 1.5.32
  */
 #define IBUS_MODIFIER_FILTER                    \
        (IBUS_MODIFIER_MASK & ~(                 \

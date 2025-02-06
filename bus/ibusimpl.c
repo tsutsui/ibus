@@ -244,7 +244,7 @@ static const gchar introspection_xml[] =
     "      <arg type='u' name='state' />\n"
     "      <arg type='b' name='backward' />\n"
     "      <annotation name='org.gtk.GDBus.Since'\n"
-    "          value='1.5.00' />\n"
+    "          value='1.5.32' />\n"
     "      <annotation name='org.gtk.GDBus.DocString'\n"
     "          value='Stability: Unstable' />\n"
     "    </signal>\n"

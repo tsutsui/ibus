@@ -248,7 +248,7 @@ ibus_bus_class_init (IBusBusClass *class)
      * @is_backward: %TRUE if the backward key is pressed.
      *
      * Emitted when global shortcut key is responded.
-     * Since 1.5.00
+     * Since 1.5.32
      *
      */
     bus_signals[GLOBAL_SHORTCUT_KEY_RESPONDED] =
