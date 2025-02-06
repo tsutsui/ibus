@@ -1485,15 +1485,20 @@ class Panel : IBus.PanelService {
 
             string copyright =
                 "Copyright © 2007-2015 Peng Huang\n" +
-                "Copyright © 2015-2022 Takao Fujiwara\n" +
-                "Copyright © 2007-2015 Red Hat, Inc.\n";
+                "Copyright © 2015-2025 Takao Fujiwara\n" +
+                "Copyright © 2007-2025 Red Hat, Inc.\n";
 
             m_about_dialog.set_copyright(copyright);
-            m_about_dialog.set_license("LGPL");
+            m_about_dialog.set_license_type(Gtk.License.LGPL_2_1);
             m_about_dialog.set_comments(_("IBus is an intelligent input bus for Linux/Unix."));
             m_about_dialog.set_website("https://github.com/ibus/ibus/wiki");
-            m_about_dialog.set_authors({"Peng Huang <shawn.p.huang@gmail.com>"});
-            m_about_dialog.set_documenters({"Peng Huang <shawn.p.huang@gmail.com>"});
+            m_about_dialog.set_authors(
+                    {"Peng Huang <shawn.p.huang@gmail.com>"});
+            m_about_dialog.add_credit_section(
+                    _("Maintainers"),
+                    {"Takao Fujiwara <takao.fujiwara1@gmail.com>"});
+            m_about_dialog.set_documenters(
+                    {"Takao Fujiwara <takao.fujiwara1@gmail.com>"});
             m_about_dialog.set_translator_credits(_("translator-credits"));
             m_about_dialog.set_logo_icon_name("ibus");
             m_about_dialog.set_icon_name("ibus");
