@@ -235,7 +235,7 @@ jobs:
           DESTDIR="$HOME/build/$USER/dest"
 
   build-netbsd:
-    name: "build (NetBSD/amd64 10.0 with pkgsrc)"
+    name: "build (NetBSD/amd64 10.1 with pkgsrc)"
     runs-on: ubuntu-latest
 
     steps:
@@ -257,7 +257,7 @@ jobs:
       - name: Install packages and run autogen and make (on the NetBSD VM)
         uses: vmactions/netbsd-vm@v1
         with:
-          release: "10.0"
+          release: "10.1"
           copyback: false
           # Check https://github.com/NetBSD/pkgsrc/blob/trunk/inputmethod/ibus/Makefile to check dependencies
           prepare: |
