@@ -259,8 +259,9 @@ bool start_daemon_in_wayland(bool     restart,
                              string[] _argv) {
 
     check_wayland_protocols();
-    if (!is_wayland_session && verbose) {
-        stderr.printf("Cannot find the Wayland input-method protocol.\n");
+    if (!is_wayland_session) {
+        if (verbose)
+            stderr.printf("Cannot find the Wayland input-method protocol.\n");
         return false;
     }
 
