@@ -436,7 +436,8 @@ public class CandidatePanel : Gtk.Box{
 
     public new void hide() {
 #if USE_GDK_WAYLAND
-        realize_surface(null);
+        if (!BindingCommon.default_is_xdisplay())
+            realize_surface(null);
 #endif
         m_toplevel.hide();
     }

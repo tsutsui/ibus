@@ -101,12 +101,14 @@ class Application {
         if (m_log != null)
             m_panel.set_log(m_log, m_verbose);
 #if USE_GDK_WAYLAND
-        m_realize_surface_id = m_panel.realize_surface.connect(
-                (w, s) => this.set_wayland_surface(s));
-        m_ibus_focus_in_id = m_wayland_im.ibus_focus_in.connect(
-                (w, o) => m_panel.set_wayland_object_path(o));
-        m_ibus_focus_out_id = m_wayland_im.ibus_focus_out.connect(
-                (w, o) => m_panel.set_wayland_object_path(null));
+        if (m_wayland_im != null) {
+            m_realize_surface_id = m_panel.realize_surface.connect(
+                    (w, s) => this.set_wayland_surface(s));
+            m_ibus_focus_in_id = m_wayland_im.ibus_focus_in.connect(
+                    (w, o) => m_panel.set_wayland_object_path(o));
+            m_ibus_focus_out_id = m_wayland_im.ibus_focus_out.connect(
+                    (w, o) => m_panel.set_wayland_object_path(null));
+        }
 #endif
         m_panel.load_settings();
     }
