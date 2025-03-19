@@ -834,35 +834,35 @@ typedef struct {
 static void
 engine_proxy_new_data_free (EngineProxyNewData *data)
 {
-    if (data->task != NULL) {
-        g_object_unref (data->task);
-    }
+    if (data->task != NULL)
+        g_clear_object (&data->task);
 
-    if (data->desc != NULL) {
-        g_object_unref (data->desc);
-    }
+    if (data->desc != NULL)
+        g_clear_object (&data->desc);
 
     if (data->component != NULL) {
         if (data->handler_id != 0) {
             g_signal_handler_disconnect (data->component, data->handler_id);
+            data->handler_id = 0;
         }
-        g_object_unref (data->component);
+        g_clear_object (&data->component);
     }
 
-    if (data->factory != NULL) {
-        g_object_unref (data->factory);
-    }
+    if (data->factory != NULL)
+        g_clear_object (&data->factory);
 
     if (data->timeout_id != 0) {
         g_source_remove (data->timeout_id);
+        data->timeout_id = 0;
     }
 
     if (data->cancellable != NULL) {
         if (data->cancelled_handler_id != 0) {
             g_cancellable_disconnect (data->cancellable,
                                       data->cancelled_handler_id);
+            data->cancelled_handler_id = 0;
         }
-        g_object_unref (data->cancellable);
+        g_clear_object (&data->cancellable);
     }
 
     g_slice_free (EngineProxyNewData, data);
