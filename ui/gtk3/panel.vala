@@ -1524,25 +1524,21 @@ class Panel : IBus.PanelService {
             string[] _args = {};
             _args += binary;
             _args += args;
-            if (args == "exit" || args == "restart")
-                _args += "--type=kde-wayland";
-            string? standard_out = null;
-            string? standard_error = null;
+            // FIXME: stdout & stderr causes a dead lock with `ibus restart`
+            // in Wayland input-method V2.
             GLib.Process.spawn_sync(null,
                                     _args,
                                     GLib.Environ.get(),
-                                    0,
+                                    GLib.SpawnFlags.SEARCH_PATH_FROM_ENVP,
                                     null,
-                                    out standard_out,
-                                    out standard_error,
+                                    null,
+                                    null,
                                     null);
-            if (standard_out != null)
-                print(standard_out);
-            if (standard_error != null)
-                warning("Execute %s failed! %s", binary, standard_error);
         } catch (GLib.SpawnError e) {
             warning("Execute %s failed! %s", binary, e.message);
         }
+        IBus.quit();
+        Gtk.main_quit();
     }
 
     private void append_preferences_menu(Gtk.Menu menu) {

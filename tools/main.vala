@@ -277,6 +277,7 @@ bool start_daemon_in_wayland(bool     restart,
                           "directly.\n");
         }
         bus = null;
+        Posix.sleep(3);
     } else if (bus != null) {
         stderr.printf("%s\n".printf(_("IBus is running.")));
         Posix.exit(Posix.EXIT_FAILURE);
