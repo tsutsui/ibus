@@ -79,7 +79,12 @@ ibus_observed_path_init (IBusObservedPath *path)
 static void
 ibus_observed_path_destroy (IBusObservedPath *path)
 {
+    IBusObservedPathPrivate *priv;
     g_free (path->path);
+    if (IBUS_IS_OBSERVED_PATH (path)) {
+        priv = IBUS_OBSERVED_PATH_GET_PRIVATE (path);
+        g_clear_pointer (&priv->file_hash_list, g_free);
+    }
     IBUS_OBJECT_CLASS (ibus_observed_path_parent_class)->destroy (IBUS_OBJECT (path));
 }
 
@@ -349,6 +354,8 @@ ibus_observed_path_traverse (IBusObservedPath *path,
                                    ibus_observed_path_traverse (sub, dir_only));
         } else if (sub->is_exist && !dir_only) {
             paths = g_list_append (paths, sub);
+        } else {
+            g_object_unref (sub);
         }
     }
     g_dir_close (dir);
@@ -513,7 +520,7 @@ ibus_observed_path_new (const gchar *path,
         priv->file_hash_list[i + 1] = 0;
         ++i;
     }
-    g_list_free_full (file_list, (GDestroyNotify)ibus_observed_path_destroy);
+    g_list_free_full (file_list, (GDestroyNotify)g_object_unref);
 
     if (fill_stat)
         ibus_observed_path_fill_stat (op);
