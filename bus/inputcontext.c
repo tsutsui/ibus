@@ -2,8 +2,8 @@
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
  * Copyright (C) 2008-2014 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2015-2024 Takao Fujiwara <takao.fujiwara1@gmail.com>
- * Copyright (C) 2008-2024 Red Hat, Inc.
+ * Copyright (C) 2015-2025 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2008-2025 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -3564,5 +3564,7 @@ bus_input_context_forward_process_key_event (BusInputContext *context,
                 (GAsyncReadyCallback)
                         _forward_process_key_event_reply_cb,
                 data);
+    } else {
+        g_slice_free (ProcessKeyEventData, data);
     }
 }
