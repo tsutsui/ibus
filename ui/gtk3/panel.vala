@@ -926,12 +926,11 @@ class Panel : IBus.PanelService {
             var format =
                     _("IBus should be called from the desktop session in " +
                       "%s. For KDE, you can launch '%s' " +
-                      "utility and go to \"Input Devices\" -> " +
-                      "\"Virtual Keyboard\" section and select " +
+                      "utility and go to \"Input & Output\" -> \"Keyboard\" " +
+                      "-> \"Virtual Keyboard\" section and select " +
                       "\"%s\" icon and click \"Apply\" button to " +
                       "configure IBus in %s. For other desktop " +
-                      "sessions, you can copy the 'Exec=' line in %s file " +
-                      "to a configuration file of the session. " +
+                      "sessions, you can run \"%s\" command. " +
                       "Please refer each document about the \"Wayland " +
                       "input method\" configuration. Before you configure " +
                       "the \"Wayland input method\", you should make sure " +
@@ -939,10 +938,10 @@ class Panel : IBus.PanelService {
                       "variables are unset in the desktop session.");
                 message = format.printf(
                         "Wayland",
-                        "systemsettings5",
+                        "systemsettings",
                         "IBus Wayland",
                         "Wayland",
-                        "org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop");
+                        "ibus start");
         } else if (m_is_wayland && m_is_wayland_im && !is_gnome()) {
             if (Environment.get_variable("QT_IM_MODULE") == "ibus") {
                 var format =
