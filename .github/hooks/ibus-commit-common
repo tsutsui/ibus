@@ -85,6 +85,7 @@ check_commit_id()
     ID=$1
     case "$ID" in
     # Ignore old invalid IDs.
+    38ba099) return;;
     39b6907) return;;
     7bbcce6) return;;
     esac
