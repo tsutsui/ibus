@@ -1707,11 +1707,12 @@ ibus_panel_service_panel_extension_register_keys (IBusPanelService   *panel,
         for (; keys; keys++) {
             if (keys->keyval == 0 && keys->keycode == 0 && keys->state == 0)
                 break;
-            g_variant_builder_add (&child, "v",
-                                   g_variant_new ("(iii)",
-                                                  keys->keyval,
-                                                  keys->keycode, 
-                                                  keys->state));
+            g_variant_builder_open (&child, G_VARIANT_TYPE_VARIANT);
+            g_variant_builder_add_value (&child, g_variant_new ("(iii)",
+                                                                keys->keyval,
+                                                                keys->keycode,
+                                                                keys->state));
+            g_variant_builder_close (&child);
         }
         g_variant_builder_add (&builder, "{sv}",
                                g_strdup (name), g_variant_builder_end (&child));

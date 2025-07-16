@@ -380,9 +380,11 @@ static void
 variant_foreach_add_unicode (IBusUnicodeData *unicode,
                              GVariantBuilder *builder)
 {
-    g_variant_builder_add (
-            builder, "v",
+    g_variant_builder_open (builder, G_VARIANT_TYPE_VARIANT);
+    g_variant_builder_add_value (
+            builder,
             ibus_serializable_serialize (IBUS_SERIALIZABLE (unicode)));
+    g_variant_builder_close (builder);
 }
 
 static GVariant *
@@ -909,9 +911,11 @@ static void
 variant_foreach_add_block (IBusUnicodeBlock *block,
                            GVariantBuilder *builder)
 {
-    g_variant_builder_add (
-            builder, "v",
+    g_variant_builder_open (builder, G_VARIANT_TYPE_VARIANT);
+    g_variant_builder_add_value (
+            builder,
             ibus_serializable_serialize (IBUS_SERIALIZABLE (block)));
+    g_variant_builder_close (builder);
 }
 
 static GVariant *

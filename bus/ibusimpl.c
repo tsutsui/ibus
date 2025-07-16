@@ -1436,9 +1436,15 @@ _ibus_get_engines (BusIBusImpl     *ibus,
     engines = g_hash_table_get_values (ibus->engine_table);
 
     for (p = engines; p != NULL; p = p->next) {
-        g_variant_builder_add (
-                &builder, "v",
+        /* Replaced g_variant_builder_add() with g_variant_builder_open() &
+         * g_variant_builder_close() to avoid creating temporary objects during
+         * serialization.
+         */
+        g_variant_builder_open (&builder, G_VARIANT_TYPE_VARIANT);
+        g_variant_builder_add_value (
+                &builder,
                 ibus_serializable_serialize ((IBusSerializable *) p->data));
+        g_variant_builder_close (&builder);
     }
 
     g_list_free (engines);
@@ -1490,10 +1496,11 @@ _ibus_get_engines_by_names (BusIBusImpl           *ibus,
                 ibus->engine_table, names[i++]);
         if (desc == NULL)
             continue;
-        g_variant_builder_add (
+        g_variant_builder_open (&builder, G_VARIANT_TYPE_VARIANT);
+        g_variant_builder_add_value (
                 &builder,
-                "v",
                 ibus_serializable_serialize ((IBusSerializable *)desc));
+        g_variant_builder_close (&builder);
     }
     g_dbus_method_invocation_return_value (invocation,
                                            g_variant_new ("(av)", &builder));
@@ -1517,9 +1524,11 @@ _ibus_get_active_engines (BusIBusImpl     *ibus,
     g_variant_builder_init (&builder, G_VARIANT_TYPE ("av"));
 
     for (p = ibus->register_engine_list; p != NULL; p = p->next) {
-        g_variant_builder_add (
-                &builder, "v",
+        g_variant_builder_open (&builder, G_VARIANT_TYPE_VARIANT);
+        g_variant_builder_add_value (
+                &builder,
                 ibus_serializable_serialize ((IBusSerializable *) p->data));
+        g_variant_builder_close (&builder);
     }
 
     retval = g_variant_builder_end (&builder);

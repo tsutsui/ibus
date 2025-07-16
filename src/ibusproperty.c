@@ -371,19 +371,35 @@ ibus_property_serialize (IBusProperty    *prop,
 
     g_variant_builder_add (builder, "s", prop->priv->key);
     g_variant_builder_add (builder, "u", prop->priv->type);
-    g_variant_builder_add (builder, "v",
-            ibus_serializable_serialize ((IBusSerializable *)prop->priv->label));
+    g_variant_builder_open (builder, G_VARIANT_TYPE_VARIANT);
+    g_variant_builder_add_value (
+            builder,
+            ibus_serializable_serialize (
+            (IBusSerializable *)prop->priv->label));
+    g_variant_builder_close (builder);
     g_variant_builder_add (builder, "s", prop->priv->icon);
-    g_variant_builder_add (builder, "v",
-            ibus_serializable_serialize ((IBusSerializable *)prop->priv->tooltip));
+    g_variant_builder_open (builder, G_VARIANT_TYPE_VARIANT);
+    g_variant_builder_add_value (
+            builder,
+            ibus_serializable_serialize (
+            (IBusSerializable *)prop->priv->tooltip));
+    g_variant_builder_close (builder);
     g_variant_builder_add (builder, "b", prop->priv->sensitive);
     g_variant_builder_add (builder, "b", prop->priv->visible);
     g_variant_builder_add (builder, "u", prop->priv->state);
-    g_variant_builder_add (builder, "v",
-            ibus_serializable_serialize ((IBusSerializable *)prop->priv->sub_props));
+    g_variant_builder_open (builder, G_VARIANT_TYPE_VARIANT);
+    g_variant_builder_add_value (
+            builder,
+            ibus_serializable_serialize (
+            (IBusSerializable *)prop->priv->sub_props));
+    g_variant_builder_close (builder);
     /* Keep the serialized order for the compatibility when add new members. */
-    g_variant_builder_add (builder, "v",
-            ibus_serializable_serialize ((IBusSerializable *)prop->priv->symbol));
+    g_variant_builder_open (builder, G_VARIANT_TYPE_VARIANT);
+    g_variant_builder_add_value (
+            builder,
+            ibus_serializable_serialize (
+            (IBusSerializable *)prop->priv->symbol));
+    g_variant_builder_close (builder);
 
     return TRUE;
 }

@@ -92,7 +92,11 @@ ibus_attr_list_serialize (IBusAttrList    *attr_list,
         attr = ibus_attr_list_get (attr_list, i);
         if (attr == NULL)
             break;
-        g_variant_builder_add (&array, "v", ibus_serializable_serialize ((IBusSerializable *)attr));
+        g_variant_builder_open (&array, G_VARIANT_TYPE_VARIANT);
+        g_variant_builder_add_value (
+                &array,
+                ibus_serializable_serialize ((IBusSerializable *)attr));
+        g_variant_builder_close (&array);
     }
     g_variant_builder_add (builder, "av", &array);
 

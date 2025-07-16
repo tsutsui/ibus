@@ -88,7 +88,15 @@ ibus_text_serialize (IBusText        *text,
         text->attrs = ibus_attr_list_new ();
         g_object_ref_sink (text->attrs);
     }
-    g_variant_builder_add (builder, "v", ibus_serializable_serialize ((IBusSerializable *)text->attrs));
+    /* Replaced g_variant_builder_add() with g_variant_builder_open() &
+     * g_variant_builder_close() to avoid creating temporary objects during
+     * serialization.
+     */
+    g_variant_builder_open (builder, G_VARIANT_TYPE_VARIANT);
+    g_variant_builder_add_value (
+            builder,
+            ibus_serializable_serialize ((IBusSerializable *)text->attrs));
+    g_variant_builder_close (builder);
 
     return TRUE;
 }

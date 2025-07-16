@@ -363,7 +363,11 @@ ibus_component_serialize (IBusComponent   *component,
     /* serialize observed paths */
     array = g_variant_builder_new (G_VARIANT_TYPE ("av"));
     for (p = component->priv->observed_paths; p != NULL; p = p->next) {
-        g_variant_builder_add (array, "v", ibus_serializable_serialize ((IBusSerializable *)p->data));
+        g_variant_builder_open (array, G_VARIANT_TYPE_VARIANT);
+        g_variant_builder_add_value (
+                array,
+                ibus_serializable_serialize ((IBusSerializable *)p->data));
+        g_variant_builder_close (array);
     }
     g_variant_builder_add (builder, "av", array);
     g_variant_builder_unref (array);
@@ -371,7 +375,11 @@ ibus_component_serialize (IBusComponent   *component,
     /* serialize engine desc list */
     array = g_variant_builder_new (G_VARIANT_TYPE ("av"));
     for (p = component->priv->engines; p != NULL; p = p->next) {
-        g_variant_builder_add (array, "v", ibus_serializable_serialize ((IBusSerializable *)p->data));
+        g_variant_builder_open (array, G_VARIANT_TYPE_VARIANT);
+        g_variant_builder_add_value (
+                array,
+                ibus_serializable_serialize ((IBusSerializable *)p->data));
+        g_variant_builder_close (array);
     }
     g_variant_builder_add (builder, "av", array);
     g_variant_builder_unref (array);

@@ -374,9 +374,11 @@ static void
 variant_foreach_add_emoji (IBusEmojiData   *emoji,
                            GVariantBuilder *builder)
 {
-    g_variant_builder_add (
-            builder, "v",
+    g_variant_builder_open (builder, G_VARIANT_TYPE_VARIANT);
+    g_variant_builder_add_value (
+            builder,
             ibus_serializable_serialize (IBUS_SERIALIZABLE (emoji)));
+    g_variant_builder_close (builder);
 }
 
 static GVariant *

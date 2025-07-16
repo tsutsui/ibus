@@ -158,9 +158,11 @@ ibus_registry_serialize (IBusRegistry    *registry,
     array = g_variant_builder_new (G_VARIANT_TYPE ("av"));
     for (p = registry->priv->observed_paths; p != NULL; p = p->next) {
         IBusSerializable *serializable = (IBusSerializable *) p->data;
-        g_variant_builder_add (array,
-                               "v",
-                               ibus_serializable_serialize (serializable));
+        g_variant_builder_open (array, G_VARIANT_TYPE_VARIANT);
+        g_variant_builder_add_value (
+                array,
+                ibus_serializable_serialize (serializable));
+        g_variant_builder_close (array);
     }
     g_variant_builder_add (builder, "av", array);
     g_variant_builder_unref (array);
@@ -168,9 +170,11 @@ ibus_registry_serialize (IBusRegistry    *registry,
     array = g_variant_builder_new (G_VARIANT_TYPE ("av"));
     for (p = registry->priv->components; p != NULL; p = p->next) {
         IBusSerializable *serializable = (IBusSerializable *) p->data;
-        g_variant_builder_add (array,
-                               "v",
-                               ibus_serializable_serialize (serializable));
+        g_variant_builder_open (array, G_VARIANT_TYPE_VARIANT);
+        g_variant_builder_add_value (
+                array,
+                ibus_serializable_serialize (serializable));
+        g_variant_builder_close (array);
     }
     g_variant_builder_add (builder, "av", array);
     g_variant_builder_unref (array);
