@@ -832,6 +832,14 @@ _socket_changed_cb (GFileMonitor       *monitor,
         break;
     case G_FILE_MONITOR_EVENT_CREATED:
         g_debug ("IBus socket file is created");
+        call_next_async_function ();
+        data->exited = TRUE;
+        g_signal_handlers_disconnect_by_func (monitor,
+                                              G_CALLBACK (_socket_changed_cb),
+                                              data);
+        if (data->timeout_id)
+            g_source_remove (data->timeout_id);
+        g_object_unref (monitor);
         break;
     case G_FILE_MONITOR_EVENT_DELETED:
         g_debug ("IBus socket file is deleted");
