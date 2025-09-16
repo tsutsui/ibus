@@ -12,15 +12,15 @@
 # noriko <noriko@redhat.com>, 2013
 # UTUMI Hirosi <utuhiro78@yahoo.co.jp>, 2008
 # carrotsoft <www.carrotsoft@gmail.com>, 2012
-# fujiwara <takao.fujiwara1@gmail.com>, 2015-2019. #zanata
+# fujiwarat <takao.fujiwara1@gmail.com>, 2015-2025
 # simmon <simmon@nplob.com>, 2021.
 # 김인수 <simmon@nplob.com>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: ibus 1.5.20\n"
 "Report-Msgid-Bugs-To: https://github.com/ibus/ibus/issues\n"
-"POT-Creation-Date: 2025-02-03 10:57+0900\n"
-"PO-Revision-Date: 2025-02-03 10:15+0900\n"
+"POT-Creation-Date: 2025-06-01 21:56+0900\n"
+"PO-Revision-Date: 2025-09-16 15:06+0900\n"
 "Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
 "memory@weblate.org>\n"
 "Language-Team: Japanese <https://translate.fedoraproject.org/projects/ibus/"
@@ -496,7 +496,7 @@ msgstr "OK(_O)"
 msgid "More…"
 msgstr "さらに…"
 
-#: setup/engineabout.py:37 setup/setup.ui:1465 ui/gtk3/panel.vala:1590
+#: setup/engineabout.py:37 setup/setup.ui:1465 ui/gtk3/panel.vala:1674
 msgid "About"
 msgstr "情報"
 
@@ -537,11 +537,11 @@ msgstr "追加(_A)"
 msgid "Input Method"
 msgstr "入力メソッド"
 
-#: setup/ibus-setup.desktop:3 setup/setup.ui:81
+#: setup/ibus-setup.desktop:2 setup/setup.ui:81
 msgid "IBus Preferences"
 msgstr "IBus の設定"
 
-#: setup/ibus-setup.desktop:4
+#: setup/ibus-setup.desktop:3
 msgid "Set IBus Preferences"
 msgstr "IBus を設定します"
 
@@ -898,6 +898,50 @@ msgstr "<b>フォントとテーマ</b>"
 msgid "Advanced"
 msgstr "詳細"
 
+#: src/ibuscomposetable.c:1780
+#, c-format
+msgid ""
+"Since IBus 1.5.33, Compose files replace the builtin\n"
+"compose sequences. To keep them and add your own\n"
+"sequences on top, the line:\n"
+"\n"
+"  include \"%%L\"\n"
+"\n"
+"has been added to the Compose file:\n"
+"%s.\n"
+msgstr ""
+"IBus 1.5.33 以降、コンポウズファイルは組み込まれた\n"
+"コンポウズ入力項に変更されました。以前の動作を引き続き\n"
+"有効にして、あなたが定義した入力項を優先させるために、\n"
+"次の行:\n"
+"\n"
+"  include \"%%L\"\n"
+"\n"
+"が下記のコンポウズファイルに追加されました:\n"
+"%s\n"
+
+#: src/ibuscomposetable.c:1801
+#, c-format
+msgid ""
+"Since IBus 1.5.33, Compose files replace the builtin\n"
+"compose sequences. To keep them and add your own\n"
+"sequences on top, you need to add the line:\n"
+"\n"
+"  include \"%%L\"\n"
+"\n"
+"to the Compose file:\n"
+"%s."
+msgstr ""
+"IBus 1.5.33 以降、コンポウズファイルは組み込まれた\n"
+"コンポウズ入力項に変更されました。以前の動作を引き続き\n"
+"有効にして、あなたが定義した入力項を優先させるためには、\n"
+"次の行:\n"
+"\n"
+"  include \"%%L\"\n"
+"\n"
+"を下記のコンポウズファイルに追加する必要があります:\n"
+"%s"
+
 #: src/ibusemojigen.h:30
 msgid "Activities"
 msgstr "活動"
@@ -937,6 +981,26 @@ msgstr "記号"
 #: src/ibusemojigen.h:39
 msgid "Travel & Places"
 msgstr "旅行と場所"
+
+#: src/ibusenginesimple.c:263
+msgid "Detect unregistered character in your compose sequence"
+msgstr "コンポウズ入力項に登録されていない文字を検出しました"
+
+#: src/ibusenginesimple.c:264
+msgid ""
+"The character you just input is not recognized as a valid part of the "
+"currently active compose sequence and the character was cancelled. Try "
+"inputting the correct character to the compose sequence again, or press "
+"Escape key to terminate whole the compose sequence."
+msgstr ""
+"あなたが直前に入力した文字は現在有効であるコンポウズ入力項の妥当な候補として"
+"認識されていないので、その入力文字は取り消されました。再度、コンポウズ入力項"
+"に正しい文字を入力するか、もしくはコンポウズ入力項全体を終了するために "
+"Escape キーを入力することを試みてください。"
+
+#: src/ibusenginesimple.c:276
+msgid "Compose file update"
+msgstr "コンポウズファイル更新"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2539,13 +2603,12 @@ msgstr "フダーワーディー文字"
 msgid "Grantha"
 msgstr "グランタ文字"
 
-# FIXME: トゥル and what is Tigalari?
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:945
 msgid "Tulu-Tigalari"
-msgstr ""
+msgstr "トゥル-ティガラリ文字"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2667,13 +2730,12 @@ msgstr "パウ・チン・ハウ文字"
 msgid "Devanagari Extended-A"
 msgstr "デーヴァナーガリー文字拡張 A"
 
-# FIXME: スヌワール文字 or スヌアール文字
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1017
 msgid "Sunuwar"
-msgstr ""
+msgstr "スヌワール文字"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2787,13 +2849,12 @@ msgstr "ヒエログリフ文字拡張 A"
 msgid "Anatolian Hieroglyphs"
 msgstr "アナトリア・ヒエログリフ"
 
-# FIXME: グルン・と ケーマ or ケマ
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1085
 msgid "Gurung Khema"
-msgstr ""
+msgstr "グルン・ケーマ文字"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -2809,13 +2870,12 @@ msgstr "バムン文字補助"
 msgid "Mro"
 msgstr "ムロ文字"
 
-#  FIXME: タングサ文字 or タンサ文字 in インド
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1097
 msgid "Tangsa"
-msgstr ""
+msgstr "タンサ文字"
 
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
@@ -3056,13 +3116,12 @@ msgstr "トト文字"
 msgid "Wancho"
 msgstr "ワンチョ文字"
 
-# FIXME: ナーグ・ムンダーリー文字 or ナーグ・ムンダリ文字
 #. TRANSLATORS: You might refer the translations from gucharmap with
 #. the following command:
 #. msgmerge -C gucharmap.po ibus.po ibus.pot
 #: src/ibusunicodegen.h:1237
 msgid "Nag Mundari"
-msgstr ""
+msgstr "ナーグ・ムンダリ文字"
 
 # FIXME: オル・と オナイ or オナル
 #. TRANSLATORS: You might refer the translations from gucharmap with
@@ -3324,37 +3383,37 @@ msgstr ""
 "im-module TYPE を \"gtk2\"、\"gtk3\" もしくは \"gtk4\" に設定する。デフォルト"
 "は \"gtk3\"。"
 
-#: tools/main.vala:270 tools/main.vala:437 tools/main.vala:753
-#: tools/main.vala:833
+#: tools/main.vala:271 tools/main.vala:462 tools/main.vala:778
+#: tools/main.vala:887
 msgid "Can't connect to IBus.\n"
 msgstr "IBus に接続できません。\n"
 
-#: tools/main.vala:280 tools/main.vala:762
+#: tools/main.vala:282 tools/main.vala:787
 msgid "IBus is running."
 msgstr "IBus は実行中です。"
 
-#: tools/main.vala:421
+#: tools/main.vala:446
 msgid "List engine name only"
 msgstr "エンジン名のみ表示"
 
-#: tools/main.vala:463
+#: tools/main.vala:488
 #, c-format
 msgid "language: %s\n"
 msgstr "言語: %s\n"
 
-#: tools/main.vala:533
+#: tools/main.vala:558
 msgid "No engine is set.\n"
 msgstr "エンジンが設定されていません。\n"
 
-#: tools/main.vala:541
+#: tools/main.vala:566
 msgid "Set global engine failed.\n"
 msgstr "グローバルエンジンの設定に失敗しました。\n"
 
-#: tools/main.vala:546
+#: tools/main.vala:571
 msgid "Get global engine failed.\n"
 msgstr "グローバルエンジンの取得に失敗しました。\n"
 
-#: tools/main.vala:684
+#: tools/main.vala:709
 msgid ""
 "Start or restart daemon with \"direct\", \"systemd\", \"kde-wayland\" or "
 "\"wayland\" TYPE."
@@ -3362,39 +3421,39 @@ msgstr ""
 "\"direct\"、\"systemd\"、\"kde-wayland\" もしくは \"wayland\" TYPE でデーモン"
 "を起動または再起動する。"
 
-#: tools/main.vala:688
+#: tools/main.vala:713
 msgid "Start or restart daemon with SYSTEMD_SERVICE file."
 msgstr "SYSTEMD_SERVICE ファイルでデーモンを起動または再起動する。"
 
-#: tools/main.vala:691 tools/main.vala:802
+#: tools/main.vala:716 tools/main.vala:856
 msgid "Show debug messages."
 msgstr "デバッグメッセージを表示する。"
 
-#: tools/main.vala:798
+#: tools/main.vala:852
 msgid "Exit daemon with \"direct\" or \"kde-wayland\" TYPE."
 msgstr "\"direct\" もしくは \"kde-wayland\" TYPE でデーモンを終了する。"
 
-#: tools/main.vala:850
+#: tools/main.vala:908
 msgid "Read the system registry cache."
 msgstr "システムレジストリーキャッシュを読み込みます。"
 
-#: tools/main.vala:852
+#: tools/main.vala:910
 msgid "Read the registry cache FILE."
 msgstr "レジストリーキャッシュ FILE を読み込みます。"
 
-#: tools/main.vala:870 tools/main.vala:875
+#: tools/main.vala:928 tools/main.vala:933
 msgid "The registry cache is invalid.\n"
 msgstr "レジストリーキャッシュは無効です。\n"
 
-#: tools/main.vala:891
+#: tools/main.vala:949
 msgid "Write the system registry cache."
 msgstr "システムレジストリーキャッシュを書き込みます。"
 
-#: tools/main.vala:893
+#: tools/main.vala:951
 msgid "Write the registry cache FILE."
 msgstr "レジストリーキャッシュ FILE を書き込みます。"
 
-#: tools/main.vala:931
+#: tools/main.vala:989
 msgid ""
 "Use engine schema paths instead of ibus core, which can be comma-separated "
 "values."
@@ -3402,75 +3461,75 @@ msgstr ""
 "ibus コアの代わりにエンジンのスキーマパスを使用し、コンマで区切られた値が可能"
 "です。"
 
-#: tools/main.vala:1020
+#: tools/main.vala:1078
 msgid "Resetting…"
 msgstr "初期化中…"
 
-#: tools/main.vala:1038
+#: tools/main.vala:1096
 msgid "Done"
 msgstr "完了"
 
-#: tools/main.vala:1096
+#: tools/main.vala:1154
 msgid "Set or get engine"
 msgstr "エンジンを設定もしくは表示する"
 
-#: tools/main.vala:1097
+#: tools/main.vala:1155
 msgid "Exit ibus-daemon"
 msgstr "ibus-daemon を終了する"
 
-#: tools/main.vala:1098
+#: tools/main.vala:1156
 msgid "Show available engines"
 msgstr "利用可能なエンジンを表示する"
 
-#: tools/main.vala:1099
+#: tools/main.vala:1157
 msgid "(Not implemented)"
 msgstr "(実装されていません)"
 
-#: tools/main.vala:1100
+#: tools/main.vala:1158
 msgid "Restart ibus-daemon"
 msgstr "ibus-daemon を再起動する"
 
-#: tools/main.vala:1101
+#: tools/main.vala:1159
 msgid "Start ibus-daemon"
 msgstr "ibus-daemon を起動する"
 
-#: tools/main.vala:1102 ui/gtk3/application.vala:334
+#: tools/main.vala:1160 ui/gtk3/application.vala:336
 msgid "Show version"
 msgstr "バージョンを表示する"
 
-#: tools/main.vala:1103
+#: tools/main.vala:1161
 msgid "Show the content of registry cache"
 msgstr "レジストリーキャッシュの内容を表示する"
 
-#: tools/main.vala:1104
+#: tools/main.vala:1162
 msgid "Create registry cache"
 msgstr "レジストリーキャッシュを作成する"
 
-#: tools/main.vala:1105
+#: tools/main.vala:1163
 msgid "Print the D-Bus address of ibus-daemon"
 msgstr "ibus-daemon の D-Bus アドレスを表示する"
 
-#: tools/main.vala:1106
+#: tools/main.vala:1164
 msgid "Show the configuration values"
 msgstr "設定値を表示する"
 
-#: tools/main.vala:1107
+#: tools/main.vala:1165
 msgid "Reset the configuration values"
 msgstr "設定値を初期化する"
 
-#: tools/main.vala:1109
+#: tools/main.vala:1167
 msgid "Save emoji on dialog to clipboard"
 msgstr "ダイアログ上の絵文字をクリップボードに保存する"
 
-#: tools/main.vala:1111
+#: tools/main.vala:1169
 msgid "Retrieve im-module value from GTK instance"
 msgstr "GTK インスタンスから im-module 値を読み出す"
 
-#: tools/main.vala:1113
+#: tools/main.vala:1171
 msgid "Show this information"
 msgstr "この情報を表示する"
 
-#: tools/main.vala:1120
+#: tools/main.vala:1178
 #, c-format
 msgid ""
 "Usage: %s COMMAND [OPTION...]\n"
@@ -3479,118 +3538,123 @@ msgstr ""
 "使い方: %s コマンド [オプション...]\n"
 "\n"
 
-#: tools/main.vala:1121
+#: tools/main.vala:1179
 msgid "Commands:\n"
 msgstr "コマンド:\n"
 
-#: tools/main.vala:1151
+#: tools/main.vala:1209
 #, c-format
 msgid "%s is unknown command!\n"
 msgstr "%s は不明なコマンドです。\n"
 
-#: ui/gtk3/application.vala:339
+#: ui/gtk3/application.vala:341
 msgid "Connect Wayland input method protocol"
 msgstr "Wayland 入力メソッドプロトコルに接続する"
 
-#: ui/gtk3/application.vala:343
+#: ui/gtk3/application.vala:345
 msgid "Execute ibus-daemon if it's not running"
 msgstr "起動していなければ、ibus-daemon を実行する"
 
-#: ui/gtk3/application.vala:347
+#: ui/gtk3/application.vala:349
 msgid "ibus-daemon's arguments"
 msgstr "ibus-daemon の引数"
 
-#: ui/gtk3/application.vala:351
+#: ui/gtk3/application.vala:353
 msgid "Verbose logging"
 msgstr "詳細のログを取る"
 
-#: ui/gtk3/emojier.vala:235
+#: ui/gtk3/emojier.vala:276
 msgid "Favorites"
 msgstr "お気に入り"
 
-#: ui/gtk3/emojier.vala:236
+#: ui/gtk3/emojier.vala:277
 msgid "Others"
 msgstr "その他"
 
-#: ui/gtk3/emojier.vala:237
+#: ui/gtk3/emojier.vala:278
 msgid "Open Unicode choice"
 msgstr "Unicode の選択を開く"
 
-#: ui/gtk3/emojier.vala:1000
+#: ui/gtk3/emojier.vala:1063
 msgid "Bring back emoji choice"
 msgstr "絵文字の選択に戻る"
 
-#: ui/gtk3/emojier.vala:1103
+#: ui/gtk3/emojier.vala:1166
 msgid "Page Down"
 msgstr "ページをめくる"
 
-#: ui/gtk3/emojier.vala:1114
+#: ui/gtk3/emojier.vala:1177
 msgid "Page Up"
 msgstr "ページを戻す"
 
-#: ui/gtk3/emojier.vala:1117
+#: ui/gtk3/emojier.vala:1180
 msgid "Show emoji variants"
 msgstr "絵文字異形を表示する"
 
-#: ui/gtk3/emojier.vala:1118
+#: ui/gtk3/emojier.vala:1181
 msgid "Close"
 msgstr "閉じる"
 
-#: ui/gtk3/emojier.vala:1124
+#: ui/gtk3/emojier.vala:1187
 msgid "Menu"
 msgstr "メニュー"
 
-#: ui/gtk3/emojier.vala:1135
+#: ui/gtk3/emojier.vala:1198
 msgid "Click to view a warning message"
 msgstr "警告メッセージを閲覧するためにクリックしてください"
 
-#: ui/gtk3/emojier.vala:1179
+#: ui/gtk3/emojier.vala:1242 ui/gtk3/emojier.vala:1277
+#: ui/gtk3/emojier.vala:2284
 msgid "Loading a Unicode dictionary:"
 msgstr "Unicode の辞書を読み込んでいます:"
 
-#: ui/gtk3/emojier.vala:1425
+#: ui/gtk3/emojier.vala:1276
+msgid "IBus Emoji initialization"
+msgstr "IBus 絵文字通知"
+
+#: ui/gtk3/emojier.vala:1538
 #, c-format
 msgid "Code point: %s"
 msgstr "コードポイント: %s"
 
-#: ui/gtk3/emojier.vala:1431
+#: ui/gtk3/emojier.vala:1544
 msgid "Has emoji variants"
 msgstr "絵文字異形あり"
 
-#: ui/gtk3/emojier.vala:1599 ui/gtk3/emojier.vala:1612
+#: ui/gtk3/emojier.vala:1708 ui/gtk3/emojier.vala:1721
 #, c-format
 msgid "Description: %s"
 msgstr "説明: %s"
 
-#: ui/gtk3/emojier.vala:1599
+#: ui/gtk3/emojier.vala:1708
 msgid "None"
 msgstr "なし"
 
-#: ui/gtk3/emojier.vala:1623
+#: ui/gtk3/emojier.vala:1732
 #, c-format
 msgid "Annotations: %s"
 msgstr "ルビ: %s"
 
-#: ui/gtk3/emojier.vala:1649
+#: ui/gtk3/emojier.vala:1758
 #, c-format
 msgid "Name: %s"
 msgstr "名前: %s"
 
-#: ui/gtk3/emojier.vala:1657
+#: ui/gtk3/emojier.vala:1766
 #, c-format
 msgid "Alias: %s"
 msgstr "別名: %s"
 
-#: ui/gtk3/emojier.vala:2180 ui/gtk3/ibus-extension-gtk3.desktop.in:3
-#: ui/gtk3/ibus-ui-emojier.desktop.in:3 ui/gtk3/panel.vala:1551
+#: ui/gtk3/emojier.vala:2289 ui/gtk3/ibus-extension-gtk3.desktop.in:2
+#: ui/gtk3/ibus-ui-emojier.desktop.in:2 ui/gtk3/panel.vala:1633
 msgid "Emoji Choice"
 msgstr "絵文字の選択"
 
-#: ui/gtk3/emojier.vala:2182
+#: ui/gtk3/emojier.vala:2291
 msgid "Unicode Choice"
 msgstr "Unicode の選択"
 
-#: ui/gtk3/emojier.vala:2484
+#: ui/gtk3/emojier.vala:2580
 msgid ""
 "Failed to get the current text application. Please re-focus your "
 "application. E.g. Press Esc key several times to release the emoji typing "
@@ -3643,11 +3707,11 @@ msgstr "指定した数字をもつ長さで一致させる"
 msgid "Match with the condition of the specified integer"
 msgstr "指定した数字の条件で一致させる"
 
-#: ui/gtk3/panel.vala:420 ui/gtk3/panel.vala:443
+#: ui/gtk3/panel.vala:441 ui/gtk3/panel.vala:464
 msgid "IBus Panel"
 msgstr "IBus パネル"
 
-#: ui/gtk3/panel.vala:421
+#: ui/gtk3/panel.vala:442
 msgid ""
 "You can toggle the activate menu and context one with clicking the mouse "
 "middle button on the panel icon."
@@ -3655,28 +3719,28 @@ msgstr ""
 "パネルアイコン上でマウスの中ボタンをクリックすることで、動作メニューと状況メ"
 "ニューを切り替えることが可能です。"
 
-#: ui/gtk3/panel.vala:921
+#: ui/gtk3/panel.vala:1008
 #, c-format
 msgid ""
 "IBus should be called from the desktop session in %s. For KDE, you can "
-"launch '%s' utility and go to \"Input Devices\" -> \"Virtual Keyboard\" "
-"section and select \"%s\" icon and click \"Apply\" button to configure IBus "
-"in %s. For other desktop sessions, you can copy the 'Exec=' line in %s file "
-"to a configuration file of the session. Please refer each document about the "
-"\"Wayland input method\" configuration. Before you configure the \"Wayland "
-"input method\", you should make sure that QT_IM_MODULE and GTK_IM_MODULE "
-"environment variables are unset in the desktop session."
+"launch '%s' utility and go to \"Input & Output\" -> \"Keyboard\" -> "
+"\"Virtual Keyboard\" section and select \"%s\" icon and click \"Apply\" "
+"button to configure IBus in %s. For other desktop sessions, you can run "
+"\"%s\" command. Please refer each document about the \"Wayland input "
+"method\" configuration. Before you configure the \"Wayland input method\", "
+"you should make sure that QT_IM_MODULE and GTK_IM_MODULE environment "
+"variables are unset in the desktop session."
 msgstr ""
 "IBus は %s におけるデスクトップセッションから呼ばれるべきです。KDE で"
-"は、'%s' を起動し、「入力デバイス」->「仮想キーボード」セクションにいき、"
-"「%s」アイコンを選択し「適用」ボタンをクリックすることで、%s における IBus を"
-"構成することが可能です。他のデスクトップセッションでは、%s ファイルの中で "
-"'Exec=' の行をセッションの構成ファイルにコピーできます。「Wayland 入力メソッ"
-"ド」構成について、それぞれのドキュメントを参考にしてください。「Wayland 入力"
-"メソッド」を構成する前に、デスクトップセッション内で QT_IM_MODULE と "
-"GTK_IM_MODULE の環境変数は未定義であることを確認してください。"
+"は、'%s' を起動し、「入力/出力デバイス」->「キーボード」->「仮想キーボード」"
+"セクションにいき、「%s」アイコンを選択し「適用」ボタンをクリックすることで、"
+"%s における IBus を構成することが可能です。他のデスクトップセッションでは、"
+"「%s」コマンドを実行できます。「Wayland 入力メソッド」構成について、それぞれ"
+"のドキュメントを参考にしてください。「Wayland 入力メソッド」を構成する前に、"
+"デスクトップセッション内で QT_IM_MODULE と GTK_IM_MODULE の環境変数は未定義で"
+"あることを確認してください。"
 
-#: ui/gtk3/panel.vala:943
+#: ui/gtk3/panel.vala:1029
 #, c-format
 msgid ""
 "Please unset QT_IM_MODULE and GTK_IM_MODULE environment variables and 'ibus-"
@@ -3687,7 +3751,7 @@ msgstr ""
 "daemon --panel disable' は %s コンポーネントの子プロセスとして起動されるべき"
 "です。"
 
-#: ui/gtk3/panel.vala:952
+#: ui/gtk3/panel.vala:1038
 #, c-format
 msgid ""
 "Seems you run %s with '--enable-wayland-im' option but your display server "
@@ -3698,11 +3762,11 @@ msgstr ""
 "サーバーは Xorg なので Wayland 機能は無効になりました。代わりに、ibus-daemon "
 "を直接実行するか、そのオプション無しで %s を実行してみてください。"
 
-#: ui/gtk3/panel.vala:968
+#: ui/gtk3/panel.vala:1054
 msgid "IBus Notification"
 msgstr "IBus 通知"
 
-#: ui/gtk3/panel.vala:1327
+#: ui/gtk3/panel.vala:1413
 #, c-format
 msgid ""
 "Your configured input method %s does not exist in IBus input methods so "
@@ -3711,14 +3775,14 @@ msgstr ""
 "構成された入力メソッド %s は IBus 入力メソッドに存在しないので、\"US\" レイア"
 "ウトがあなたの入力メソッドの代わりに構成されました。"
 
-#: ui/gtk3/panel.vala:1332
+#: ui/gtk3/panel.vala:1418
 msgid ""
 "At least one of your configured input methods does not exist in IBus input "
 "methods."
 msgstr ""
 "構成された入力メソッドの少なくとも１つが IBus 入力メソッドに存在しません。"
 
-#: ui/gtk3/panel.vala:1335
+#: ui/gtk3/panel.vala:1421
 msgid ""
 "Please run `ibus-setup` command, open \"Input Method\" tab, and configure "
 "your input methods again."
@@ -3726,15 +3790,15 @@ msgstr ""
 "`ibus-setup` をコマンドを実行して、\"入力メソッド\" タブを開いて、入力メソッ"
 "ドを再度構成してください。"
 
-#: ui/gtk3/panel.vala:1493
+#: ui/gtk3/panel.vala:1579
 msgid "IBus is an intelligent input bus for Linux/Unix."
 msgstr "IBus は Linux/Unix のためのインテリジェントな入出力バスです。"
 
-#: ui/gtk3/panel.vala:1498
+#: ui/gtk3/panel.vala:1584
 msgid "Maintainers"
 msgstr "保守管理者"
 
-#: ui/gtk3/panel.vala:1502
+#: ui/gtk3/panel.vala:1588
 msgid "translator-credits"
 msgstr ""
 "UTUMI Hirosi <utuhiro78@yahoo.co.jp>\n"
@@ -3742,20 +3806,20 @@ msgstr ""
 "日向原 龍一 <hyu_gabaru@yahoo.co.jp>\n"
 "MIZUMOTO, Noriko <noriko@fedoraproject.org>"
 
-#: ui/gtk3/panel.vala:1543
+#: ui/gtk3/panel.vala:1625
 msgid "Preferences"
 msgstr "設定"
 
-#: ui/gtk3/panel.vala:1596
+#: ui/gtk3/panel.vala:1680
 msgid "Restart"
 msgstr "再起動"
 
-#: ui/gtk3/panel.vala:1605
+#: ui/gtk3/panel.vala:1689
 msgid "Quit"
 msgstr "終了"
 
 #. Translators: If your locale is RTL, the msgstr is "default:RTL".
 #. * Otherwise the msgstr is "default:LTR".
-#: ui/gtk3/propertypanel.vala:367 ui/gtk3/propertypanel.vala:375
+#: ui/gtk3/propertypanel.vala:372 ui/gtk3/propertypanel.vala:380
 msgid "default:LTR"
 msgstr "default:LTR"
