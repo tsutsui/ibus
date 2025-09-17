@@ -269,7 +269,7 @@ jobs:
             pkg_add -u glib2
             pkg_add -u pkgconf autoconf automake libtool-base intltool gmake
             pkg_add -u cldr-emoji-annotation unicode-character-database unicode-emoji
-            pkg_add -u ${PYPKGPREFIX}-gobject3 dconf gettext-tools gobject-introspection gettext-lib hicolor-icon-theme vala dbus libnotify iso-codes gtk2+ gtk3+
+            pkg_add -u ${PYPKGPREFIX}-gobject3 dconf gettext-tools gobject-introspection gettext-lib hicolor-icon-theme vala dbus libnotify iso-codes gtk2+ gtk3+ gtk4
             pkg_add -u glib2-tools gtk-doc gdbus-codegen git-base
             git config --global --add safe.directory $GITHUB_WORKSPACE
 
@@ -284,7 +284,7 @@ jobs:
             --enable-dconf
             --enable-gtk2
             --enable-gtk3
-            --disable-gtk4
+            --enable-gtk4
             --enable-surrounding-text
             --enable-introspection=yes
             --disable-systemd-services
@@ -318,7 +318,7 @@ jobs:
             --enable-dconf
             --enable-gtk2
             --enable-gtk3
-            --disable-gtk4
+            --enable-gtk4
             --enable-surrounding-text
             --enable-introspection=yes
             --disable-systemd-services
