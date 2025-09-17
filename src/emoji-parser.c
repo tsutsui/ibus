@@ -1091,6 +1091,35 @@ fail_to_json_file:
 #endif /* HAVE_JSON_GLIB1 */
 
 static void
+update_license_years (gchar *content)
+{
+    time_t now = time (NULL);
+    GDate *date;
+    guint year;
+    gchar year_buff[5] = { '\0' };
+
+    g_return_if_fail (now != (time_t)-1);
+    date = g_date_new ();
+    g_assert (date != NULL);
+    g_date_set_time_t (date, now);
+    year = date->year;
+    g_date_free (date);
+    g_return_if_fail (year != 0);
+    g_return_if_fail (g_snprintf (year_buff, 5, "%u", year) > 0);
+
+    do {
+        gchar *copyright = g_strstr_len (content, -1, "Copyright (C) ");
+        if (copyright != NULL && *(copyright + 18) == '-') {
+            copyright += 19;
+            memcpy (copyright, year_buff, 4);
+        } else {
+            copyright = NULL;
+        }
+        content = copyright;
+    } while (content != NULL);
+}
+
+static void
 emoji_data_list_unify_categories (IBusEmojiData  *data,
                                   GSList        **list)
 {
@@ -1150,6 +1179,7 @@ category_file_save (const gchar *filename,
     }
     if (p != NULL) {
         substr = g_strndup (content, p - content);
+        update_license_years (substr);
         g_string_append (buff, substr);
         g_free (substr);
         g_string_append_c (buff, '\n');
