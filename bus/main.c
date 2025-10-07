@@ -39,7 +39,6 @@
 
 #ifdef G_OS_UNIX
 #include <glib-unix.h>
-#include <grp.h>
 #endif
 
 #include "global.h"
@@ -57,11 +56,9 @@ static gchar *config = "default";
 static gchar *desktop = "gnome";
 
 static gchar *panel_extension_disable_users[] = {
+    "gdm",
     "gnome-initial-setup",
     "liveuser"
-};
-static gchar *panel_extension_disable_groups[] = {
-    "gdm",
 };
 
 static void
@@ -187,11 +184,6 @@ main (gint argc, gchar **argv)
 {
     int i;
     const gchar *username = ibus_get_user_name ();
-    const gchar *groupname = NULL;
-#ifdef HAVE_GETGRGID_R
-    char buffer[4096];
-    struct group gbuf;
-#endif
 
     setlocale (LC_ALL, "");
 
@@ -222,23 +214,6 @@ main (gint argc, gchar **argv)
             g_printerr ("Please run ibus-daemon with login user! Do not run ibus-daemon with sudo or su.\n");
             exit (-1);
         }
-    }
-
-    /* get group name */
-    {
-        struct group *grp = NULL;
-#ifdef HAVE_GETGRGID_R
-        /* MT-Safe locale */
-        getgrgid_r (getgid (), &gbuf, buffer, sizeof(buffer), &grp);
-#else
-        /* MT-Unsafe race:grgid locale */
-        grp = getgrgid (getgid ());
-#endif
-
-        if (grp && grp->gr_name && grp->gr_name[0])
-            groupname = grp->gr_name;
-        else
-            g_warning ("Couldn't get group name");
     }
 
     /* daemonize process */
@@ -280,12 +255,6 @@ main (gint argc, gchar **argv)
     bus_server_init ();
     for (i = 0; i < G_N_ELEMENTS(panel_extension_disable_users); i++) {
         if (!g_strcmp0 (username, panel_extension_disable_users[i]) != 0) {
-            emoji_extension = "disable";
-            break;
-        }
-    }
-    for (i = 0; i < G_N_ELEMENTS(panel_extension_disable_groups); i++) {
-        if (g_strcmp0 (groupname, panel_extension_disable_groups[i]) == 0) {
             emoji_extension = "disable";
             break;
         }
