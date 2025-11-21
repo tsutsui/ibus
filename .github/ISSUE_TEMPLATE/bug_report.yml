@@ -86,7 +86,7 @@ body:
         Can you reproduce your problem when you restart ibus-daemon? (yes / no)
       description: |
         Please answer "yes" or "no" and also complement your issue as needed.
-        Run `ibus exit` and `ibus-daemon --xim &`
+        Run `ibus exit` and `ibus start --xim`
     validations:
       required: true
   - type: textarea
@@ -95,7 +95,7 @@ body:
       label: |
         Do you see any errors when you run ibus-daemon with the verbose option?
       description: |
-        Run `ibus-daemon --xim --verbose &` and look at the output when you
+        Run `ibus start --xim --verbose` and look at the output when you
         encounter your problem.
         You might need to run `journalctl` for GNOME sessions.
     validations:
