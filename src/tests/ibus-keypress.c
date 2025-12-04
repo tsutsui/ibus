@@ -431,8 +431,11 @@ destroy_window (gpointer user_data)
     data->source = 0;
 
     g_info ("Destroying window after timeout");
+#if GTK_CHECK_VERSION (4, 0, 0)
     gtk_window_destroy (GTK_WINDOW (data->window));
-
+#else
+    gtk_widget_destroy (data->window);
+#endif
     data->window = NULL;
 
     return G_SOURCE_REMOVE;
@@ -470,8 +473,9 @@ create_keypress (void)
 #endif
 
     if (!m_replay) {
-        g_test_fail_printf ("Failed to create uinput device: %s",
-                            error->message);
+        g_test_fail_printf ("Failed to create uinput device: %s: %s",
+                            error->message,
+                            "Probably you should run `chmod a+rw /dev/uinput`");
         g_error_free (error);
         return FALSE;
     }
@@ -647,12 +651,12 @@ window_inserted_text_cb (GtkEntryBuffer *buffer,
     gtk_entry_set_text (GTK_ENTRY (entry), "");
 #endif
     if (!test_results[i][j]) {
-       g_assert (!j);
+        g_assert (!j);
 
-       write (m_pipe_engine[1], RECV_KEY, sizeof (RECV_KEY));
-       fsync (m_pipe_engine[1]);
-       close (m_pipe_engine[1]);
-       ibus_quit ();
+        write (m_pipe_engine[1], RECV_KEY, sizeof (RECV_KEY));
+        fsync (m_pipe_engine[1]);
+        close (m_pipe_engine[1]);
+        ibus_quit ();
     }
 }
 
@@ -741,7 +745,7 @@ test_keypress (gconstpointer user_data)
 #if GTK_CHECK_VERSION (4, 0, 0)
     gtk_init ();
 #else
-    gtk_init (data->argc, data->argv);
+    gtk_init (&data->argc, &data->argv);
 #endif
 
     g_assert ((channel =  g_io_channel_unix_new (m_pipe_engine[0])));
@@ -768,9 +772,13 @@ test_keypress (gconstpointer user_data)
     uinput_replay_device_destroy (g_steal_pointer (&m_replay));
     g_clear_pointer (&m_session_name, g_free);
     if (destroy_data.source)
-	g_source_remove (destroy_data.source);
+        g_source_remove (destroy_data.source);
     if (destroy_data.window)
-	gtk_window_destroy (GTK_WINDOW (destroy_data.window));
+#if GTK_CHECK_VERSION (4, 0, 0)
+        gtk_window_destroy (GTK_WINDOW (destroy_data.window));
+#else
+        gtk_widget_destroy (destroy_data.window);
+#endif
     close (m_pipe_engine[0]);
     close (m_pipe_engine[1]);
 }
