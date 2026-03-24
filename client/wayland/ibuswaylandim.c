@@ -2159,6 +2159,7 @@ input_method_deactivate (void                               *data,
 
     switch (priv->version) {
     case INPUT_METHOD_V1:
+        g_clear_pointer (&priv->keyboard_v1, wl_keyboard_destroy);
         if (priv->context) {
             g_clear_pointer (&priv->context,
                              zwp_input_method_context_v1_destroy);
@@ -2774,6 +2775,43 @@ ibus_wayland_im_destroy (IBusObject *object)
     g_debug ("IBusWaylandIM is destroyed.");
     g_return_if_fail (IBUS_IS_WAYLAND_IM (object));
     priv = ibus_wayland_im_get_instance_private (wlim);
+    if (priv->cancellable) {
+        g_cancellable_cancel (priv->cancellable);
+        g_clear_object (&priv->cancellable);
+    }
+    if (priv->ibuscontext) {
+        g_signal_handlers_disconnect_by_func (
+                priv->ibuscontext,
+                G_CALLBACK (_context_commit_text_cb),
+                wlim);
+        g_signal_handlers_disconnect_by_func (
+                priv->ibuscontext,
+                G_CALLBACK (_context_forward_key_event_cb),
+                wlim);
+        g_signal_handlers_disconnect_by_func (
+                priv->ibuscontext,
+                G_CALLBACK (_context_update_preedit_text_cb),
+                wlim);
+        g_signal_handlers_disconnect_by_func (
+                priv->ibuscontext,
+                G_CALLBACK (_context_show_preedit_text_cb),
+                wlim);
+        g_signal_handlers_disconnect_by_func (
+                priv->ibuscontext,
+                G_CALLBACK (_context_hide_preedit_text_cb),
+                wlim);
+#ifdef ENABLE_SURROUNDING
+        g_signal_handlers_disconnect_by_func (
+                priv->ibuscontext,
+                G_CALLBACK (_context_delete_surrounding_text_cb),
+                wlim);
+#endif
+        g_clear_object (&priv->ibuscontext);
+    }
+    g_clear_pointer (&priv->panel_surface,
+                     zwp_input_panel_surface_v1_destroy);
+    g_clear_pointer (&priv->keyboard_v1, wl_keyboard_destroy);
+    g_clear_pointer (&priv->context, zwp_input_method_context_v1_destroy);
     if (priv->panel)
         g_clear_pointer (&priv->panel, zwp_input_panel_v1_destroy);
     if (priv->input_method_v1)
@@ -2786,6 +2824,18 @@ ibus_wayland_im_destroy (IBusObject *object)
         g_clear_pointer (&priv->input_method_manager_v2,
                          zwp_input_method_manager_v2_destroy);
     }
+    g_clear_pointer (&priv->state_system, xkb_state_unref);
+    g_clear_pointer (&priv->state, xkb_state_unref);
+    g_clear_pointer (&priv->keymap, xkb_keymap_unref);
+    g_clear_pointer (&priv->xkb_context, xkb_context_unref);
+    if (priv->log) {
+        fclose (priv->log);
+        priv->log = NULL;
+    }
+    g_clear_object (&priv->preedit_text);
+#if ENABLE_SURROUNDING
+    g_clear_object (&priv->surrounding_text);
+#endif
 
 
     IBUS_OBJECT_CLASS (ibus_wayland_im_parent_class)->destroy (object);
