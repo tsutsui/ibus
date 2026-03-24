@@ -2392,6 +2392,24 @@ static void
 input_method_unavailable_v2 (void                       *data,
                              struct zwp_input_method_v2 *input_method_v2)
 {
+    IBusWaylandIM *wlim = data;
+    IBusWaylandIMPrivate *priv;
+    struct zwp_input_method_union input_method;
+
+    g_return_if_fail (IBUS_IS_WAYLAND_IM (wlim));
+    priv = ibus_wayland_im_get_instance_private (wlim);
+    g_return_if_fail (priv->seat);
+    g_warning ("Input method became unavailable on seat \"%s\".",
+               priv->seat->name);
+
+    if (priv->seat->active) {
+        priv->seat->active = FALSE;
+        input_method.u.input_method_v2 = input_method_v2;
+        input_method_deactivate (data, &input_method, NULL);
+    }
+
+    zwp_input_method_v2_destroy (input_method_v2);
+    priv->seat->input_method_v2 = NULL;
 }
 
 
