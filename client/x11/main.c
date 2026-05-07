@@ -2,7 +2,7 @@
 /* vim:set et sts=4: */
 /* ibus
  * Copyright (C) 2007-2015 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2015-2025 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2015-2026 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (C) 2007-2015 Red Hat, Inc.
  *
  * main.c:
@@ -1368,6 +1368,11 @@ main (int argc, char **argv)
     gdk_set_allowed_backends ("x11");
 #endif
 
+    /* gdk_init() does not call setlocale() */
+    if (!setlocale (LC_ALL, "")) {
+        g_warning ("Failed to set locale with your environment variables. "
+                   "Some multi-byte characters won't be committed correctly.");
+    }
     gdk_init (&argc, &argv);
     XSetErrorHandler (_xerror_handler);
     XSetIOErrorHandler (_xerror_io_handler);
