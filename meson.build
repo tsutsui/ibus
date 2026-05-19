@@ -266,6 +266,19 @@ libudev_dep = dependency(['libudev'], required: false)
 # FIXME
 enable_install_tests = false
 
+# Default tests
+exclude_suites_csv = get_option('tests-exclude-suites')
+if get_option('tests')
+  if exclude_suites_csv != ''
+    add_test_setup('exclude_suites',
+                   exclude_suites: exclude_suites_csv.split(','),
+                   is_default: true,
+                  )
+  else
+    add_test_setup('exclude_suites', is_default: false)
+  endif
+endif
+
 # config.h
 #-------------------------------------------------
 conf = configuration_data()

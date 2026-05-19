@@ -3,6 +3,11 @@ option('tests',
   value: true,
   description: 'Build tests',
 )
+option('tests-exclude-suites',
+  type: 'string',
+  value: '',
+  description: 'Exclude test suites separated by comma for `meson dist`',
+)
 option('xim',
   type: 'feature',
   value: 'auto',
