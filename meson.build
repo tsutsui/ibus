@@ -13,6 +13,7 @@ gnome = import('gnome')
 i18n = import('i18n')
 pkgconfig = import('pkgconfig')
 python = import('python').find_installation('python3')
+sed = find_program('sed')
 
 # Versioning
 #-------------------------------------------------
@@ -263,9 +264,6 @@ endif
 libevdev_dep = dependency(['libevdev'], required: false)
 libudev_dep = dependency(['libudev'], required: false)
 
-# FIXME
-enable_install_tests = false
-
 # Default tests
 exclude_suites_csv = get_option('tests-exclude-suites')
 if get_option('tests')
@@ -392,5 +390,5 @@ summary({
   'XFixes client disconnect':      have_xfixes,
   'Install systemd service':       enable_systemd,
   'Run test cases':                get_option('tests'),
-  'Install tests':                 enable_install_tests,
+  'Install tests':                 get_option('install-tests'),
 }, section: 'Options')

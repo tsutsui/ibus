@@ -8,6 +8,11 @@ option('tests-exclude-suites',
   value: '',
   description: 'Exclude test suites separated by comma for `meson dist`',
 )
+option('install-tests',
+  type: 'boolean',
+  value: false,
+  description: 'Enable to install tests`',
+)
 option('xim',
   type: 'feature',
   value: 'auto',

@@ -1,3 +1,9 @@
+# Need get_option('prefix') for configuration()
+test_execsdir = \
+  get_option('prefix') / get_option('libexecdir') / 'installed-tests' / 'ibus'
+test_sourcesdir = \
+  get_option('prefix') / get_option('datadir') / 'installed-tests' / 'ibus'
+
 ibus_tests = [
   { 'name': 'ibus-bus' },
   { 'name': 'ibus-config' },
@@ -28,6 +34,7 @@ if enable_gtk4 or enable_gtk3
   ibus_tests += {
     'name': 'ibus-compose',
     'extra_deps': [ gtk_dep ],
+    'test-install-source': 'ibus-compose-locales.in' ,
     'timeout': 300,
     'dependencies': [ 'display', 'wm' ],
   }
@@ -66,11 +73,20 @@ ibus_tests_env = {
 foreach _test : ibus_tests
   if _test.get('is-script', false)
     test_bin = files([_test['name']])[0]
+    if get_option('install-tests')
+      install_data(
+        test_bin,
+        install_dir: test_execsdir,
+        install_mode: 'rwxr-xr-x',
+      )
+    endif
   else
     test_bin = executable(_test['name'],
       files(['@0@.c'.format(_test['name'])] + _test.get('extra_sources', [])),
       dependencies: ibus_tests_deps + _test.get('extra_deps', []),
       c_args: ibus_tests_cflags,
+      install: get_option('install-tests'),
+      install_dir: test_execsdir,
     )
   endif
 
@@ -92,5 +108,87 @@ if libevdev_dep.found() and libudev_dep.found()
     c_args: [ '-DUINPUT_REPLAY_MAIN' ],
     include_directories: config_h_inc,
     dependencies: [ libevdev_dep, libudev_dep, glib_dep ],
+  )
+endif
+
+desktop_testing_shells = [
+  {
+    'name' : 'ibus-desktop-testing-autostart.in',
+    'path' : get_option('libexecdir'),
+  },
+  {
+    'name' : 'ibus-desktop-testing-module',
+    'path' : get_option('libexecdir'),
+  },
+  {
+    'name' : 'ibus-desktop-testing-runner.in',
+    'path' : get_option('bindir'),
+  },
+]
+
+foreach _desktop_sh : desktop_testing_shells
+  installeddir = fs.parent(test_sourcesdir)
+  configure_file(
+    input: _desktop_sh['name'],
+    output: '@BASENAME@',
+    configuration: {
+      'DATADIR': get_option('prefix') / get_option('datadir'),
+      'INSTALLEDDIR': installeddir,
+      'LIBEXECDIR': get_option('prefix') / get_option('libexecdir'),
+    },
+    install_dir: _desktop_sh['path'],
+    install_mode: 'rwxr-xr-x',
+    install: get_option('install-tests'),
+  )
+endforeach
+
+if get_option('install-tests')
+  install_data(
+    'ibus-compose.basic',
+    'ibus-compose.basic2',
+    'ibus-compose.emoji',
+    'ibus-compose.env',
+    'ibus-compose.usmin',
+    'ibus-compose.usmin2',
+    'libinput-test.yml',
+    install_dir: test_sourcesdir,
+  )
+
+  foreach _test : ibus_tests
+    name = _test['name']
+    if name == 'ibus-compose'
+      name = 'ibus-compose-locales'
+    endif
+
+    configure_file(
+      input: 'meta.test.in',
+      output: '@0@.test'.format(name),
+      configuration: {
+        'TEST_EXEC': test_execsdir / name,
+        'TEST_SRCDIR': test_sourcesdir,
+      },
+      install_dir: test_sourcesdir,
+    )
+
+    if _test.get('test-install-source', '') != ''
+      configure_file(
+        input: _test.get('test-install-source'),
+        output: '@BASENAME@',
+        configuration: {
+          'SRCDIR': test_sourcesdir,
+        },
+        install_dir: test_execsdir,
+        install_mode: 'rwxr-xr-x',
+      )
+    endif
+  endforeach
+
+  configure_file(
+    input: 'ibus-desktop-testing.desktop.in',
+    output: 'org.freedesktop.IBus.Desktop.Testing.desktop',
+    configuration: {
+        'libexecdir': get_option('prefix') / get_option('libexecdir'),
+    },
+    install_dir: pkgdatadir / 'tests',
   )
 endif

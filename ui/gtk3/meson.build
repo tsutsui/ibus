@@ -85,11 +85,18 @@ if get_option('emoji-dict')
   ibus_ui_gtk3_valaflags += [ '-D', 'EMOJI_DICT' ]
 endif
 
+desktop_filenames = []
+
 if enable_wayland and gdk3_wayland_dep.found()
   ibus_ui_gtk3_deps += [ gdk3_wayland_vapi,
                          libibuswaylandim_dep, ibuswaylandim_vapi,
                        ]
   ibus_ui_gtk3_valaflags += [ '-D', 'USE_GDK_WAYLAND' ]
+
+  desktop_filenames += [
+    [ 'ibus-ui-wayland.desktop.in',
+      'org.freedesktop.IBus.Panel.Wayland.Gtk3.desktop', ]
+  ]
 endif
 
 if get_option('appindicator')
@@ -171,26 +178,33 @@ if get_option('emoji-dict')
   )
 
   # Desktop files
-  desktop_filenames = [
+  desktop_filenames += [
     [ 'ibus-ui-emojier.desktop.in',
       'org.freedesktop.IBus.Panel.Emojier.desktop'        ],
     [ 'ibus-extension-gtk3.desktop.in',
       'org.freedesktop.IBus.Panel.Extension.Gtk3.desktop' ],
   ]
-  foreach desktop_entry : desktop_filenames
-    i18n.merge_file(
-      input: configure_file(
-        input: desktop_entry[0],
-        output: '@BASENAME@',
-        configuration: {
-          'libexecdir': get_option('libexecdir'),
-        },
-      ),
-      output: desktop_entry[1],
-      type: 'desktop',
-      po_dir: po_dir,
-      install: true,
-      install_dir: get_option('datadir') / 'applications'
-    )
-  endforeach
 endif
+
+
+foreach desktop_entry : desktop_filenames
+  i18n.merge_file(
+    input: configure_file(
+      input: desktop_entry[0],
+      output: '@BASENAME@',
+      command: [ sed,
+        '-e', 's|^#Name=|Name=|',
+        '-e', 's|@libexecdir[@]|@0@|g'.format(
+          get_option('prefix') / get_option('libexecdir')),
+        '@INPUT@'
+
+      ],
+      capture: true,
+    ),
+    output: desktop_entry[1],
+    type: 'desktop',
+    po_dir: po_dir,
+    install: true,
+    install_dir: get_option('datadir') / 'applications',
+  )
+endforeach
