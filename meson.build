@@ -392,3 +392,5 @@ summary({
   'Run test cases':                get_option('tests'),
   'Install tests':                 get_option('install-tests'),
 }, section: 'Options')
+
+meson.add_dist_script(python.full_path(), source_root / 'meson-dist.py')
