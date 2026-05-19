@@ -64,10 +64,7 @@ if get_option('emoji-dict')
     '-DPKGDATADIR="@0@"'.format(pkgdatadir),
   ]
 
-  libibus_emoji_dialog_valaflags = []
-  if get_option('emoji-dict')
-    libibus_emoji_dialog_valaflags += [ '-D', 'EMOJI_DICT' ]
-  endif
+  libibus_emoji_dialog_valaflags = [ '-D', 'EMOJI_DICT' ]
 
   libibus_emoji_dialog = library('ibus-emoji-dialog',
     libibus_emoji_dialog_sources, # Defined in ui/gtk3/meson.build
