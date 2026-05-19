@@ -1,7 +1,7 @@
 /* -*- mode: C; c-basic-offset: 4; indent-tabs-mode: nil; -*- */
 /* ibus - The Input Bus
  * Copyright (C) 2013-2014 Peng Huang <shawn.p.huang@gmail.com>
- * Copyright (C) 2013-2025 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2013-2026 Takao Fujiwara <takao.fujiwara1@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -711,6 +711,7 @@ ibus_compose_list_check_duplicated_with_own (GList  *compose_list,
     IBusComposeData *compose_data_a, *compose_data_b;
     int i;
     GList *removed_list = NULL;
+    GString *string;
 
     if (!compose_list)
         return NULL;
@@ -729,18 +730,33 @@ ibus_compose_list_check_duplicated_with_own (GList  *compose_list,
                     break;
                 }
             }
+            string = g_string_new (NULL);
+            if (is_different_value) {
+                g_string_append (
+                        string,
+                        "Deleting different outputs for same sequence.");
+            } else {
+                g_string_append (
+                        string,
+                        "Deleting same compose output for same sequence.");
+            }
+            g_string_append (string, "\n{");
+            for (i = 0; compose_data_a->values[i]; i++) {
+                g_string_append_printf (string,
+                                        "U+%X, ", compose_data_a->values[i]);
+            }
+            g_string_append (string, "}");
+            g_string_append (string, " {");
+            for (i = 0; compose_data_b->values[i]; i++) {
+                g_string_append_printf (string,
+                                        "U+%X, ", compose_data_b->values[i]);
+            }
+            g_string_append (string, "}\n");
             if (is_different_value)
-                g_warning ("Deleting different outputs for same sequence.");
+                g_warning ("%s", string->str);
             else
-                g_debug ("Deleting same compose output for same sequence.");
-            g_print ("{");
-            for (i = 0; compose_data_a->values[i]; i++)
-                g_print ("U+%X, ", compose_data_a->values[i]);
-            g_print ("}");
-            g_print (" {");
-            for (i = 0; compose_data_b->values[i]; i++)
-                g_print ("U+%X, ", compose_data_b->values[i]);
-            g_print ("}\n");
+                g_debug ("%s", string->str);
+            g_string_free (string, TRUE);
             removed_list = g_list_append (removed_list, compose_data_a);
         }
     }

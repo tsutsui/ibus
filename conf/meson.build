@@ -1,4 +1,4 @@
-if get_option('memconf')
+if build_memconf
   subdir('memconf')
 endif
 

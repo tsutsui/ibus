@@ -17,10 +17,10 @@
 #
 #   $ top_builddir=<...> top_srcdir=<...> builddir=<...> ./runtest ibus-foo
 
-: ${top_builddir:=../..}
-: ${top_srcdir:=../..}
-: ${builddir:=.}
-: ${srcdir:=.}
+: ${top_builddir:='../..'}
+: ${top_srcdir:='../..'}
+: ${builddir:='.'}
+: ${srcdir:='.'}
 : ${DISABLE_GUI_TESTS:=''}
 : ${DISABLE_DAEMONIZE_IN_TESTS:=''}
 : ${TEST_GTK_VERSION:=0}
@@ -37,7 +37,7 @@ ibus-engine-switch
 ibus-compose
 ibus-keypress
 test-stress
-xkb-latin-layouts
+test-override-ibus.py
 "
 IBUS_SCHEMA_FILE='org.freedesktop.ibus.gschema.xml'
 GTK_QUERY_MODULE=gtk-query-immodules-3.0-32
@@ -48,6 +48,22 @@ if test x"$MACHINE" = xx86_64 ; then
 fi
 if ! command -v $GTK_QUERY_MODULE > /dev/null 2>&1 ; then
     GTK_QUERY_MODULE=gtk-query-immodules-3.0
+fi
+
+if echo "$top_builddir" | grep -q '^/' ; then
+    # absolute path for meson
+    test_top_builddir="$top_builddir"
+else
+    # relative path for autotool and default value
+    test_top_builddir="../$top_builddir"
+fi
+
+if echo "$top_srcdir" | grep -q '^/' ; then
+    # absolute path for meson
+    test_top_srcdir="$top_srcdir"
+else
+    # relative path for autotool and default value
+    test_top_srcdir="../$top_srcdir"
 fi
 
 retval=0
@@ -120,21 +136,26 @@ run_test_case()
     backup_dir=$PWD
     cd $tstdir
 
+    if echo "$tst" | grep -q 'python' ; then
+        name=`func_basename "$1"`
+    else
+        name=`func_basename "$tst"`
+    fi
     need_bus=no
     for t in $BUS_REQUIRED_TESTS; do
-        if test $t = `func_basename $tst`; then
+        if test "$t" = "$name"; then
             need_bus=yes
         fi
     done
 
     if test $need_bus = yes; then
-        if test ! -f "../$top_builddir/conf/memconf/ibus-memconf" ; then
+        if test ! -f "$test_top_builddir/conf/memconf/ibus-memconf" ; then
             echo "NOT FOUNND ibus-memconf. Need configure --enable-memconf"
             exit 1
         fi
         # func_copy_component replaces s/$top_srcdir/%top_builddir/
-        func_copy_component "../$top_srcdir/engine/simple.xml"
-        func_copy_component "../$top_srcdir/conf/memconf/memconf.xml"
+        func_copy_component "$test_top_srcdir/engine/simple.xml"
+        func_copy_component "$test_top_srcdir/conf/memconf/memconf.xml"
 
         IBUS_COMPONENT_PATH=$PWD/components
         export IBUS_COMPONENT_PATH
@@ -144,10 +165,10 @@ run_test_case()
 
         test $TEST_GTK -eq 1 && case $TEST_GTK_VERSION in
         4)
-            if test -f "../$top_builddir/client/gtk4/.libs/libim-ibus.so" ; then
-                IM_IBUS_SO="../$top_builddir/client/gtk4/.libs/libim-ibus.so"
-            elif test -f "../$top_builddir/client/gtk4/libim-ibus.so" ; then
-                IM_IBUS_SO="../$top_builddir/client/gtk4/libim-ibus.so"
+            if test -f "$test_top_builddir/client/gtk4/.libs/libim-ibus.so" ; then
+                IM_IBUS_SO="$test_top_builddir/client/gtk4/.libs/libim-ibus.so"
+            elif test -f "$test_top_builddir/client/gtk4/libim-ibus.so" ; then
+                IM_IBUS_SO="$test_top_builddir/client/gtk4/libim-ibus.so"
             else
                 echo "NOT FOUND $top_builddir/client/gtk4/libim-ibus.so"
                 exit 1
@@ -157,10 +178,10 @@ run_test_case()
             export GTK_EXE_PREFIX="$PWD"
             ;;
         3)
-            if test -f "../$top_builddir/client/gtk3/.libs/im-ibus.so" ; then
-                IM_IBUS_SO="../$top_builddir/client/gtk3/.libs/im-ibus.so"
-            elif test -f "../$top_builddir/client/gtk3/im-ibus.so" ; then
-                IM_IBUS_SO="../$top_builddir/client/gtk3/im-ibus.so"
+            if test -f "$test_top_builddir/client/gtk3/.libs/im-ibus.so" ; then
+                IM_IBUS_SO="$test_top_builddir/client/gtk3/.libs/im-ibus.so"
+            elif test -f "$test_top_builddir/client/gtk3/im-ibus.so" ; then
+                IM_IBUS_SO="$test_top_builddir/client/gtk3/im-ibus.so"
             else
                 echo "NOT FOUND $top_builddir/client/gtk3/im-ibus.so"
                 exit 1
@@ -175,8 +196,8 @@ run_test_case()
             ;;
         esac || :
 
-        cp "../$top_srcdir/data/dconf/$IBUS_SCHEMA_FILE" $PWD
-        glib-compile-schemas $PWD
+        cp "$test_top_srcdir/data/dconf/$IBUS_SCHEMA_FILE" $PWD
+        glib-compile-schemas $PWD 2>/dev/null
         if test $? -ne 0 ; then
             echo "FAILED glib-compile-schemas"
             retval=1
@@ -198,10 +219,10 @@ run_test_case()
             --verbose
         '
         if test x"$DISABLE_DAEMONIZE_IN_TESTS" = x ; then
-            ../$top_builddir/bus/ibus-daemon \
+            $test_top_builddir/bus/ibus-daemon \
                 $DAEMON_ARGS --daemonize;
         else
-            ../$top_builddir/bus/ibus-daemon \
+            $test_top_builddir/bus/ibus-daemon \
                 $DAEMON_ARGS &
         fi
 
@@ -219,7 +240,26 @@ run_test_case()
 
     export IBUS_COMPOSE_CACHE_DIR=$PWD
 
-    "../$tst" ../$top_srcdir/src/tests ${1+"$@"}
+    if echo "$tst" | grep -q '^/' ; then
+        if echo "$tst" | grep -q 'python' ; then
+            interpreter=$tst
+            tst=$1
+            shift
+            if echo "$tst" | grep -q '^/' ; then
+                # absolute path for Meson
+                "$interpreter" "$tst" ${1+"$@"}
+            else
+                # relative path for autotools
+                "$interpreter" "../$tst" ${1+"$@"}
+            fi
+        else
+            # absolute path for Meson
+            "$tst" $test_top_srcdir/src/tests ${1+"$@"}
+        fi
+    else
+        # relative path for each execution
+        "../$tst" $test_top_srcdir/src/tests ${1+"$@"}
+    fi
 
     retval=`expr $retval \| $?`
 
@@ -237,6 +277,16 @@ if test x"$ENVS" = x ; then
 else
     LANG_backup=$LANG
     i=1
+    # mesonbuild/mtest.py:TAPParser.parse_line() says:
+    # 'version number must be on the first line'
+    echo "TAP version 14"
+    NUM_CASES=`wc -l $envfile  | sed -e 's/^\([0-9]*\) .*/\1/'`
+    # Meson checks #Plan with the number of test cases
+    # like "1..Number"
+    # https://testanything.org/tap-version-14-specification.html
+    echo "1..$NUM_CASES"
+    # Set subtest for GTestLog to hide the "TAP version" output
+    export G_TEST_ROOT_PROCESS=1
     # "for e in $ENVS" separates the variable by space but not line feed.
     # "echo $ENVS | while read e" does not forward `retval`
     # to the parent process.
@@ -248,14 +298,25 @@ else
         unset NO_LOAD_COMPOSE_FILE
         unset COMPOSE_FILE
         export $e
-        echo "Run `func_basename $tst` on $e"
-        echo "======================="
+        # TAP info should start with "# ".
+        echo "# Run `func_basename $tst` on $e"
+        echo "# ======================="
         run_test_case $@
+        name="/"`basename "$1"`":$LANG:$COMPOSE_FILE:$NO_LOAD_COMPOSE_FILE"
+        # Meson compares the numer of tests in #Plan and the number of
+        # #TestPoint like "ok Number Description"
+        # https://testanything.org/tap-version-14-specification.html
+        if test $retval -eq 0; then
+            echo "ok $i $name"
+        else
+            echo "not ok $i $name"
+        fi
         echo ""
         i=`expr $i + 1`
     done << EOF_ENVS
     `echo "$ENVS"`
 EOF_ENVS
+    unset G_TEST_ROOT_PROCESS
     export LANG=$LANG_backup
 fi
 

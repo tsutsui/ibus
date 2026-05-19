@@ -208,6 +208,10 @@ dconf_dep = dependency('dconf', version: '>= 0.7.5',
                        required: get_option('dconf'))
 enable_dconf = dconf_dep.found()
 
+# memconf
+enable_memconf = get_option('memconf')
+build_memconf = enable_memconf or get_option('tests')
+
 # iso-codes
 isocodes_prefix = dependency('iso-codes').get_variable(pkgconfig: 'prefix')
 
@@ -260,7 +264,6 @@ libevdev_dep = dependency(['libevdev'], required: false)
 libudev_dep = dependency(['libudev'], required: false)
 
 # FIXME
-enable_run_tests = false
 enable_install_tests = false
 
 # config.h
@@ -356,7 +359,7 @@ summary({
   'Build wayland support':         enable_wayland,
   'Build gdk3 wayland support':    gdk3_wayland_dep.found(),
   'Build appindicator support':    get_option('appindicator'),
-  'Build memconf modules':         get_option('memconf'),
+  'Build memconf modules':         enable_memconf,
   'Build dconf modules':           enable_dconf,
   'Build introspection':           enable_introspection,
   'IBus-1.0.gir scannerflags':     introspection_args,
@@ -375,6 +378,6 @@ summary({
   'Socket directory':              ibus_socket_dir,
   'XFixes client disconnect':      have_xfixes,
   'Install systemd service':       enable_systemd,
-  'Run test cases':                enable_run_tests,
+  'Run test cases':                get_option('tests'),
   'Install tests':                 enable_install_tests,
 }, section: 'Options')

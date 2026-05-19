@@ -53,10 +53,11 @@ if get_option('tests')
       'name': 'test-stress',
       'extra_sources': files('test-client.c'),
       'extra_deps': [ x11_dep ],
+      'dependencies': [ 'display' ],
     },
   ]
 
-  foreach _test: ibus_daemon_tests
+  foreach _test : ibus_daemon_tests
     test_sources = [
       '@0@.c'.format(_test['name']),
       _test['extra_sources'],
@@ -71,11 +72,15 @@ if get_option('tests')
       include_directories: config_h_inc,
     )
 
-    if enable_run_tests
-    test(_test['name'], test_bin,
-      suite: 'bus',
+    timeout = _test.get('timeout', 30)
+
+    test(_test['name'], ibus_tests_runner,
+      args: [ test_bin, meson.current_source_dir() ],
+      env: environment(ibus_tests_env),
+      suite: [ 'bus' ] + _test.get('dependencies', []),
+      protocol: 'tap',
+      timeout: timeout,
     )
-    endif
   endforeach
 endif
 

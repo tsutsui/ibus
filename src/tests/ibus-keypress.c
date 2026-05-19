@@ -1,7 +1,7 @@
 /* -*- mode: C; c-basic-offset: 4; indent-tabs-mode: nil; -*- */
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
- * Copyright (C) 2025 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2025-2026 Takao Fujiwara <takao.fujiwara1@gmail.com>
  * Copyright (c) 2025 Peter Hutterer <peter.hutterer@who-t.net>
  * Copyright (C) 2025 Red Hat, Inc.
  *
@@ -628,7 +628,7 @@ window_inserted_text_cb (GtkEntryBuffer *buffer,
     if (!(code = g_utf8_get_char (chars)))
         return;
     if (code != test_results[i][j++]) {
-        test = RED "FAIL" NC;
+        test = "# " RED "FAIL" NC;
         g_test_fail_printf ("%05d:%05d %s expected: %04X typed: %04X",
                             i, j - 1,
                             test,
@@ -637,7 +637,7 @@ window_inserted_text_cb (GtkEntryBuffer *buffer,
     } else if (test_results[i][j]) {
         return;
     } else {
-        g_print (GREEN "PASS" NC " ");
+        g_print ("# " GREEN "PASS" NC " ");
         for (k = 0; k < j; k++)
             g_print ("%lc(%X) ", test_results[i][k], test_results[i][k]);
         g_print ("\n");

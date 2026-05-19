@@ -18,7 +18,7 @@ ibus_memconf_bin = executable('ibus-memconf',
   dependencies: ibus_memconf_deps,
   c_args: ibus_memconf_cflags,
   include_directories: config_h_inc,
-  install: true,
+  install: enable_memconf,
   install_dir: get_option('libexecdir'),
 )
 
@@ -29,6 +29,6 @@ configure_file(
     'VERSION': meson.project_version(),
     'libexecdir': get_option('prefix') / get_option('libexecdir'),
   },
-  install: true,
+  install: enable_memconf,
   install_dir: pkgdatadir / 'component',
 )

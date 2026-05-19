@@ -30,10 +30,29 @@ simple_xml = custom_target('simple.xml',
     '--input', xkbconfig_base / 'rules' / 'evdev.xml',
     '--output=@OUTPUT@',
     '--version', meson.project_version(),
-    '--exec-path', get_option('prefix') / get_option('libexecdir') / 'ibus-engine-simple',
-    '--iso-path', isocodes_prefix / 'share' / 'xml' / 'iso-codes' / 'iso_639.xml',
+    '--exec-path',
+      get_option('prefix') / get_option('libexecdir') / 'ibus-engine-simple',
+    '--iso-path',
+      isocodes_prefix / 'share' / 'xml' / 'iso-codes' / 'iso_639.xml',
     '--first-language',
   ],
   install: true,
   install_dir: pkgdatadir / 'component',
 )
+
+if get_option('tests')
+  pyoverrides_tests = [
+    {
+      'name': 'test-gnome',
+    },
+  ]
+
+  foreach _test : pyoverrides_tests
+    timeout = _test.get('timeout', 30)
+    test(_test['name'], files([python.full_path()])[0],
+      args: [ meson.current_source_dir() / '@0@.py'.format(_test['name']) ],
+      suite: 'engine',
+      timeout: timeout,
+    )
+  endforeach
+endif

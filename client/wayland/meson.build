@@ -42,7 +42,7 @@ wayland_protocols = [
   ['virtual-keyboard', 'private', 1, true, true],
 ]
 
-foreach p: wayland_protocols
+foreach p : wayland_protocols
   protocol_name = p.get(0)
   protocol_type = p.get(1)
   protocol_version = p.get(2)

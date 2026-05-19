@@ -31,6 +31,8 @@ tests_builddir = os.path.abspath(os.path.dirname(__file__))
 sys.path = [path for path in sys.path if path != tests_builddir]
 sys.path.append(tests_builddir)
 
+import gi
+gi.require_versions({'GLib': '2.0', 'IBus': '1.0'})
 from gi.repository import GLib, IBus
 
 class TestOverride(unittest.TestCase):

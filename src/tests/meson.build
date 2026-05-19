@@ -13,6 +13,11 @@ ibus_tests = [
     'extra_deps': [ dbus_dep ],
   },
   { 'name': 'ibus-util' },
+  {
+    'name': 'xkb-latin-layouts',
+    'is-script': true,
+    'dependencies': [ 'display' ],
+  },
 ]
 
 if get_option('engine')
@@ -23,6 +28,8 @@ if enable_gtk4 or enable_gtk3
   ibus_tests += {
     'name': 'ibus-compose',
     'extra_deps': [ gtk_dep ],
+    'timeout': 300,
+    'dependencies': [ 'display', 'wm' ],
   }
 
   if libevdev_dep.found() and libudev_dep.found()
@@ -30,6 +37,8 @@ if enable_gtk4 or enable_gtk3
       'name': 'ibus-keypress',
       'extra_sources': [ 'uinput-replay.c' ],
       'extra_deps': [ libevdev_dep, libudev_dep, gtk_dep ],
+      'timeout': 60,
+      'dependencies': [ 'display', 'wm' ],
     }
   endif
 endif
@@ -45,22 +54,36 @@ ibus_tests_cflags = [
   '-DX11_LOCALEDATADIR="@0@"'.format(x11_localedatadir),
 ]
 
-# XXX what to do with test runner, maybe make testsuite?
-ibus_tests_env = environment()
+ibus_tests_runner = files(['runtest'])[0]
 
-foreach _test: ibus_tests
-  test_bin = executable(_test['name'],
-    files(['@0@.c'.format(_test['name'])] + _test.get('extra_sources', [])),
-    dependencies: ibus_tests_deps + _test.get('extra_deps', []),
-    c_args: ibus_tests_cflags,
-  )
+ibus_tests_env = {
+  'top_builddir': build_root,
+  'top_srcdir': source_root,
+  'builddir': meson.current_build_dir(),
+  'srcdir': meson.current_source_dir(),
+}
 
-  if enable_run_tests
-  test(_test['name'], test_bin,
-    env: ibus_tests_env,
-    suite: 'ibus',
-  )
+foreach _test : ibus_tests
+  if _test.get('is-script', false)
+    test_bin = files([_test['name']])[0]
+  else
+    test_bin = executable(_test['name'],
+      files(['@0@.c'.format(_test['name'])] + _test.get('extra_sources', [])),
+      dependencies: ibus_tests_deps + _test.get('extra_deps', []),
+      c_args: ibus_tests_cflags,
+    )
   endif
+
+  timeout = _test.get('timeout', 30)
+
+  test(_test['name'], ibus_tests_runner,
+    args: [ test_bin, meson.current_source_dir() ],
+    env: environment(ibus_tests_env),
+    suite: [ 'lib' ] + _test.get('dependencies', []),
+    protocol: 'tap',
+    timeout: timeout,
+    is_parallel: false,
+  )
 endforeach
 
 if libevdev_dep.found() and libudev_dep.found()
