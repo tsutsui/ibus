@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container: ["fedora:43", "fedora:44", "ubuntu:jammy"]
+        container: ["fedora:43", "fedora:44", "ubuntu:jammy", "ubuntu:resolute"]
     steps:
       - name: Check container sha tags
         run: |
@@ -28,6 +28,24 @@ jobs:
         include:
           - container: fedora:43
             ucd_dir: /usr/share/unicode/ucd
+            build: BUILD_MESON
+          - container: fedora:43
+            ucd_dir: /usr/share/unicode/ucd
+            test_config: '-Dwayland=disabled'
+            build: BUILD_MESON
+          - container: fedora:43
+            ucd_dir: /usr/share/unicode/ucd
+            test_config: '-Dappindicator=false'
+            build: BUILD_MESON
+          - container: fedora:44
+            ucd_dir: /usr/share/unicode/ucd
+            build: BUILD_MESON
+            latest_xkb: KEEP_XKB_XML
+          - container: ubuntu:resolute
+            ucd_dir: /usr/share/unicode
+            build: BUILD_MESON
+          - container: fedora:43
+            ucd_dir: /usr/share/unicode/ucd
             build: BUILD_AUTOTOOL
           - container: fedora:43
             ucd_dir: /usr/share/unicode/ucd
@@ -39,13 +57,12 @@ jobs:
             build: BUILD_AUTOTOOL
           - container: fedora:44
             ucd_dir: /usr/share/unicode/ucd
-            build: BUILD_MESON
-            latest_xkb: KEEP_XKB_XML
-          - container: fedora:44
-            ucd_dir: /usr/share/unicode/ucd
             build: BUILD_AUTOTOOL
             latest_xkb: KEEP_XKB_XML
           - container: ubuntu:jammy
+            ucd_dir: /usr/share/unicode
+            build: BUILD_AUTOTOOL
+          - container: ubuntu:resolute
             ucd_dir: /usr/share/unicode
             build: BUILD_AUTOTOOL
 
@@ -63,6 +80,10 @@ jobs:
          UBUNTU_PACKAGES_AUTOGEN: >
            autopoint
            strace
+         UBUNTU_PACKAGES_MESON: >
+           meson
+           python3-minimal
+           sed
          # For make from
          # https://packages.ubuntu.com/search?searchon=sourcenames&keywords=ibus
          UBUNTU_PACKAGES_BUILD: >
@@ -92,6 +113,8 @@ jobs:
            valac-0.56-vapi
            wayland-protocols
            wget
+         UBUNTU_PACKAGES_BUILD_NEW: >
+           systemd-dev
          # for ibus-keypress
          UBUNTU_PACKAGES_CI_KEY: >
            gir1.2-gnomedesktop-4.0
@@ -153,6 +176,12 @@ jobs:
             PACKAGES=$(echo "$UBUNTU_PACKAGES_AUTOGEN" | tr -d '\n')
             PACKAGES=$(echo "$PACKAGES $UBUNTU_PACKAGES_BUILD" | tr -d '\n')
             PACKAGES=$(echo "$PACKAGES $UBUNTU_PACKAGES_CI_KEY" | tr -d '\n')
+            if test "${{ matrix.container }}" != "ubuntu:jammy"; then
+              PACKAGES=$(echo "$PACKAGES $UBUNTU_PACKAGES_BUILD_NEW" | tr -d '\n')
+            fi
+            if test $${{ matrix.build }} -eq $BUILD_MESON; then
+              PACKAGES=$(echo "$PACKAGES $UBUNTU_PACKAGES_MESON" | tr -d '\n')
+            fi
             echo "apt-get install -y $PACKAGES"
             apt-get install -y $PACKAGES
             dpkg -l | grep unicode-data
@@ -216,7 +245,10 @@ jobs:
           if test $${{ matrix.build }} -eq $BUILD_MESON;
           then
           meson setup builddir
-          -Dtests-exclude-suites=ibus:display;
+          -Ducd-dir=${{ matrix.ucd_dir }}
+          -Dtests-exclude-suites=ibus:display
+          -Dinstall-tests=true
+          ${{ matrix.test_config }};
           else
           ./autogen.sh
           --enable-gtk-doc
