@@ -108,6 +108,8 @@ if libevdev_dep.found() and libudev_dep.found()
     c_args: [ '-DUINPUT_REPLAY_MAIN' ],
     include_directories: config_h_inc,
     dependencies: [ libevdev_dep, libudev_dep, glib_dep ],
+    install: get_option('install-tests'),
+    install_dir: test_execsdir,
   )
 endif
 

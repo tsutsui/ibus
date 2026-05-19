@@ -3,7 +3,7 @@ configure_file(
   input: 'org.freedesktop.portal.IBus.service.in',
   output: '@BASENAME@',
   configuration: {
-    'libexecdir': get_option('libexecdir'),
+    'libexecdir': get_option('prefix') / get_option('libexecdir'),
   },
   install: true,
   install_dir: get_option('datadir') / 'dbus-1' / 'services',

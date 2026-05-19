@@ -232,6 +232,32 @@ if enable_introspection
   )
 endif
 
+check_size = '''
+import os, sys
+from pathlib import Path
+destdir_prefix = os.getenv('MESON_INSTALL_DESTDIR_PREFIX')
+prefix = os.getenv('MESON_INSTALL_PREFIX')
+if destdir_prefix == None:
+  print('Cannot get destdir')
+  sys.exit(0)
+if len(sys.argv) < 2:
+  print(f'Usage {sys.argv[0]} dictpath')
+  sys.exit(1)
+arg1 = sys.argv[1]
+if prefix != None and arg1.startswith(prefix):
+  arg1 = arg1[len(prefix):]
+while arg1[0] == '/':
+  arg1 = arg1[1:]
+dictdir = Path(destdir_prefix) / arg1
+print(f'Checking null dict files in {str(dictdir)}')
+if not dictdir.exists():
+  sys.exit(0)
+for dict in list(dictdir.glob('**/*.dict')):
+  if dict.stat().st_size == 0:
+    print(f'Deleting a null dict {str(dict)}')
+    dict.unlink()
+'''
+
 if get_option('emoji-dict')
   emoji_parser_deps = [
     glib_dep,
@@ -284,18 +310,19 @@ if get_option('emoji-dict')
         '--out', '@OUTPUT@',
         emoji_parser_extra_opts,
       ],
+      install_dir: pkgdatadir / 'dicts',
+      # The conditional installation does not work so use
+      # meson.add_install_script()
+      # install: fs.exists('@OUTPUT@') and fs.size('@OUTPUT@') > 0,
+      install: true,
       build_by_default: true,
     )
-
-    # There are cases where there was no .dict file to output
-    # so don't try to install them (or Meson complains)
-    if fs.exists(meson.current_build_dir() / gen_emoji_dict) and
-       fs.size(gen_emoji_dict) > 0
-      install_data(meson.current_build_dir() / gen_emoji_dict,
-        install_dir: pkgdatadir / 'dicts',
-      )
-    endif
   endforeach
+
+  # There are cases where there was no .dict file to output
+  # so don't try to install them (or Meson complains)
+  meson.add_install_script(python.full_path(),
+    '-c', check_size, pkgdatadir / 'dicts')
 endif
 
 if get_option('unicode-dict')
