@@ -215,7 +215,8 @@ jobs:
           export SAVE_DIST_FILES=1;
           if test $${{ matrix.build }} -eq $BUILD_MESON;
           then
-          meson setup builddir;
+          meson setup builddir
+          -Dtests-exclude-suites=ibus:display;
           else
           ./autogen.sh
           --enable-gtk-doc
@@ -238,10 +239,7 @@ jobs:
           export DISABLE_DAEMONIZE_IN_TESTS=1;
           if test $${{ matrix.build }} -eq $BUILD_MESON;
           then
-          cd builddir;
-          meson dist;
-          ninja;
-          cd ..;
+          meson dist -C builddir;
           else
           make -j$(nproc) distcheck
           DISTCHECK_CONFIGURE_FLAGS="
