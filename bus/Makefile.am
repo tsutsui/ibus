@@ -3,7 +3,7 @@
 # ibus - The Input Bus
 #
 # Copyright (c) 2007-2013 Peng Huang <shawn.p.huang@gmail.com>
-# Copyright (c) 2013-2022 Takao Fujiwara <takao.fujiwara1@gmail.com>
+# Copyright (c) 2013-2026 Takao Fujiwara <takao.fujiwara1@gmail.com>
 # Copyright (c) 2007-2022 Red Hat, Inc.
 #
 # This library is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
 # USA
 
 NULL =
+CFLAGS = $(TEST_CFLAGS)
 SUBDIRS = . services
 
 libibus = $(top_builddir)/src/libibus-@IBUS_API_VERSION@.la
@@ -87,6 +88,7 @@ ibus_daemon_SOURCES = \
 	$(NULL)
 ibus_daemon_CFLAGS = \
 	$(AM_CFLAGS) \
+	$(PRODUCT_CFLAGS) \
 	$(NULL)
 ibus_daemon_LDADD = \
 	$(AM_LDADD) \
@@ -153,13 +155,11 @@ test_stress_SOURCES = \
 	$(NULL)
 test_stress_CFLAGS = \
 	$(AM_CFLAGS) \
-	@GTK2_CFLAGS@ \
-	@X11_CFLAGS@ \
+	$(X11_CFLAGS) \
 	$(NULL)
 test_stress_LDADD = \
 	$(AM_LDADD) \
-	@GTK2_LIBS@ \
-	@X11_LIBS@ \
+	$(X11_LIBS) \
 	$(NULL)
 
 EXTRA_DIST =                \
