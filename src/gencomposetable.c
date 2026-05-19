@@ -1,8 +1,8 @@
 /* -*- mode: C; c-basic-offset: 4; indent-tabs-mode: nil; -*- */
 /* vim:set et sts=4: */
 /* ibus - The Input Bus
- * Copyright (C) 2023-2025 Takao Fujiwara <takao.fujiwara1@gmail.com>
- * Copyright (C) 2023-2025 Red Hat, Inc.
+ * Copyright (C) 2023-2026 Takao Fujiwara <takao.fujiwara1@gmail.com>
+ * Copyright (C) 2023-2026 Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,8 @@
 #include "ibusenginesimpleprivate.h"
 
 
+static const char *destdir;
+
 static void
 save_compose_table_endianness (IBusComposeTableEx *compose_table,
                                gboolean            reverse_endianness)
@@ -39,6 +41,7 @@ save_compose_table_endianness (IBusComposeTableEx *compose_table,
     const char *destname_be = "sequences-big-endian";
     const char *destname_le = "sequences-little-endian";
     const char *destname;
+    char *destpath;
     GError *error = NULL;
 
     variant_table = ibus_compose_table_serialize (compose_table,
@@ -58,13 +61,18 @@ save_compose_table_endianness (IBusComposeTableEx *compose_table,
     else
         destname = destname_be;
 #endif
-    if (g_file_test (destname, G_FILE_TEST_EXISTS))
-        g_unlink (destname);
-    if (!g_file_set_contents (destname, contents, length, &error)) {
+    if (destdir)
+        destpath = g_build_filename (destdir, destname, NULL);
+    else
+        destpath = g_strdup (destname);
+    if (g_file_test (destpath, G_FILE_TEST_EXISTS))
+        g_unlink (destpath);
+    if (!g_file_set_contents (destpath, contents, length, &error)) {
         g_warning ("Failed to save compose table %s: %s",
-                   destname, error->message);
+                   destpath, error->message);
         g_error_free (error);
     }
+    g_free (destpath);
     g_variant_unref (variant_table);
 }
 
@@ -79,6 +87,9 @@ main (int argc, char *argv[])
     guint16 saved_version = 0;
     char *basename = NULL;
 
+    if (argc > 1) {
+        destdir = argv[1];
+    }
     path = g_strdup ("./Compose");
     if (!path || !g_file_test (path, G_FILE_TEST_EXISTS)) {
         g_clear_pointer (&path, g_free);
