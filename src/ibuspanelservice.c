@@ -1203,10 +1203,8 @@ ibus_panel_convert_text (IBusPanelService *panel,
                        text->text, error->message);
             g_error_free (error);
         }
-        if (new_attrs) {
-            g_object_unref (text->attrs);
-            text->attrs = new_attrs;
-        }
+        if (new_attrs)
+            ibus_text_set_attributes (text, new_attrs);
         break;
     case IBUS_PREEDIT_FORMAT_HINT:
         new_attrs = ibus_attr_list_copy_format_to_hint (text->attrs, &error);
@@ -1215,10 +1213,8 @@ ibus_panel_convert_text (IBusPanelService *panel,
                        text->text, error->message);
             g_error_free (error);
         }
-        if (new_attrs) {
-            g_object_unref (text->attrs);
-            text->attrs = new_attrs;
-        }
+        if (new_attrs)
+            ibus_text_set_attributes (text, new_attrs);
         break;
     default:
         g_assert_not_reached ();
