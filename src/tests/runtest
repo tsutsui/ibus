@@ -37,11 +37,13 @@ ibus-engine-switch
 ibus-compose
 ibus-keypress
 test-stress
+test-deserialize.py
 test-override-ibus.py
 "
 IBUS_SCHEMA_FILE='org.freedesktop.ibus.gschema.xml'
 GTK_QUERY_MODULE=gtk-query-immodules-3.0-32
 MACHINE=`uname -m`
+PYTHON_TEST_ARGS='-B'
 
 if test x"$MACHINE" = xx86_64 ; then
     GTK_QUERY_MODULE=gtk-query-immodules-3.0-64
@@ -137,6 +139,12 @@ run_test_case()
     cd $tstdir
 
     if echo "$tst" | grep -q 'python' ; then
+        # Convert the relative path to the absolute path.
+        if echo "$tst" | grep -q "\./" ; then
+            tst=`realpath $tst`
+        elif ! echo "$tst" | grep -q "/" ; then
+            tst=`command -v $tst`
+        fi
         name=`func_basename "$1"`
     else
         name=`func_basename "$tst"`
@@ -247,10 +255,10 @@ run_test_case()
             shift
             if echo "$tst" | grep -q '^/' ; then
                 # absolute path for Meson
-                "$interpreter" "$tst" ${1+"$@"}
+                "$interpreter" $PYTHON_TEST_ARGS "$tst" ${1+"$@"}
             else
                 # relative path for autotools
-                "$interpreter" "../$tst" ${1+"$@"}
+                "$interpreter" $PYTHON_TEST_ARGS "../$tst" ${1+"$@"}
             fi
         else
             # absolute path for Meson

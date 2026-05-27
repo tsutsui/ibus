@@ -1255,6 +1255,7 @@ ibus_panel_service_service_method_call (IBusService           *service,
         guint cursor = 0;
         gboolean visible = FALSE;
         IBusText *text;
+        gboolean is_dry_test;
 
         g_variant_get (parameters, "(vub)", &variant, &cursor, &visible);
         text = IBUS_TEXT (ibus_serializable_deserialize (variant));
@@ -1263,7 +1264,13 @@ ibus_panel_service_service_method_call (IBusService           *service,
 
         g_signal_emit (panel, panel_signals[UPDATE_PREEDIT_TEXT], 0, text, cursor, visible);
         _g_object_unref_if_floating (text);
-        g_dbus_method_invocation_return_value (invocation, NULL);
+        is_dry_test = !g_strcmp0 (object_path, IBUS_PATH_PANEL "/DryTest");
+        /* GDBusMethodInvocation does not provide instance methods for Python
+         * gobject-introspection binding so we cannot call
+         * g_dbus_method_invocation_return_value() and g_object_unref().
+         */
+        if (!is_dry_test)
+            g_dbus_method_invocation_return_value (invocation, NULL);
         return;
     }
 

@@ -4,6 +4,7 @@ pyoverrides_tests_env = {
   'PYTHONPATH': '@0@:@1@'.format(
           source_root / 'tests',
           python.get_variable('PYTHONPATH', '')),
+  'PYTHONMALLOC': 'malloc',
   'LD_LIBRARY_PATH': build_root / 'src',
   'GI_TYPELIB_PATH': build_root / 'src',
   'IBUS_KEYMAP_PATH': source_root / 'data' / 'keymaps',
@@ -11,6 +12,9 @@ pyoverrides_tests_env = {
 
 if get_option('tests')
   pyoverrides_tests = [
+    {
+      'name': 'test-deserialize',
+    },
     {
       'name': 'test-override-ibus',
     },
