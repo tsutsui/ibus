@@ -358,7 +358,6 @@ public class IBusEmojier : Gtk.ApplicationWindow {
      */
     private bool m_candidate_panel_mode;
     private IBus.LookupTable m_lookup_table;
-    private Gtk.Label[] m_candidates;
     private uint m_entry_notify_show_id;
     private uint m_entry_notify_disable_id;
     private Gtk.ProgressBar m_unicode_progress_bar;
@@ -1668,7 +1667,6 @@ public class IBusEmojier : Gtk.ApplicationWindow {
                         1, 1);
             n++;
 
-            m_candidates += label;
         }
         m_candidate_panel_is_visible = true;
         if (!m_is_up_side_down) {
