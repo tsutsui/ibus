@@ -1419,6 +1419,7 @@ _process_key_event_async (IBusWaylandIM       *wlim,
     async_event->key_serial = event->key_serial;
     async_event->time = event->time;
     async_event->key = event->key;
+    async_event->sym = event->sym;
     async_event->modifiers = event->modifiers & ~IBUS_RELEASE_MASK;
     async_event->state = event->state;
     async_event->wlim = wlim;
