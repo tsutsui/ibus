@@ -23,8 +23,8 @@
 
 
 # If ibus_released is 0, append beta to the version number.
-m4_define([ibus_released], [m4_esyscmd(sh -c '. ./meson.config;
-                                              echo -n $IBUS_RELEASED')])
+m4_define([ibus_released], [m4_esyscmd(sh -c '. ./meson.config 2>/dev/null;
+    test "x$IBUS_RELEASED" = "x1" && echo -n 1 || echo -n 0')])
 
 m4_define([ibus_major_version], [1])
 m4_define([ibus_minor_version], [5])

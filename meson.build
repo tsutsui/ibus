@@ -2,7 +2,7 @@ project('ibus',
   [ 'c', 'vala' ],
   version: '1.5.35@0@'.format(run_command(
       'sh', '-c',
-      '. @0@; test $IBUS_RELEASED -eq 1 && echo -n "" || echo -n "@1@"'.format(
+      '. "@0@" 2>/dev/null; test "x$IBUS_RELEASED" = "x1" && echo -n "" || echo -n "@1@"'.format(
           meson.current_source_dir() / 'meson.config',
           '-alpha1'),
       check: true).stdout().strip()),
@@ -97,32 +97,18 @@ json_glib_dep = dependency('json-glib-1.0', required: false)
 
 # Check to reconfigure build flags.
 # Could be failed due to no RPM_ARCH variable as meson-log.txt explaned.
-result = cc.run('''
+assert(cc.links('''
 int main (int argc, char *argv[]) {
   return 0;
-}''', name: 'test CFLAGS and LDFLAGS')
+}''',
+                name: 'test CFLAGS and LDFLAGS'),
+       'Failed to compile and link code with current CFLAGS and LDFLAGS')
 
-assert(result.returncode() == 0,
-      'Failed to compile a code with returncode @0@: @1@'.format(
-        result.returncode(),
-        result.stderr()
-))
 
 # I18N
-enable_nls = false
-enable_gnu_gettext = false
-if cc.has_header('libintl.h')
-  if cc.has_header_symbol('libintl.h', 'gettext')
-    enable_gnu_gettext = true
-  elif cc.find_library('intl', required: false).found()
-    enable_gnu_gettext = true
-  endif
-  enable_nls = true
-endif
-if not enable_gnu_gettext and cc.has_define('__USE_GNU_GETTEXT')
-  enable_nls = true
-  enable_gnu_gettext = true
-endif
+intl_dep = dependency('intl', required: false)
+enable_nls = intl_dep.found()
+enable_gnu_gettext = enable_nls
 
 # GTK
 gtk2_dep = dependency('gtk+-2.0', required: get_option('gtk2'))

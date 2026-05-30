@@ -59,13 +59,10 @@ ignore_file_pairs = [
 
 
 def run_git_subprocess_withreturncode(command):
-    try:
-        result = subprocess.run(command, shell = True)
-        if result.returncode != 0:
-            sys.exit(result.returncode)
-    except subprocess.CalledProcessError as e:
-        print(f'Failed to run git command {command}: {e}', file=sys.stderr)
-        sys.exit(1)
+    result = subprocess.run(command, shell = True)
+    if result.returncode != 0:
+        print(f'Failed to run git command {command}', file=sys.stderr)
+        sys.exit(result.returncode)
 
 
 cmd = ['meson', 'introspect', '--projectinfo', BUILD_ROOT]
@@ -131,7 +128,7 @@ run_git_subprocess_withreturncode(
 try:
     shutil.copy2('autogen.sh', f'{DIST_ROOT}')
     # Do you wish to copy configure and Makefile.in ?
-except FileNotFoundError as e:
+except OSError as e:
     print(f'Failed to copy autogen.sh: {e}', file=sys.stderr)
     sys.exit(1)
 
@@ -145,14 +142,14 @@ for ignore_file_pair in ignore_file_pairs:
         ignored_path = Path(_path)
         if ignored_path.exists():
             try:
-                if _name == name_str and \
-                   ignored_path.samefile(Path('data/keymaps')):
+                if _name == name_str and _path == 'data/keymaps':
                     if not ignored_path.is_dir():
                         print(f'{ignored_path} should be a directory',
                               file=sys.stderr)
                         sys.exit(1)
                     for child in ignored_path.iterdir():
-                        if not child.name in keymap_exception:
+                        if child.name not in keymap_exception and \
+                           not child.is_dir():
                             child.unlink()
                     print(f'Delete deprecated files in {ignored_path}')
                 else:
