@@ -26,6 +26,7 @@ ibus_engine_simple = executable('ibus-engine-simple',
 simple_xml = custom_target('simple.xml',
   output: 'simple.xml',
   command: [
+    python,
     find_program('gensimple.py'),
     '--input', xkbconfig_base / 'rules' / 'evdev.xml',
     '--output=@OUTPUT@',

@@ -182,7 +182,7 @@ xkbconfig = dependency('xkeyboard-config', required: false)
 if xkbconfig.found()
   xkbconfig_base = xkbconfig.get_variable(pkgconfig: 'xkb_base')
 else
-  xkbconfig_base = get_option('datadir') / 'X11' / 'xkb'
+  xkbconfig_base = get_option('prefix') / get_option('datadir') / 'X11' / 'xkb'
 endif
 
 # Wayland
