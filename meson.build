@@ -121,6 +121,8 @@ if enable_gtk2
     gtk2_im_module_dir = get_option('prefix') / get_option('libdir') / \
         'gtk-2.0' / gtk2_binary_version / 'immodules'
   endif
+else
+  gtk2_im_module_dir = ''
 endif
 
 enable_gtk3 = get_option('gtk3')
@@ -141,6 +143,7 @@ else
   if get_option('ui')
     error('UI option requires GTK3')
   endif
+  gtk3_im_module_dir = ''
 endif
 
 enable_gtk4 = get_option('gtk4')
@@ -154,6 +157,8 @@ if enable_gtk4
     gtk4_im_module_dir = get_option('prefix') / get_option('libdir') / \
         'gtk-4.0' / gtk4_binary_version / 'immodules'
   endif
+else
+  gtk4_im_module_dir = ''
 endif
 
 # X11 / XIM
@@ -398,7 +403,8 @@ summary({
   'Build gtk4 immodule':           enable_gtk4,
   'Build XIM agent server':        enable_xim,
   'Build wayland support':         enable_wayland,
-  'Build gdk3 wayland support':    gdk3_wayland_dep.found(),
+  'Build gdk3 wayland support':    enable_gtk3 ?
+                                     gdk3_wayland_dep.found() : false,
   'Build appindicator support':    get_option('appindicator'),
   'Build memconf modules':         enable_memconf,
   'Build dconf modules':           enable_dconf,
