@@ -2394,13 +2394,21 @@ input_method_unavailable_v2 (void                       *data,
 {
     IBusWaylandIM *wlim = data;
     IBusWaylandIMPrivate *priv;
+    gchar *seat_name;
     struct zwp_input_method_union input_method;
 
     g_return_if_fail (IBUS_IS_WAYLAND_IM (wlim));
     priv = ibus_wayland_im_get_instance_private (wlim);
-    g_return_if_fail (priv->seat);
-    g_warning ("Input method became unavailable on seat \"%s\".",
-               priv->seat->name);
+    g_assert (priv->seat);
+    seat_name = g_strdup (priv->seat->name);
+    if (!seat_name)
+        seat_name = g_strdup_printf ("wl_name:%u", priv->seat->wl_name);
+    g_warning ("%s becomes unavailable on seat \"%s\". "
+               "You might run another input method framework.",
+               priv->seat->input_method_v2 == input_method_v2 ? "Input method" :
+                       "Non-primary input method",
+               seat_name);
+    g_free (seat_name);
 
     if (priv->seat->active) {
         priv->seat->active = FALSE;
