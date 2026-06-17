@@ -1163,6 +1163,31 @@ input_method_keyboard_keymap (void                      *data,
          * sets %TRUE to `has_compositor_keymap`.
          */
         priv->seat->has_compositor_keymap = TRUE;
+        /* Resynchronize modifier state on the new virtual keyboard.
+         * Modifier events that arrived before the keymap were dropped
+         * (the virtual keyboard rejects them without a keymap), so the
+         * virtual keyboard's modifier state may be stale.
+         *
+         * There is only a single walue for the XKB group, contrary to
+         * modifiers (depressed, latched, locked) in Wayland.
+         * input_method_keyboard_modifiers() sends the `group` to
+         * xkb_state_update_mask() which updates `XKB_STATE_LAYOUT_LOCKED`
+         * and also adjust `XKB_STATE_LAYOUT_EFFECTIVE` with
+         * `XKB_STATE_LAYOUT_DEPRESSED`, `XKB_STATE_LAYOUT_LATCHED` and
+         * `XKB_STATE_LAYOUT_LOCKED` in the internal xkb_state_update_derived().
+         */
+        if (priv->key_sys.state) {
+            zwp_virtual_keyboard_v1_modifiers (
+                    priv->seat->virtual_keyboard,
+                    xkb_state_serialize_mods (priv->key_sys.state,
+                                              XKB_STATE_MODS_DEPRESSED),
+                    xkb_state_serialize_mods (priv->key_sys.state,
+                                              XKB_STATE_MODS_LATCHED),
+                    xkb_state_serialize_mods (priv->key_sys.state,
+                                              XKB_STATE_MODS_LOCKED),
+                    xkb_state_serialize_layout (priv->key_sys.state,
+                                                XKB_STATE_LAYOUT_EFFECTIVE));
+        }
     }
     if (priv->key_user.keymap && priv->key_user.state && priv->key_sys.state) {
         close (fd);
