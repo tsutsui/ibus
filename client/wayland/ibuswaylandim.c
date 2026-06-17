@@ -45,7 +45,8 @@ enum {
     PROP_BUS,
     PROP_DISPLAY,
     PROP_LOG,
-    PROP_VERBOSE
+    PROP_VERBOSE,
+    PROP_USE_SYS_KEYMAP
 };
 
 enum {
@@ -122,6 +123,7 @@ struct _IBusWaylandIMPrivate
 {
     FILE *log;
     gboolean verbose;
+    gboolean use_sys_keymap;
     struct wl_display *display;
     IMProtocolVersion version;
 
@@ -1120,6 +1122,10 @@ _bus_global_engine_changed_cb (IBusBus       *bus,
     desc = ibus_bus_get_global_engine (bus);
     g_assert (desc);
     g_assert (!g_strcmp0 (ibus_engine_desc_get_name (desc), engine_name));
+    /* Always update priv->key_user even if priv->use_sys_keymap is %FALSE
+     * so that ibus_wayland_im_set_property() switches %PROP_USE_SYS_KEYMAP
+     * immediately without checking the Gsettings.
+     */
     keymap = create_user_xkb_keymap (priv->xkb_context, desc);
     if (keymap && !ibus_xkb_keymap_update_with_keymap (&priv->key_user,
                                                        keymap)) {
@@ -1251,7 +1257,10 @@ ibus_wayland_im_post_key (IBusWaylandIM *wlim,
     default:
         g_assert_not_reached ();
     }
-    active_key = &priv->key_user;
+    if (priv->use_sys_keymap)
+        active_key = &priv->key_sys;
+    else
+        active_key = &priv->key_user;
     if (!active_key->state)
         return FALSE;
     if (!filtered) {
@@ -1273,7 +1282,17 @@ ibus_wayland_im_post_key (IBusWaylandIM *wlim,
         }
 #endif
     }
-    if (!filtered && (state != WL_KEYBOARD_KEY_STATE_RELEASED)) {
+    /* In case `use_sys_keymap` is %TRUE, IBus does not commit ASCII chars
+     * but forwards the key events to the focused application here.
+     * Because some applications treat the printable keys as control keys,
+     * E.g. game apps "hjkl" use the cursor move like VI mode.
+     * Unfortunately the Wayland input-method protocol does not provide
+     * the fallback logic after apps handle the key events like GTK3/2
+     * IM modules. But The input-method always should handles key events
+     * prior to apps.
+     */
+    if (!filtered && (state != WL_KEYBOARD_KEY_STATE_RELEASED) &&
+        !priv->use_sys_keymap) {
         ch = xkb_state_key_get_utf32 (active_key->state, code);
         if (!(modifiers & IBUS_MODIFIER_MASK & ~IBUS_SHIFT_MASK) &&
             ch && ch != '\n' && ch != '\b' && ch != '\r' && ch != '\t' &&
@@ -1707,7 +1726,7 @@ input_method_keyboard_key (void                      *data,
 
     g_return_if_fail (IBUS_IS_WAYLAND_IM (wlim));
     priv = ibus_wayland_im_get_instance_private (wlim);
-    if (!priv->key_user.state) {
+    if (!priv->key_user.state && !priv->key_sys.state) {
         ibus_wayland_im_key (wlim, key_serial, time, key, state);
         return;
     }
@@ -1733,7 +1752,7 @@ input_method_keyboard_key (void                      *data,
     /* xkb_key_get_syms() does not return the capital syms with Shift key. */
     if (priv->key_sys.state)
         event.sym = xkb_state_key_get_one_sym (priv->key_sys.state, code);
-    if (event.sym != IBUS_KEY_Multi_key)
+    if (event.sym != IBUS_KEY_Multi_key && priv->key_user.state)
         event.sym = xkb_state_key_get_one_sym (priv->key_user.state, code);
     event.modifiers = priv->modifiers;
     if (state == WL_KEYBOARD_KEY_STATE_RELEASED)
@@ -1768,7 +1787,10 @@ input_method_keyboard_modifiers (void                      *data,
 
     g_return_if_fail (IBUS_IS_WAYLAND_IM (wlim));
     priv = ibus_wayland_im_get_instance_private (wlim);
-    active_key = &priv->key_user;
+    if (priv->use_sys_keymap)
+        active_key = &priv->key_sys;
+    else
+        active_key = &priv->key_user;
     if (priv->key_user.state) {
         xkb_state_update_mask (priv->key_user.state, mods_depressed,
                                mods_latched, mods_locked, 0, 0, group);
@@ -2682,6 +2704,21 @@ ibus_wayland_im_class_init (IBusWaylandIMClass *class)
                         FALSE,
                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
+    /**
+     * IBusWaylandIM:use-system-keymap:
+     *
+     * Use system keymap.
+     * %TRUE if the session keymap is used forcibly instead of keymaps of the
+     * IBus XKB engines, otherwise %FALSE.
+     */
+    g_object_class_install_property (gobject_class,
+                    PROP_USE_SYS_KEYMAP,
+                    g_param_spec_boolean ("use-system-keymap",
+                        "use system keymap",
+                        "Use system keymap",
+                        FALSE,
+                        G_PARAM_READWRITE));
+
     /* install signals */
     /* this module can call ibus_input_context_focus_in() and the focus-in
      * signal can reach the IBus panel and this also can call
@@ -2949,6 +2986,9 @@ ibus_wayland_im_set_property (IBusWaylandIM *wlim,
         g_assert (!priv->verbose);
         priv->verbose = g_value_get_boolean (value);
         break;
+    case PROP_USE_SYS_KEYMAP:
+        priv->use_sys_keymap = g_value_get_boolean (value);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (wlim, prop_id, pspec);
     }
@@ -2977,6 +3017,9 @@ ibus_wayland_im_get_property (IBusWaylandIM *wlim,
         break;
     case PROP_VERBOSE:
         g_value_set_boolean (value, priv->verbose);
+        break;
+    case PROP_USE_SYS_KEYMAP:
+        g_value_set_boolean (value, priv->use_sys_keymap);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (wlim, prop_id, pspec);
