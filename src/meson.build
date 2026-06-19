@@ -37,6 +37,7 @@ ibus_sources = files(
 )
 
 ibus_headers = files(
+  'ibus-visibility.h',
   'ibus.h',
   'ibusaccelgroup.h',
   'ibusattribute.h',

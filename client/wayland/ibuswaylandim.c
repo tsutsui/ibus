@@ -1168,7 +1168,7 @@ input_method_keyboard_keymap (void                      *data,
          * (the virtual keyboard rejects them without a keymap), so the
          * virtual keyboard's modifier state may be stale.
          *
-         * There is only a single walue for the XKB group, contrary to
+         * There is only a single value for the XKB group, contrary to
          * modifiers (depressed, latched, locked) in Wayland.
          * input_method_keyboard_modifiers() sends the `group` to
          * xkb_state_update_mask() which updates `XKB_STATE_LAYOUT_LOCKED`
