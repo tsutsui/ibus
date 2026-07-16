@@ -7,6 +7,17 @@
 #define RED   "\033[0;31m"
 #define NC    "\033[0m"
 
+#define ibus_break_if_fail(expr) \
+    G_STMT_START { \
+        if (G_LIKELY (expr)) { \
+        } else { \
+            g_return_if_fail_warning (G_LOG_DOMAIN, \
+                                      G_STRFUNC, \
+                                      #expr); \
+            break; \
+        } \
+    } G_STMT_END
+
 static gchar *m_test_locale;
 static gchar *m_test_name;
 static gchar *m_session_name;
@@ -110,6 +121,67 @@ get_compose_path ()
     }
 
     return compose_path;
+}
+
+
+static void
+take_screenshot (void)
+{
+    gint64 t;
+    GDateTime *dt;
+    gchar *prgname = NULL;
+    gchar *casename = NULL;
+    gchar *filename = NULL;
+    gchar *path = NULL;
+    gchar *args[4] = { "gnome-screenshot", "--file", 0, 0 };
+    GSpawnFlags flags = G_SPAWN_SEARCH_PATH;
+    gchar *std_output = NULL;
+    gchar *std_error = NULL;
+    GError *error = NULL;
+
+    t = g_get_real_time ();
+    t = t / G_USEC_PER_SEC;
+    dt = g_date_time_new_from_unix_utc (t);
+    g_return_if_fail (dt);
+
+    while (FALSE) {
+        prgname = g_path_get_basename (g_get_prgname ());
+        casename = g_path_get_basename (g_test_get_path ());
+        ibus_break_if_fail (prgname);
+        ibus_break_if_fail (casename);
+        filename = g_strdup_printf ("%s%s-%02d%02d%02d.png",
+                                    prgname, casename,
+                                    g_date_time_get_hour (dt),
+                                    g_date_time_get_minute (dt),
+                                    g_date_time_get_second (dt));
+        ibus_break_if_fail (filename);
+        /* The ibus-compose-locales runs in a temp dir. */
+        path = g_build_filename (g_get_home_dir (), filename, NULL);
+        ibus_break_if_fail (path);
+        args[2] = path;
+        if (!g_spawn_sync (NULL, args, NULL, flags, NULL, NULL,
+                           &std_output, &std_error,
+                           NULL,
+                           &error)) {
+            g_warning ("Failed to take a screenshot: %s: %s: %s",
+                       error->message,
+                       std_output ? std_output : "",
+                       std_error ? std_error : "");
+            g_error_free (error);
+        } else if (std_error && *std_error) {
+            g_warning ("Failed to take a screenshot: %s: %s",
+                       std_output ? std_output : "",
+                       std_error);
+        }
+    }
+
+    g_free (prgname);
+    g_free (casename);
+    g_date_time_unref (dt);
+    g_free (filename);
+    g_free (path);
+    g_free (std_output);
+    g_free (std_error);
 }
 
 
@@ -436,9 +508,13 @@ set_engine_cb (GObject      *object,
         return;
     }
 
+    if (g_getenv ("IBUS_TEST_SCREENSHOT"))
+        take_screenshot ();
     send_key_event (m_compose_table);
     if (m_no_load_compose_table)
         send_key_event (m_no_load_compose_table);
+    if (g_getenv ("IBUS_TEST_SCREENSHOT"))
+        take_screenshot ();
 
 #if GTK_CHECK_VERSION (4, 0, 0)
     g_signal_handlers_disconnect_by_func (

@@ -301,23 +301,30 @@ if get_option('emoji-dict')
       ]
     endif
 
-    emoji_parser_gen = custom_target(gen_emoji_dict,
-      input: emoji_xml,
-      output: gen_emoji_dict,
-      command: [
-        emoji_parser,
-        '--unicode-emoji-dir', get_option('unicode-emoji-dir'),
-        '--xml', emoji_xml,
-        '--out', '@OUTPUT@',
-        emoji_parser_extra_opts,
-      ],
-      install_dir: pkgdatadir / 'dicts',
-      # The conditional installation does not work so use
-      # meson.add_install_script()
-      # install: fs.exists('@OUTPUT@') and fs.size('@OUTPUT@') > 0,
-      install: true,
-      build_by_default: true,
-    )
+    if fs.exists(meson.current_build_dir() / gen_emoji_dict)
+      install_data(
+        meson.current_build_dir() / gen_emoji_dict,
+        install_dir: pkgdatadir / 'dicts',
+      )
+    else
+      emoji_parser_gen = custom_target(gen_emoji_dict,
+        input: emoji_xml,
+        output: gen_emoji_dict,
+        command: [
+          emoji_parser,
+          '--unicode-emoji-dir', get_option('unicode-emoji-dir'),
+          '--xml', emoji_xml,
+          '--out', '@OUTPUT@',
+          emoji_parser_extra_opts,
+        ],
+        install_dir: pkgdatadir / 'dicts',
+        # The conditional installation does not work so use
+        # meson.add_install_script()
+        # install: fs.exists('@OUTPUT@') and fs.size('@OUTPUT@') > 0,
+        install: true,
+        build_by_default: true,
+      )
+    endif
   endforeach
 
   # There are cases where there was no .dict file to output

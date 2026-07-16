@@ -94,12 +94,12 @@ func_dirname () {
 
 # Kill ibus-daemon process and remove temporary files.
 func_cleanup () {
-    tstdir=$1
-    if test -f $tstdir/ibus-daemon.pid; then
-        . $tstdir/ibus-daemon.pid
+    tstdir="$1"
+    if test -f "$tstdir/ibus-daemon.pid"; then
+        . "$tstdir/ibus-daemon.pid"
         kill $IBUS_DAEMON_PID > /dev/null 2>&1
     fi
-    rm -fr $tstdir
+    rm -fr "$tstdir"
 }
 
 # Prepare component files necessary for testing, under components/.
@@ -115,13 +115,18 @@ func_copy_component () {
     fi
 }
 
-trap 'func_cleanup $tstdir' 1 2 3 15
+trap 'func_cleanup "$tstdir"' 1 2 3 15
 
-tst=$1; shift
-tstdir=tmp-`func_basename $tst`
+tst="$1"; shift
+real_tst="$tst"
+if echo "$tst" | grep -q 'python' ; then
+    real_tst="$1"
+fi
+real_tst_name=`func_basename "$real_tst"`
+tstdir="tmp-$real_tst_name"
 
 for t in $DISABLE_GUI_TESTS; do
-    if test $t = `func_basename $tst`; then
+    if test "$t" = "$real_tst_name"; then
         exit 77
     fi
 done
@@ -134,24 +139,22 @@ fi
 
 run_test_case()
 {
-    test -d $tstdir || mkdir $tstdir
-    backup_dir=$PWD
-    cd $tstdir
-
     if echo "$tst" | grep -q 'python' ; then
         # Convert the relative path to the absolute path.
         if echo "$tst" | grep -q "\./" ; then
-            tst=`realpath $tst`
+            tst=`realpath "$tst"`
         elif ! echo "$tst" | grep -q "/" ; then
-            tst=`command -v $tst`
+            tst=`command -v "$tst"`
         fi
-        name=`func_basename "$1"`
-    else
-        name=`func_basename "$tst"`
     fi
+
+    test -d "$tstdir" || mkdir "$tstdir"
+    backup_dir="$PWD"
+    cd "$tstdir"
+
     need_bus=no
     for t in $BUS_REQUIRED_TESTS; do
-        if test "$t" = "$name"; then
+        if test "$t" = "$real_tst_name"; then
             need_bus=yes
         fi
     done
@@ -165,10 +168,10 @@ run_test_case()
         func_copy_component "$test_top_srcdir/engine/simple.xml"
         func_copy_component "$test_top_srcdir/conf/memconf/memconf.xml"
 
-        IBUS_COMPONENT_PATH=$PWD/components
+        IBUS_COMPONENT_PATH="$PWD/components"
         export IBUS_COMPONENT_PATH
 
-        IBUS_ADDRESS_FILE=$PWD/ibus-daemon.pid
+        IBUS_ADDRESS_FILE="$PWD/ibus-daemon.pid"
         export IBUS_ADDRESS_FILE
 
         test $TEST_GTK -eq 1 && case $TEST_GTK_VERSION in
@@ -194,9 +197,9 @@ run_test_case()
                 echo "NOT FOUND $top_builddir/client/gtk3/im-ibus.so"
                 exit 1
             fi
-            GTK_IM_MODULE_FILE=$PWD/imcache
+            GTK_IM_MODULE_FILE="$PWD/imcache"
             export GTK_IM_MODULE_FILE
-            $GTK_QUERY_MODULE "$IM_IBUS_SO" > $GTK_IM_MODULE_FILE
+            $GTK_QUERY_MODULE "$IM_IBUS_SO" > "$GTK_IM_MODULE_FILE"
             ;;
         *)
             echo "NOT SUPPORT GTK_VERSION $TEST_GTK_VERSION"
@@ -204,19 +207,19 @@ run_test_case()
             ;;
         esac || :
 
-        cp "$test_top_srcdir/data/dconf/$IBUS_SCHEMA_FILE" $PWD
-        glib-compile-schemas $PWD 2>/dev/null
+        cp "$test_top_srcdir/data/dconf/$IBUS_SCHEMA_FILE" "$PWD"
+        glib-compile-schemas "$PWD" 2>/dev/null
         if test $? -ne 0 ; then
             echo "FAILED glib-compile-schemas"
             retval=1
             return
         fi
-        if test ! -f $PWD/gschemas.compiled ; then
+        if test ! -f "$PWD/gschemas.compiled" ; then
             echo "NOT FOUND $PWD/gschemas.compiled"
             retval=1
             return
         fi
-        export GSETTINGS_SCHEMA_DIR=$PWD
+        export GSETTINGS_SCHEMA_DIR="$PWD"
 
         # Start ibus-daemon.
         DAEMON_ARGS='
@@ -227,10 +230,10 @@ run_test_case()
             --verbose
         '
         if test x"$DISABLE_DAEMONIZE_IN_TESTS" = x ; then
-            $test_top_builddir/bus/ibus-daemon \
+            "$test_top_builddir/bus/ibus-daemon" \
                 $DAEMON_ARGS --daemonize;
         else
-            $test_top_builddir/bus/ibus-daemon \
+            "$test_top_builddir/bus/ibus-daemon" \
                 $DAEMON_ARGS &
         fi
 
@@ -250,8 +253,8 @@ run_test_case()
 
     if echo "$tst" | grep -q '^/' ; then
         if echo "$tst" | grep -q 'python' ; then
-            interpreter=$tst
-            tst=$1
+            interpreter="$tst"
+            tst="$1"
             shift
             if echo "$tst" | grep -q '^/' ; then
                 # absolute path for Meson
@@ -262,28 +265,28 @@ run_test_case()
             fi
         else
             # absolute path for Meson
-            "$tst" $test_top_srcdir/src/tests ${1+"$@"}
+            "$tst" "$test_top_srcdir/src/tests" ${1+"$@"}
         fi
     else
         # relative path for each execution
-        "../$tst" $test_top_srcdir/src/tests ${1+"$@"}
+        "../$tst" "$test_top_srcdir/src/tests" ${1+"$@"}
     fi
 
     retval=`expr $retval \| $?`
 
-    cd $backup_dir
+    cd "$backup_dir"
 
-    func_cleanup $tstdir
+    func_cleanup "$tstdir"
 }
 
-envfile=$srcdir/`func_basename $tst`.env
-if test -f $envfile ; then
+envfile="$srcdir/$real_tst_name".env
+if test -f "$envfile" ; then
     ENVS="`cat $envfile`"
 fi;
 if test x"$ENVS" = x ; then
     run_test_case $@
 else
-    LANG_backup=$LANG
+    LANG_backup="$LANG"
     i=1
     # mesonbuild/mtest.py:TAPParser.parse_line() says:
     # 'version number must be on the first line'
@@ -307,7 +310,7 @@ else
         unset COMPOSE_FILE
         export $e
         # TAP info should start with "# ".
-        echo "# Run `func_basename $tst` on $e"
+        echo "# Run $real_tst_name on $e"
         echo "# ======================="
         run_test_case $@
         name="/"`basename "$1"`":$LANG:$COMPOSE_FILE:$NO_LOAD_COMPOSE_FILE"
@@ -325,7 +328,7 @@ else
     `echo "$ENVS"`
 EOF_ENVS
     unset G_TEST_ROOT_PROCESS
-    export LANG=$LANG_backup
+    export LANG="$LANG_backup"
 fi
 
 exit $retval

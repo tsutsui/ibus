@@ -131,11 +131,14 @@ CLEANFILES += ibus-compose-locales
 endif
 test_execsdir = $(libexecdir)/installed-tests/ibus
 libexec_SCRIPTS = \
-  ibus-desktop-testing-autostart \
-  ibus-desktop-testing-module \
-  $(NULL)
+    ibus-desktop-testing-autostart \
+    ibus-desktop-testing-module \
+    $(NULL)
 
-test_frame_DATA = org.freedesktop.IBus.Desktop.Testing.desktop
+test_frame_DATA = \
+    100-ibus-ci.rules \
+    org.freedesktop.IBus.Desktop.Testing.desktop \
+    $(NULL)
 test_framedir = $(pkgdatadir)/tests
 org.freedesktop.IBus.Desktop.Testing.desktop: ibus-desktop-testing.desktop.in
 	$(AM_V_GEN) sed -e "s|\@libexecdir\@|$(libexecdir)|g" \
@@ -194,6 +197,7 @@ ibus-desktop-testing-runner: ibus-desktop-testing-runner.in
 EXTRA_DIST = \
     $(test_metas_in) \
     $(TESTS_SCRIPT) \
+    100-ibus-ci.rules \
     runtest \
     ibus-compose.basic \
     ibus-compose.basic2 \

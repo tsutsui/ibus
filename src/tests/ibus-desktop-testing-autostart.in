@@ -76,6 +76,7 @@ main()
     #run_monitor
     save_screen
     run_test_suite
+    dump_screen_of_test_cases
     finit
 }
 

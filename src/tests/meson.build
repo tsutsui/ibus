@@ -193,4 +193,9 @@ if get_option('install-tests')
     },
     install_dir: pkgdatadir / 'tests',
   )
+
+  install_data(
+    '100-ibus-ci.rules',
+    install_dir: pkgdatadir / 'tests',
+  )
 endif

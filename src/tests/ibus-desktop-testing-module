@@ -51,16 +51,19 @@ TEST_USER=itestuser
 TEST_USER_HOME=/export/home/$TEST_USER
 GDM_CONF=/run/gdm/custom.conf
 AUTOSTART_DESKTOP_FILE="org.freedesktop.IBus.Desktop.Testing.desktop"
+POLKIT_CUSTOM_RULE_FILE="100-ibus-ci.rules"
 TESTS=""
 TIMEOUT=300
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
+DQ='"'
 ENV_CHECK=0
 ENV_COMMANDS='
 id
 pwd
 pstree -asp $$
+tr "\\0" "\\n" < /proc/$$/environ
 gsettings list-recursively org.gnome.shell
 rpm -q gnome-shell-extension-no-overview gnome-shell gnome-session
 ps -ef | grep ibus | grep -v TMT | grep -v grep
@@ -132,7 +135,7 @@ delete-tests\
 check_tty()
 {
     TTY=`tty`
-    if echo $PROGNAME | grep -q runner ; then
+    if echo "$PROGNAME" | grep -q runner ; then
         if [ $ENABLED_SYSTEMD -eq 1 ] && [  $SESSION_IS_GNOME -eq 1 ] ; then
             # "not a tty" is correct with TMT tool
             if echo "$TTY" | grep -E 'tty|console' | grep -v "not a tty" ; then
@@ -217,6 +220,20 @@ save_screen()
 }
 
 
+dump_screen_of_test_cases()
+{
+    if test x"$SCREEN_LOG" != xSTDOUT ; then
+        return
+    fi
+    for png in "$TEST_USER_HOME"/*.png ; do
+        test -f "$png" || continue
+        echo "## Dump start $png" 2>>$TEST_LOG 1>>$TEST_LOG
+        base64 "$png"             2>>$TEST_LOG 1>>$TEST_LOG
+        echo "## Dump end $png"   2>>$TEST_LOG 1>>$TEST_LOG
+    done
+}
+
+
 create_test_user()
 {
     if grep -q $TEST_USER /etc/passwd; then
@@ -230,10 +247,11 @@ create_test_user()
 
 create_autologin_gdm()
 {
-    if test -f $GDM_CONF && grep -q $TEST_USER $GDM_CONF; then
+    mkdir -p  `dirname "$GDM_CONF"`
+    if test -f "$GDM_CONF" && grep -q "$TEST_USER" "$GDM_CONF"; then
         return;
     fi
-    cat > $GDM_CONF << _EOF_GDM_CONF
+    cat > "$GDM_CONF" << _EOF_GDM_CONF
 [daemon]
 AutomaticLoginEnable=true
 AutomaticLogin=$TEST_USER
@@ -256,7 +274,12 @@ create_xdg_autostart()
         exit 1
     fi
     mkdir -p "$TEST_USER_HOME/.config/autostart"
-    sed -e "s/\(^Exec=.*\)tests ibus\(.*\)/\1tests $TESTS\2/" "$desktop_file" \
+    ARGS_PLUS=""
+    if test x"$SCREEN_LOG" != x ; then
+        ARGS_PLUS="$ARGS_PLUS --screendump $SCREEN_LOG"
+    fi
+    sed -e "s/\(^Exec=.*\)tests ibus\(.*\)/\1tests $TESTS $ARGS_PLUS\2/" \
+        "$desktop_file" \
         > "$TEST_USER_HOME/.config/autostart/$AUTOSTART_DESKTOP_FILE"
     LINE="AutostartCondition=if-exists $TEST_USER_HOME/.config/autostart/$AUTOSTART_DESKTOP_FILE"
     echo "$LINE" >> "$TEST_USER_HOME/.config/autostart/$AUTOSTART_DESKTOP_FILE"
@@ -334,6 +357,21 @@ init_session()
         TESTS='ibus'
     fi
     check_tty
+    IS_SYSTEM_ACCOUNT=false
+    if [ "$LOGIN_USER" = "root" ] ; then
+            IS_SYSTEM_ACCOUNT=true
+    fi
+    if test x"$SESSION_LANG" = x ; then
+        SESSION_LANG=$LANG
+    fi
+    if test x"$SCREEN_LOG" != x ; then
+        export IBUS_TEST_SCREENSHOT=1
+    fi
+
+    if ! echo "$PROGNAME" | grep -q runner ; then
+        return
+    fi
+
     if [ $ENABLED_SYSTEMD -eq 1 ] && [  $SESSION_IS_GNOME -eq 1 ] ; then
         SESSION_FILE1="/usr/lib/systemd/system/gnome-headless-session@.service"
         SESSION_FILE2="/usr/lib/systemd/system/graphical.target"
@@ -365,13 +403,6 @@ init_session()
         touch $LOGIN_HOME/.config/gnome-initial-setup-done
         chown -R $LOGIN_USER $LOGIN_HOME/.config
     fi
-    IS_SYSTEM_ACCOUNT=false
-    if [ "$LOGIN_USER" = "root" ] ; then
-            IS_SYSTEM_ACCOUNT=true
-    fi
-    if test x"$SESSION_LANG" = x ; then
-        SESSION_LANG=$LANG
-    fi
     if test -f /var/lib/AccountsService/users/$LOGIN_USER; then
         sed -i -e "s/\(Language=\).*/\1$SESSION_LANG/" \
                 /var/lib/AccountsService/users/$LOGIN_USER
@@ -383,6 +414,35 @@ Language=$SESSION_LANG
 XSession=gnome
 SystemAccount=$IS_SYSTEM_ACCOUNT
 _EOF_AS_CONF
+    fi
+    # for ibus-keypress
+    ls -l /dev/uinput 2>>$TEST_LOG 1>>$TEST_LOG
+    chgrp itestuser /dev/uinput
+    chmod g+rw /dev/uinput
+    ls -l /dev/uinput 2>>$TEST_LOG 1>>$TEST_LOG
+
+    # aciton.id 'org.freedesktop.fwupd.refresh-remote' and
+    # aciton.message "Authentication is required to update the metadata for a "
+    # "configured remote used for firmware updates" is defined in
+    # /usr/share/polkit-1/actions/org.freedesktop.fwupd.policy file
+    # and that message is shown in "Authentication Required" dialog in
+    # gnome-shell headless session in GNOME 50.
+    # action.id 'org.freedesktop.Flatpak.metadata-update' and
+    # action.id 'org.freedesktop.Flatpak.modify-repo' are also shown.
+    rule_file="$AUTOSTART_DESKTOP_DIR/$POLKIT_CUSTOM_RULE_FILE"
+    if test ! -f "$rule_file" ; then
+        print_log -e "${RED}FAIL${NC}: ${RED}ERROR${NC}: No $rule_file"
+        exit 1
+    fi
+    POLKIT_CUSTOM_RULE_DIR="/etc/polkit-1/rules.d"
+    if test ! -d "$POLKIT_CUSTOM_RULE_DIR" ; then
+        mkdir -p  "$POLKIT_CUSTOM_RULE_DIR"
+        chmod 755 "$POLKIT_CUSTOM_RULE_DIR"
+    fi
+    if test ! -f "$POLKIT_CUSTOM_RULE_DIR/$POLKIT_CUSTOM_RULE_FILE" ; then
+        cp "$rule_file" "$POLKIT_CUSTOM_RULE_DIR/$POLKIT_CUSTOM_RULE_FILE"
+        chmod 644 "$POLKIT_CUSTOM_RULE_DIR/$POLKIT_CUSTOM_RULE_FILE"
+        systemctl restart polkit
     fi
 
     # Prevent from launching a XDG dialog
@@ -503,19 +563,39 @@ init_gnome()
     ## gnome-headless-session does not pull LANG from AccountsService.
     ##
     if [ $LOGIN_USER != $USER ] ; then
-        SHELL_SERVICE_FILE="org.gnome.Shell@wayland.service"
+        SHELL_SERVICE_FILE="org.gnome.Shell@.service"
+        SHELL_SERVICE_DEST_FILE="org.gnome.Shell@user.service"
         SYSTEMD_USER_DIR="$TEST_USER_HOME/.config/systemd/user"
         ENV_USER_DIR="$TEST_USER_HOME/.config/environment.d"
         LOCALE_CONF="$ENV_USER_DIR/ibus.conf"
+        # If GNOME version < 50
+        if test ! -f "$SYSTEMD_SYSTEM_DIR/$SHELL_SERVICE_FILE" ; then
+            SHELL_SERVICE_FILE="org.gnome.Shell@wayland.service"
+            SHELL_SERVICE_DEST_FILE="$SHELL_SERVICE_FILE"
+        else
+            GNOME_SHELL_WAYLAND_COMMAND="$GNOME_SHELL_WAYLAND_COMMAND --mode=%i"
+        fi
+        if test x"$SCREEN_LOG" != x ; then
+            GNOME_SHELL_WAYLAND_COMMAND="$GNOME_SHELL_WAYLAND_COMMAND --unsafe-mode"
+        fi
         if test $HAVE_GRAPHICS -ne 1 ; then
             if test ! -f "$SYSTEMD_USER_DIR/$SHELL_SERVICE_FILE" ; then
+                PREV_DIR="$PWD"
                 mkdir -p "$SYSTEMD_USER_DIR"
-                pushd "$SYSTEMD_USER_DIR"
+                cd "$SYSTEMD_USER_DIR"
+                # The user systemd and $GNOME_SHELL_WAYLAND_COMMAND no longer
+                # loads $LOCALE_CONF file
+                # So sets Environment in the service file.
                 sed -e "s|^ExecStart=.*|ExecStart=$GNOME_SHELL_WAYLAND_COMMAND|" \
-                    $SYSTEMD_SYSTEM_DIR/$SHELL_SERVICE_FILE \
-                    > $SHELL_SERVICE_FILE
-                diff $SYSTEMD_SYSTEM_DIR/$SHELL_SERVICE_FILE $SHELL_SERVICE_FILE
-                popd
+                    $SYSTEMD_SYSTEM_DIR/$SHELL_SERVICE_FILE | \
+                sed -e "/^ExecStart=/i\\
+Environment=LANG=$DQ$SESSION_LANG$DQ" \
+                    > "$SHELL_SERVICE_DEST_FILE"
+                echo "# diff $SYSTEMD_SYSTEM_DIR/$SHELL_SERVICE_FILE" \
+                     "$SHELL_SERVICE_DEST_FILE" 2>>$TEST_LOG 1>>$TEST_LOG
+                diff "$SYSTEMD_SYSTEM_DIR/$SHELL_SERVICE_FILE" \
+                     "$SHELL_SERVICE_DEST_FILE" 2>>$TEST_LOG 1>>$TEST_LOG
+                cd "$PREV_DIR"
             fi
             mkdir -p "$ENV_USER_DIR"
             cat > "$LOCALE_CONF" << _EOF_LOCALE_CONF
@@ -590,7 +670,7 @@ operate_desktop_with_systemd()
         "start") systemctl isolate graphical.target
                  echo ""
                  ;;
-        "stop")  init 3;;
+        "stop")  systemctl isolate multi-user.target;;
         "")      print_log -e "${RED}FAIL${NC}: ${RED}ERROR${NC}: Wrong command $COMMAND"
                  exit 1;;
         esac
@@ -808,6 +888,8 @@ run_gnome_desktop_testing_runner()
     fail=0
     if echo $PROGNAME | grep -q autostart ; then
         export IBUS_DAEMON_WITH_SYSTEMD=1
+        #export GSK_RENDERER=cairo
+        export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.`uname -m`.json
     fi
     for tst in $TESTS; do
         tst_dir="$TEST_CASE_DIR/$tst"
@@ -840,7 +922,7 @@ EOF
 run_test_suite()
 {
     print_log -e "Start test suite `date '+%F %H:%M:%S:%N'`"
-    if echo $PROGNAME | grep -q runner ; then
+    if echo "$PROGNAME" | grep -q runner ; then
         if [ $ENABLED_SYSTEMD -eq 1 ] && [  $SESSION_IS_GNOME -eq 1 ] ; then
             wait_for_systemd_autostart
             return
@@ -903,7 +985,7 @@ finit()
             echo "$LEFT_CALENDAR" | awk '{print $2}' | xargs kill
         fi
     fi
-    if echo $PROGNAME | grep -q runner ; then
+    if echo "$PROGNAME" | grep -q runner ; then
         if [ $ENABLED_SYSTEMD -eq 1 ] && [  $SESSION_IS_GNOME -eq 1 ] ; then
             operate_desktop_with_systemd "stop"
         fi
