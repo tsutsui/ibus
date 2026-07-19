@@ -362,6 +362,7 @@ static void
 ibus_wayland_im_reset_modifiers (IBusWaylandIM *wlim)
 {
     IBusWaylandIMPrivate *priv;
+    xkb_mod_mask_t mods_locked = 0;
     xkb_layout_index_t  group = 0;
 
     g_assert (IBUS_IS_WAYLAND_IM (wlim));
@@ -373,11 +374,15 @@ ibus_wayland_im_reset_modifiers (IBusWaylandIM *wlim)
     priv->pressed_dead_key = 0;
     priv->released_dead_key_wo_press = 0;
     if (priv->key_user.state && priv->key_sys.state) {
+        mods_locked = xkb_state_serialize_mods (priv->key_sys.state,
+                                                XKB_STATE_LOCKED);
         group = xkb_state_serialize_layout (priv->key_sys.state,
                                             XKB_STATE_LAYOUT_LOCKED);
-        input_method_keyboard_modifiers (wlim, NULL, 0, 0, 0, 0, group);
+        input_method_keyboard_modifiers (wlim, NULL, 0, 0, 0,
+                                         mods_locked,
+                                         group);
     } else {
-        priv->modifiers = 0;
+        priv->modifiers &= IBUS_LOCK_MASK;
     }
 }
 
@@ -600,6 +605,7 @@ ibus_wayland_im_update_virtual_depressed (IBusWaylandIM  *wlim,
     IBusWaylandIMPrivate *priv;
     uint32_t code = key + 8;
     xkb_mod_mask_t new_mods_depressed;
+    xkb_mod_mask_t mods_locked;
     xkb_keysym_t system_sym = sym;
 
     if (filtered)
@@ -613,10 +619,13 @@ ibus_wayland_im_update_virtual_depressed (IBusWaylandIM  *wlim,
 
     priv = ibus_wayland_im_get_instance_private (wlim);
     new_mods_depressed = *mods_depressed;
+    mods_locked = xkb_state_serialize_mods (active_key->state,
+                                            XKB_STATE_LOCKED);
 
-    if ((modifiers & ~IBUS_RELEASE_MASK ) != new_mods_depressed) {
+    if ((modifiers & ~IBUS_RELEASE_MASK ) !=
+        (new_mods_depressed | mods_locked)) {
         g_warning ("IBus modifiers %X is different from XKB depressed %X",
-                   modifiers, new_mods_depressed);
+                   modifiers, new_mods_depressed | mods_locked);
     }
     if (priv->key_sys.state)
         system_sym = xkb_state_key_get_one_sym (priv->key_sys.state, code);
@@ -772,7 +781,7 @@ ibus_wayland_im_update_virtual_xkb_state (IBusWaylandIM *wlim,
 
     priv = ibus_wayland_im_get_instance_private (wlim);
     mods_locked = xkb_state_serialize_mods (active_key->state,
-                                            XKB_STATE_MODS_LOCKED);
+                                            XKB_STATE_LOCKED);
     /* XKB group layout is configured in the system keymap but not the
      * user keymap which always includes a single layout.
      */
@@ -2220,9 +2229,15 @@ input_method_keyboard_key (void                      *data,
     /* xkb_key_get_syms() does not return the capital syms with Shift key. */
     if (priv->key_sys.state)
         event.sym = xkb_state_key_get_one_sym (priv->key_sys.state, code);
+    /* The position of Caps_Lock, Control, ISO_Next_Group, Multi_key keysyms
+     * can be customzied by each desktop configuration.
+     */
     switch (event.sym) {
-    case IBUS_KEY_Multi_key:
+    case IBUS_KEY_Caps_Lock:
+    case IBUS_KEY_Control_L:
+    case IBUS_KEY_Control_R:
     case IBUS_KEY_ISO_Next_Group:
+    case IBUS_KEY_Multi_key:
         break;
     default:
         if (priv->key_user.state)
@@ -2337,11 +2352,11 @@ input_method_keyboard_modifiers (void                      *data,
         }
     }
     if (active_key->state) {
-        /* CapsLock needs XKB_STATE_MODS_LOCKED */
+        /* CapsLock needs XKB_STATE_LOCKED */
         mask = xkb_state_serialize_mods (active_key->state,
                                          XKB_STATE_DEPRESSED |
                                          XKB_STATE_LATCHED |
-                                         XKB_STATE_MODS_LOCKED);
+                                         XKB_STATE_LOCKED);
     }
     if (priv->verbose) {
         struct xkb_state *state = active_key->state;
@@ -2356,7 +2371,7 @@ input_method_keyboard_modifiers (void                      *data,
                      xkb_state_serialize_mods (state, XKB_STATE_LATCHED) :
                      0xFFFFFFFF,
                  state ?
-                     xkb_state_serialize_mods (state, XKB_STATE_MODS_LOCKED) :
+                     xkb_state_serialize_mods (state, XKB_STATE_LOCKED) :
                      0xFFFFFFFF);
         fflush (priv->log);
     }
