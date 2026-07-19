@@ -144,7 +144,7 @@ take_screenshot (void)
     dt = g_date_time_new_from_unix_utc (t);
     g_return_if_fail (dt);
 
-    while (FALSE) {
+    do {
         prgname = g_path_get_basename (g_get_prgname ());
         casename = g_path_get_basename (g_test_get_path ());
         ibus_break_if_fail (prgname);
@@ -173,7 +173,7 @@ take_screenshot (void)
                        std_output ? std_output : "",
                        std_error);
         }
-    }
+    } while (FALSE);
 
     g_free (prgname);
     g_free (casename);

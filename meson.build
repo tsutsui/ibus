@@ -391,6 +391,7 @@ install_emptydir(get_option('datadir') / 'ibus' / 'engine')
 summary({
   'Install prefix':                get_option('prefix'),
   'CFLAGS':                        get_option('c_args'),
+  'LDFLAGS':                       get_option('c_link_args'),
   'Build endianness':              endian,
   'PYTHON':                        python.full_path(),
   'Build PyGObject':               enable_pygobject,
