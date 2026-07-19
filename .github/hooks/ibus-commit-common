@@ -100,13 +100,15 @@ check_commit_id_from_stdin()
 {
     for ID in $(cat < /dev/stdin | grep '^Fixes: ' | awk '{print $2}')
     do
-        echo "$ID" | grep -q "^http" && {
-            echo $ID | grep -q "$REPO/commit/" && {
-                ID=$(basename $ID)
+        echo "$ID" | grep -q "^#" || {
+            echo "$ID" | grep -q "^http" && {
+                echo $ID | grep -q "$REPO/commit/" && {
+                    ID=$(basename $ID)
+                    check_commit_id $ID
+                } || :
+            } || {
                 check_commit_id $ID
-            } || :
-        } || {
-            check_commit_id $ID
+            }
         }
     done
 }
