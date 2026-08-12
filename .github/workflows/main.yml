@@ -302,7 +302,7 @@ jobs:
         netbsd_release: ["10.1", "11.0"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           #repository: ibus/ibus
           fetch-depth: 200
