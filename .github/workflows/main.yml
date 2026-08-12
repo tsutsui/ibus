@@ -324,8 +324,8 @@ jobs:
           copyback: false
           # Check https://github.com/NetBSD/pkgsrc/blob/trunk/inputmethod/ibus/Makefile to check dependencies
           prepare: |
-            ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xbase.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
-            ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-`uname -r`/amd64/binary/sets/xcomp.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
+            ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-$(uname -r)/amd64/binary/sets/xbase.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
+            ftp -o - https://cdn.NetBSD.org/pub/NetBSD/NetBSD-$(uname -r)/amd64/binary/sets/xcomp.tar.xz | tar -C / -zxpf - ./usr/X11R7/bin ./usr/X11R7/include ./usr/X11R7/lib ./usr/X11R7/share
             # default python version since pkgsrc-2025Q4
             export PYPKGPREFIX=py313
             # netbsd-vm has installed pkgsrc glib2 so explicitly update it
