@@ -293,8 +293,13 @@ jobs:
           fi;
 
   build-netbsd:
-    name: "build (NetBSD/amd64 10.1 with pkgsrc)"
+    name: "build (NetBSD/amd64 ${{ matrix.netbsd_release }} with pkgsrc)"
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        netbsd_release: ["10.1", "11.0"]
 
     steps:
       - uses: actions/checkout@v4
@@ -315,7 +320,7 @@ jobs:
       - name: Install packages and run autogen and make (on the NetBSD VM)
         uses: vmactions/netbsd-vm@v1
         with:
-          release: "10.1"
+          release: "${{ matrix.netbsd_release }}"
           copyback: false
           # Check https://github.com/NetBSD/pkgsrc/blob/trunk/inputmethod/ibus/Makefile to check dependencies
           prepare: |
